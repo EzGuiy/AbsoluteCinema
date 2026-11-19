@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ABSOLUTE CINEMA ACCOUNTING</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --bg-body: #0d0d10;
+            --bg-sidebar: #101014;
+            --bg-card: #15151a;
+            --bg-card-subtle: #191920;
+            --border-card: #22222a;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --accent-red: #e50914;
+            --accent-red-hover: #ff2d38;
+            --accent-red-glow: rgba(229, 9, 20, 0.35);
+            --accent-green: #12b76a;
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e9f;
+            --text-muted: #5d5d6c;
+            --sidebar-w: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: var(--sidebar-w);
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-card);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        /* Brand Header */
+        .brand-header {
+            padding: 24px 22px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .brand-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #ffffff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-symbol {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #000;
+            position: relative;
+            display: flex;
+        }
+
+        .logo-symbol::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #000;
+            transform: translateX(-50%);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .brand-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.8px;
+        }
+
+        .brand-sub {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent-red);
+            letter-spacing: 2px;
+        }
+
+        /* Nav Menu */
+        .nav-list {
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+            list-style: none;
+            margin: 0;
+        }
+
+        .nav-item {
+            width: 100%;
+        }
+
+        .nav-link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        .nav-link-item:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-link-item.active {
+            color: #ffffff;
+            background: rgba(229, 9, 20, 0.08);
+            border: 1px solid var(--accent-red);
+        }
+
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .nav-link-item:hover .nav-icon,
+        .nav-link-item.active .nav-icon {
+            color: var(--accent-red);
+        }
+
+        .nav-texts {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.25;
+        }
+
+        .nav-title-th {
+            font-size: 13.5px;
+            font-weight: 500;
+        }
+
+        .nav-sub-en {
+            font-size: 9.5px;
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link-item.active .nav-sub-en {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Sidebar Footer / User Profile */
+        .sidebar-user-footer {
+            padding: 18px 20px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #252530;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .user-text-box {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .user-name-th {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .user-role-en {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+        }
+
+        /* ===== CONTENT AREA ===== */
+        .main-wrapper {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-body);
+        }
+
+        .content-body {
+            padding: 30px 36px 60px;
+            flex: 1;
+        }
+
+        /* Live System Badge */
+        .system-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(18, 183, 106, 0.1);
+            border: 1px solid rgba(18, 183, 106, 0.3);
+            color: var(--accent-green);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: livePulse 2s infinite;
+        }
+
+        @@keyframes livePulse {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+
+        /* Responsive */
+        .mobile-header-bar {
+            display: none;
+            padding: 14px 20px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-card);
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-sidebar-toggle {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 998;
+        }
+
+        @@media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+            .main-wrapper {
+                margin-left: 0;
+            }
+            .mobile-header-bar {
+                display: flex;
+            }
+            .content-body {
+                padding: 20px 16px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Mobile Header Bar -->
+    <div class="mobile-header-bar">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="brand-logo-icon" style="width:26px; height:26px;">
+                <i class="bi bi-film" style="color:#000; font-size:14px;"></i>
+            </div>
+            <span style="font-size:14px; font-weight:700;">ABSOLUTE <span style="color:var(--accent-red);">CINEMA</span></span>
+        </div>
+        <button class="btn-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Logo & Header -->
+        <div class="brand-header">
+            <div class="brand-logo-icon">
+                <i class="bi bi-film" style="color:#000; font-size:17px;"></i>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">ABSOLUTE</span>
+                <span class="brand-sub">CINEMA</span>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <ul class="nav-list">
+            <!-- 1. ภาพรวมประจำวัน (Daily Overview) -->
+            <li class="nav-item">
+                <a asp-controller="Accountant" asp-action="Dashboard"
+                   class="nav-link-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+                    <i class="bi bi-grid-fill nav-icon"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">ภาพรวมประจำวัน</span>
+                        <span class="nav-sub-en">DAILY OVERVIEW</span>
+                    </div>
+                </a>
+            </li>
+
+            <!-- 2. รายรับ-รายจ่าย (Income & Expenses) -->
+            <li class="nav-item">
+                <a asp-controller="Accountant" asp-action="IncomeExpenses"
+                   class="nav-link-item @(ViewContext.RouteData.Values["action"]?.ToString() == "IncomeExpenses" ? "active" : "")">
+                    <i class="bi bi-bar-chart-line-fill nav-icon"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">รายรับ-รายจ่าย</span>
+                        <span class="nav-sub-en">INCOME & EXPENSES</span>
+                    </div>
+                </a>
+            </li>
+
+            <!-- 3. ใบเสร็จรับเงินและใบเสร็จ (Invoices & Receipts) -->
+            <li class="nav-item">
+                <a asp-controller="Accountant" asp-action="Invoices"
+                   class="nav-link-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Invoices" ? "active" : "")">
+                    <i class="bi bi-receipt nav-icon"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">ใบเสร็จรับเงินและใบเสร็จ</span>
+                        <span class="nav-sub-en">INVOICES & RECEIPTS</span>
+                    </div>
+                </a>
+            </li>
+
+            <!-- 4. แชทในองค์กร (Organization Chat) -->
+            <li class="nav-item">
+                <a asp-controller="Accountant" asp-action="Chat"
+                   class="nav-link-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Chat" ? "active" : "")">
+                    <i class="bi bi-chat-dots-fill nav-icon"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">แชทในองค์กร</span>
+                        <span class="nav-sub-en">ORGANIZATION CHAT</span>
+                    </div>
+                </a>
+            </li>
+
+            <!-- 5. คืนเงิน (Refund Requests) -->
+            <li class="nav-item">
+                <a asp-controller="Accountant" asp-action="Refunds"
+                   class="nav-link-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Refunds" ? "active" : "")">
+                    <i class="bi bi-arrow-counterclockwise nav-icon"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">คืนเงิน</span>
+                        <span class="nav-sub-en">REFUND REQUESTS</span>
+                    </div>
+                </a>
+            </li>
+
+            <!-- Switch Roles -->
+            <li class="nav-item" style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+                <a asp-controller="Manager" asp-action="Index" class="nav-link-item">
+                    <i class="bi bi-briefcase nav-icon text-warning"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">ผู้จัดการ (Manager)</span>
+                        <span class="nav-sub-en">MANAGER CONSOLE</span>
+                    </div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Staff" asp-action="Index" class="nav-link-item">
+                    <i class="bi bi-clipboard-check nav-icon text-info"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">พนักงานบริการ (Floor Staff)</span>
+                        <span class="nav-sub-en">FLOOR OPERATIONS</span>
+                    </div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Operations" asp-action="Index" class="nav-link-item">
+                    <i class="bi bi-speedometer2 nav-icon text-success"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">ฝ่ายเทคนิค (Tech Ops)</span>
+                        <span class="nav-sub-en">TECH OPERATIONS</span>
+                    </div>
+                </a>
+            </li>
+            <!-- Back to Cinema Home -->
+            <li class="nav-item">
+                <a asp-controller="Home" asp-action="Index" class="nav-link-item">
+                    <i class="bi bi-arrow-left-circle nav-icon"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">กลับสู่หน้าโรงภาพยนตร์</span>
+                        <span class="nav-sub-en">ABSOLUTE CINEMA HOME</span>
+                    </div>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Bottom Profile -->
+        <div class="sidebar-user-footer">
+            <div class="user-avatar-circle">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="user-text-box">
+                <span class="user-name-th">ณิชา พงษ์ศิริ</span>
+                <span class="user-role-en">HEAD ACCOUNTANT</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+        <main class="content-body">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="background:#0d2818; border-color:#12b76a; color:#34d399;">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="background:#280d0d; border-color:#e50914; color:#ff6b7d;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

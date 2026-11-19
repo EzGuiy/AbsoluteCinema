@@ -1,0 +1,555 @@
+@{
+    ViewData["Title"] = "โปรโมชั่นพิเศษ - ABSOLUTE CINEMA";
+}
+
+<style>
+    :root {
+        --cinema-gold: #c69c43;
+        --cinema-gold-light: #dfb76c;
+        --cinema-gold-dark: #8c6a23;
+        --cinema-card: #111116;
+        --cinema-border: rgba(255, 255, 255, 0.05);
+    }
+
+    .promo-header-wrap {
+        margin-bottom: 36px;
+    }
+
+    .promo-title-main {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--cinema-gold-light);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .promo-subtitle-main {
+        font-size: 13.5px;
+        color: #7d7d8c;
+        font-weight: 300;
+    }
+
+    /* ===== PROMO GRID 3 COLUMNS ===== */
+    .promo-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-bottom: 70px;
+    }
+
+    .promo-item-card {
+        background: var(--cinema-card);
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--cinema-border);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .promo-item-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(198, 156, 67, 0.4);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Green Banner Header (ตามแบบในรูป) */
+    .promo-banner-img {
+        width: 100%;
+        height: 145px;
+        background: linear-gradient(135deg, #0d3822 0%, #175433 45%, #0a2919 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        border-bottom: 1px solid rgba(46, 160, 67, 0.2);
+    }
+
+    .promo-banner-pattern {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(circle at 30% 50%, rgba(74, 222, 128, 0.25) 0%, transparent 60%);
+        z-index: 1;
+    }
+
+    .promo-banner-graphic {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .graphic-coins {
+        font-size: 42px;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+    }
+
+    .graphic-text-block {
+        line-height: 1.1;
+    }
+
+    .graphic-tag-small {
+        font-size: 11px;
+        font-weight: 700;
+        color: #a7f3d0;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .graphic-tag-big {
+        font-size: 22px;
+        font-weight: 900;
+        color: #ffffff;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .promo-badge-tag {
+        position: absolute;
+        top: 12px;
+        right: 14px;
+        background: rgba(0, 0, 0, 0.45);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.4);
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        z-index: 2;
+    }
+
+    .promo-item-body {
+        padding: 20px 22px 14px;
+    }
+
+    .promo-item-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 8px;
+    }
+
+    .promo-item-desc {
+        font-size: 12.5px;
+        color: #8d8d9c;
+        line-height: 1.65;
+        margin-bottom: 14px;
+        font-weight: 300;
+    }
+
+    .promo-meta-info {
+        font-size: 11.5px;
+        color: #6d6d7c;
+        line-height: 1.6;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        padding-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .promo-meta-info span {
+        display: block;
+    }
+
+    .promo-item-footer {
+        padding: 10px 22px 18px;
+        text-align: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .btn-promo-details {
+        color: var(--cinema-gold-light);
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-weight: 400;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-promo-details:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+    /* ===== LUXURY FOOTER ===== */
+    .cinema-luxury-footer {
+        background: #08080c;
+        border-top: 1px solid rgba(198, 156, 67, 0.15);
+        margin: 0 -24px -40px;
+        padding: 60px 0 30px;
+    }
+
+    .footer-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .footer-columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.6fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .footer-logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #dfb76c;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .footer-about-text {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.8;
+        font-weight: 300;
+        margin-bottom: 20px;
+    }
+
+    .footer-social-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .footer-social-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888899;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .footer-social-btn:hover {
+        border-color: #dfb76c;
+        color: #dfb76c;
+    }
+
+    .footer-group-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #dfb76c;
+        margin-bottom: 16px;
+    }
+
+    .footer-links-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links-list li {
+        margin-bottom: 10px;
+    }
+
+    .footer-links-list a {
+        color: #7d7d8c;
+        font-size: 13px;
+        text-decoration: none;
+        transition: color 0.2s;
+        font-weight: 300;
+    }
+
+    .footer-links-list a:hover {
+        color: #dfb76c;
+    }
+
+    .footer-contact-info {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.9;
+        font-weight: 300;
+    }
+
+    .footer-bottom-row {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #555566;
+    }
+
+    .footer-luxury-tag {
+        color: #8c6a23;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 992px) {
+        .promo-cards-grid { grid-template-columns: repeat(2, 1fr); }
+        .footer-columns { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 600px) {
+        .promo-cards-grid { grid-template-columns: 1fr; }
+        .footer-columns { grid-template-columns: 1fr; }
+    }
+</style>
+
+<!-- Header -->
+<div class="promo-header-wrap">
+    <h1 class="promo-title-main">โปรโมชั่นพิเศษ</h1>
+    <div class="promo-subtitle-main">เลือกรับโปรโมชั่นที่ตรงกับความคุ้มค่าและความหรูหราของสมาชิก CINEMAX GOLD</div>
+</div>
+
+<!-- Promo Grid -->
+<div class="promo-cards-grid">
+    <!-- Card 1: สมาชิกใหม่ ลดทันที 20% -->
+    <div class="promo-item-card">
+        <div>
+            <div class="promo-banner-img">
+                <div class="promo-banner-pattern"></div>
+                <div class="promo-badge-tag">MEMBER</div>
+                <div class="promo-banner-graphic">
+                    <div class="graphic-coins">🎟️</div>
+                    <div class="graphic-text-block">
+                        <div class="graphic-tag-small">SPECIAL OFFER</div>
+                        <div class="graphic-tag-big">PROMO GOLD</div>
+                    </div>
+                </div>
+            </div>
+            <div class="promo-item-body">
+                <div class="promo-item-title">สมาชิกใหม่ ลดทันที 20%</div>
+                <div class="promo-item-desc">
+                    สิทธิพิเศษสำหรับลูกค้าใหม่เมื่อสมัครสมาชิกและสำรองที่นั่งในโรงภาพยนตร์ระบบใดก็ได้ครั้งแรก รับส่วนลดทันที 20%
+                </div>
+                <div class="promo-meta-info">
+                    <span>ระยะเวลา: วันนี้ - 31 ธ.ค. 2569</span>
+                    <span>*เงื่อนไข: สำหรับการสำรองที่นั่งขั้นต่ำ 1 ที่นั่ง</span>
+                </div>
+            </div>
+        </div>
+        <div class="promo-item-footer">
+            <a href="#" class="btn-promo-details">ดูเงื่อนไขเพิ่มเติม</a>
+        </div>
+    </div>
+
+    <!-- Card 2: วันพุธสุดคุ้ม ลด 50% ทุกที่นั่ง -->
+    <div class="promo-item-card">
+        <div>
+            <div class="promo-banner-img">
+                <div class="promo-banner-pattern"></div>
+                <div class="promo-badge-tag">WEDNESDAY</div>
+                <div class="promo-banner-graphic">
+                    <div class="graphic-coins">🍿</div>
+                    <div class="graphic-text-block">
+                        <div class="graphic-tag-small">SAVE 50%</div>
+                        <div class="graphic-tag-big">WEDNESDAY</div>
+                    </div>
+                </div>
+            </div>
+            <div class="promo-item-body">
+                <div class="promo-item-title">วันพุธสุดคุ้ม ลด 50% ทุกที่นั่ง</div>
+                <div class="promo-item-desc">
+                    พิเศษทุกวันพุธ ชมภาพยนตร์ในเครือ Cinemax Gold ในราคาพิเศษลดสูงสุด 50% ทุกเรื่องและทุกรอบฉาย
+                </div>
+                <div class="promo-meta-info">
+                    <span>ระยะเวลา: ทุกวันพุธตลอดทั้งปี</span>
+                    <span>*เฉพาะที่นั่งประเภท Deluxe และ Honeymoon</span>
+                </div>
+            </div>
+        </div>
+        <div class="promo-item-footer">
+            <a href="#" class="btn-promo-details">ดูเงื่อนไขเพิ่มเติม</a>
+        </div>
+    </div>
+
+    <!-- Card 3: ซื้อ 2 ฟรี 1 ทุกวันศุกร์ -->
+    <div class="promo-item-card">
+        <div>
+            <div class="promo-banner-img">
+                <div class="promo-banner-pattern"></div>
+                <div class="promo-badge-tag">WEEKEND</div>
+                <div class="promo-banner-graphic">
+                    <div class="graphic-coins">🎬</div>
+                    <div class="graphic-text-block">
+                        <div class="graphic-tag-small">BUY 2 GET 1</div>
+                        <div class="graphic-tag-big">FRIDAY NIGHT</div>
+                    </div>
+                </div>
+            </div>
+            <div class="promo-item-body">
+                <div class="promo-item-title">ซื้อ 2 ฟรี 1 ทุกวันศุกร์</div>
+                <div class="promo-item-desc">
+                    ต้อนรับวันหยุดสุดสัปดาห์ด้วยโปรโมชั่นสุดคุ้ม ซื้อบัตรชมภาพยนตร์ 2 ที่นั่งแถมฟรีอีก 1 ที่นั่งทันที
+                </div>
+                <div class="promo-meta-info">
+                    <span>ระยะเวลา: ทุกวันศุกร์ตลอดทั้งปี</span>
+                    <span>*เฉพาะการซื้อและชมภาพยนตร์ในรอบเดียวกัน</span>
+                </div>
+            </div>
+        </div>
+        <div class="promo-item-footer">
+            <a href="#" class="btn-promo-details">ดูเงื่อนไขเพิ่มเติม</a>
+        </div>
+    </div>
+
+    <!-- Card 4: Student Card ลดพิเศษ 30% -->
+    <div class="promo-item-card">
+        <div>
+            <div class="promo-banner-img">
+                <div class="promo-banner-pattern"></div>
+                <div class="promo-badge-tag">STUDENT</div>
+                <div class="promo-banner-graphic">
+                    <div class="graphic-coins">🎓</div>
+                    <div class="graphic-text-block">
+                        <div class="graphic-tag-small">SAVE 30%</div>
+                        <div class="graphic-tag-big">STUDENT PASS</div>
+                    </div>
+                </div>
+            </div>
+            <div class="promo-item-body">
+                <div class="promo-item-title">Student Card ลดพิเศษ 30%</div>
+                <div class="promo-item-desc">
+                    สิทธิพิเศษสำหรับนักเรียน-นักศึกษา แสดงบัตรนักเรียนเพื่อรับส่วนลดตั๋วหนัง 30% สำหรับทุกรอบฉาย
+                </div>
+                <div class="promo-meta-info">
+                    <span>ระยะเวลา: วันนี้ - 31 ธ.ค. 2569</span>
+                    <span>*เฉพาะรอบฉายก่อนเวลา 18:00 น.</span>
+                </div>
+            </div>
+        </div>
+        <div class="promo-item-footer">
+            <a href="#" class="btn-promo-details">ดูเงื่อนไขเพิ่มเติม</a>
+        </div>
+    </div>
+
+    <!-- Card 5: Birthday Month ดูฟรี 1 เรื่อง -->
+    <div class="promo-item-card">
+        <div>
+            <div class="promo-banner-img">
+                <div class="promo-banner-pattern"></div>
+                <div class="promo-badge-tag">BIRTHDAY</div>
+                <div class="promo-banner-graphic">
+                    <div class="graphic-coins">🎂</div>
+                    <div class="graphic-text-block">
+                        <div class="graphic-tag-small">FREE TICKET</div>
+                        <div class="graphic-tag-big">BIRTHDAY GIFT</div>
+                    </div>
+                </div>
+            </div>
+            <div class="promo-item-body">
+                <div class="promo-item-title">Birthday Month ดูฟรี 1 เรื่อง</div>
+                <div class="promo-item-desc">
+                    ฉลองวันเกิดอย่างมีความสุขกับ Cinemax Gold รับสิทธิ์ชมภาพยนตร์ฟรี 1 ที่นั่งในเดือนเกิดของคุณ
+                </div>
+                <div class="promo-meta-info">
+                    <span>ระยะเวลา: ตลอดเดือนเกิดของสมาชิก</span>
+                    <span>*แสดงบัตรประชาชนเพื่อยืนยันตัวตน</span>
+                </div>
+            </div>
+        </div>
+        <div class="promo-item-footer">
+            <a href="#" class="btn-promo-details">ดูเงื่อนไขเพิ่มเติม</a>
+        </div>
+    </div>
+
+    <!-- Card 6: M-Pass สมาชิกรายเดือนสุดคุ้ม -->
+    <div class="promo-item-card">
+        <div>
+            <div class="promo-banner-img">
+                <div class="promo-banner-pattern"></div>
+                <div class="promo-badge-tag">VIP PASS</div>
+                <div class="promo-banner-graphic">
+                    <div class="graphic-coins">👑</div>
+                    <div class="graphic-text-block">
+                        <div class="graphic-tag-small">UNLIMITED</div>
+                        <div class="graphic-tag-big">GOLD M-PASS</div>
+                    </div>
+                </div>
+            </div>
+            <div class="promo-item-body">
+                <div class="promo-item-title">M-Pass สมาชิกรายเดือนสุดคุ้ม</div>
+                <div class="promo-item-desc">
+                    ดูหนังไม่อั้นตลอดทั้งเดือน เพียงสมัครแพ็กเกจ M-Pass รายเดือน รับสิทธิ์ดูได้ทุกเรื่อง ทุกรอบ ไม่จำกัดจำนวนครั้ง
+                </div>
+                <div class="promo-meta-info">
+                    <span>ระยะเวลา: วันนี้ - 31 ธ.ค. 2569</span>
+                    <span>*เงื่อนไขเป็นไปตามที่โรงภาพยนตร์กำหนด</span>
+                </div>
+            </div>
+        </div>
+        <div class="promo-item-footer">
+            <a href="#" class="btn-promo-details">ดูเงื่อนไขเพิ่มเติม</a>
+        </div>
+    </div>
+</div>
+
+<!-- LUXURY FOOTER -->
+<footer class="cinema-luxury-footer">
+    <div class="footer-inner">
+        <div class="footer-columns">
+            <div>
+                <div class="footer-logo-title">
+                    <i class="fas fa-crown"></i> ABSOLUTE CINEMA
+                </div>
+                <p class="footer-about-text">
+                    สัมผัสประสบการณ์การชมภาพยนตร์ระดับพรีเมียมอันน่าตื่นตา พร้อมบริการสุดหรูหรา สะดวกสบาย และเทคโนโลยีคุณภาพและเสียงที่ดีที่สุดในประเทศ
+                </p>
+                <div class="footer-social-row">
+                    <a href="#" class="footer-social-btn"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fas fa-link"></i></a>
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-group-title">เมนูหลัก</div>
+                <ul class="footer-links-list">
+                    <li><a asp-controller="Home" asp-action="Index">หน้าแรก</a></li>
+                    <li><a asp-controller="Home" asp-action="Promotions">โปรโมชัน</a></li>
+                    <li><a asp-controller="Home" asp-action="NowShowing">หนังกำลังฉาย</a></li>
+                    <li><a asp-controller="Home" asp-action="ComingSoon">โปรแกรมหน้า</a></li>
+                    <li><a asp-controller="Home" asp-action="Special">รอบพิเศษ</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">บริการลูกค้า</div>
+                <ul class="footer-links-list">
+                    <li><a href="#">คำถามที่พบบ่อย</a></li>
+                    <li><a href="#">นโยบายความเป็นส่วนตัว</a></li>
+                    <li><a href="#">ข้อกำหนดการใช้งาน</a></li>
+                    <li><a href="#">ติดต่อเรา</a></li>
+                    <li><a href="#">แผนที่เว็บไซต์</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">ที่ตั้งและติดต่อ</div>
+                <div class="footer-contact-info">
+                    ชั้น 5 สยามพารากอน แขวงปทุมวัน เขตปทุมวัน<br>
+                    กรุงเทพมหานคร 10330<br><br>
+                    โทร : 02-123-4567<br>
+                    อีเมล : <a href="mailto:contact@cinemaxgold.com">contact@cinemaxgold.com</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom-row">
+            <div>&copy; @DateTime.Now.Year CINEMAX GOLD. All rights reserved.</div>
+            <div class="footer-luxury-tag">LUXURY CINEMA EXPERIENCE</div>
+        </div>
+    </div>
+</footer>

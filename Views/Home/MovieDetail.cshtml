@@ -1,0 +1,702 @@
+@model Kawin_67091861_002.ViewModels.MovieDetailViewModel
+@{
+    ViewData["Title"] = Model.Title + " - Absolute Cinema";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="movie-detail-container">
+    <!-- Breadcrumb -->
+    <div class="detail-breadcrumb">
+        <a asp-controller="Home" asp-action="Index">หน้าแรก</a>
+        <span>&rsaquo;</span>
+        <a asp-controller="Home" asp-action="NowShowing">ภาพยนตร์</a>
+        <span>&rsaquo;</span>
+        <span class="current">@Model.Title</span>
+    </div>
+
+    <!-- Hero Banner & Movie Header -->
+    <div class="movie-hero-card">
+        <div class="hero-bg-overlay"></div>
+        <div class="movie-header-content">
+            <!-- Movie Poster -->
+            <div class="poster-wrapper">
+                <div class="poster-art">
+                    @if (!string.IsNullOrEmpty(Model.PosterUrl))
+                    {
+                        <img src="@Model.PosterUrl" alt="@Model.Title" class="poster-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    }
+                    <div class="poster-graphic @(string.IsNullOrEmpty(Model.PosterUrl) ? "" : "hidden-fallback")">
+                        <div class="poster-emblem">&#9818;</div>
+                        <div class="poster-title-short">@Model.Title</div>
+                        <div class="poster-badge">ABSOLUTE LUXURY</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movie Info -->
+            <div class="movie-hero-info">
+                <div class="badge-group">
+                    <span class="badge-tag gold-tag"><i class="bi bi-badge-hd"></i> @Model.FormatTag</span>
+                    <span class="badge-tag age-tag">@Model.AgeRating</span>
+                    <span class="badge-tag genre-tag">@Model.Genre</span>
+                </div>
+
+                <h1 class="movie-title">@Model.Title</h1>
+
+                <div class="meta-row">
+                    <span class="meta-item"><i class="bi bi-clock"></i> @Model.DurationMins นาที</span>
+                    <span class="meta-separator">&bull;</span>
+                    <span class="meta-item rating-stars">
+                        <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+                        <span class="rating-value">@Model.Rating.ToString("0.0")/10</span>
+                    </span>
+                    <span class="meta-separator">&bull;</span>
+                    <span class="meta-item price-range">เริ่มต้น ฿@Model.PriceMin.ToString("N0") - ฿@Model.PriceMax.ToString("N0")</span>
+                </div>
+
+                <div class="credits-list">
+                    <div class="credit-item">
+                        <span class="credit-label">ผู้กำกับ:</span>
+                        <span class="credit-value">@Model.Director</span>
+                    </div>
+                    <div class="credit-item">
+                        <span class="credit-label">นักแสดงนำ:</span>
+                        <span class="credit-value">@Model.LeadCast</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content 2 Columns: Synopsis & Showtimes -->
+    <div class="detail-grid">
+        <!-- Left Column: Synopsis -->
+        <div class="detail-left-col">
+            <div class="content-panel">
+                <h2 class="section-title">
+                    <span class="gold-bar"></span>
+                    เรื่องย่อภาพยนตร์
+                </h2>
+                <div class="synopsis-content">
+                    <p>@Model.Description</p>
+                    <p>สัมผัสอรรถรสความบันเทิงระดับพรีเมียมด้วยระบบภาพ 4K Laser Projection และระบบเสียงรอบทิศทางสามมิติ Dolby Atmos ที่สมบูรณ์แบบที่สุดในเอเชียตะวันออกเฉียงใต้ พร้อมบริการเลานจ์ VIP และที่นั่งปรับเอน 180 องศา</p>
+                </div>
+
+                <div class="highlight-boxes">
+                    <div class="highlight-box">
+                        <div class="hl-icon"><i class="bi bi-volume-up-fill"></i></div>
+                        <div class="hl-text">
+                            <strong>Dolby Atmos 128 Channels</strong>
+                            <span>ระบบเสียง 3 มิติ สมจริงทุกมิติเสียง</span>
+                        </div>
+                    </div>
+                    <div class="highlight-box">
+                        <div class="hl-icon"><i class="bi bi-projector-fill"></i></div>
+                        <div class="hl-text">
+                            <strong>4K Laser Projection</strong>
+                            <span>ภาพคมชัดสูงสุด สีสันสดใสสมจริง</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Showtimes Selection -->
+        <div class="detail-right-col">
+            <div class="content-panel showtime-panel">
+                <h2 class="section-title">
+                    <span class="gold-bar"></span>
+                    เลือกรอบฉายภาพยนตร์
+                </h2>
+
+                <!-- Date Picker Pills -->
+                <div class="date-pills-container">
+                    @foreach (var dateOption in Model.AvailableDates)
+                    {
+                        <a href="@Url.Action("MovieDetail", "Home", new { id = Model.MovieId, date = dateOption.Date.ToString("yyyy-MM-dd") })"
+                           class="date-pill @(dateOption.IsSelected ? "active" : "")">
+                            <span class="pill-day">@dateOption.DayNameTh</span>
+                            <span class="pill-date">@dateOption.DateNumberTh</span>
+                        </a>
+                    }
+                </div>
+
+                <!-- Cinema Showtimes Groups -->
+                <div class="cinemas-list">
+                    @foreach (var cinema in Model.CinemaShowtimeGroups)
+                    {
+                        <div class="cinema-group" data-cinema-id="@cinema.CinemaId" data-price="@cinema.PricePerSeat" data-cinema-name="@cinema.CinemaName">
+                            <div class="cinema-group-header">
+                                <span class="cinema-title">@cinema.CinemaName - ฿@cinema.PricePerSeat.ToString("N0")</span>
+                            </div>
+                            <div class="time-slots-container">
+                                @foreach (var slot in cinema.Slots)
+                                {
+                                    <button type="button"
+                                            class="time-slot-btn @(slot.IsSelected ? "active" : "")"
+                                            data-showtime-id="@slot.ShowtimeId"
+                                            data-cinema-name="@cinema.CinemaName"
+                                            data-time="@slot.TimeStr"
+                                            data-price="@cinema.PricePerSeat"
+                                            onclick="selectShowtime(this)">
+                                        <span class="slot-time">@slot.TimeStr</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Selected Showtime Summary Bar & CTA Button -->
+                <div class="selected-showtime-bar">
+                    <div class="bar-summary">
+                        <div class="bar-label">รอบที่เลือก:</div>
+                        <div class="bar-val-line">
+                            <span id="selectedCinemaTime" class="bar-name">Gold Class (Premium) - 15:00 น.</span>
+                            <span class="bar-divider">|</span>
+                            <span class="bar-price"><span id="selectedPriceDisplay">2,400</span> บาท / ที่นั่ง</span>
+                        </div>
+                    </div>
+                    <a id="btnProceedToSeat" href="@Url.Action("SelectSeat", "Home", new { showtimeId = Model.SelectedShowtimeId ?? 103, movieId = Model.MovieId })" class="btn-select-seat">
+                        เลือกที่นั่ง <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .movie-detail-container {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+        color: #e5e5ec;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    .detail-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        margin-bottom: 25px;
+        color: #8b8b98;
+    }
+
+    .detail-breadcrumb a {
+        color: #afafbe;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .detail-breadcrumb a:hover {
+        color: #dfb76c;
+    }
+
+    .detail-breadcrumb .current {
+        color: #dfb76c;
+        font-weight: 500;
+    }
+
+    /* Hero Banner Card */
+    .movie-hero-card {
+        position: relative;
+        background: linear-gradient(135deg, #151522 0%, #0d0d16 100%);
+        border: 1px solid rgba(223, 183, 108, 0.2);
+        border-radius: 16px;
+        padding: 36px 40px;
+        margin-bottom: 35px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .hero-bg-overlay {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 50%;
+        background: radial-gradient(circle at 80% 30%, rgba(223, 183, 108, 0.12) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .movie-header-content {
+        position: relative;
+        display: flex;
+        gap: 36px;
+        align-items: center;
+        z-index: 1;
+    }
+
+    .poster-wrapper {
+        flex-shrink: 0;
+        width: 220px;
+        height: 310px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid rgba(223, 183, 108, 0.4);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(223, 183, 108, 0.2);
+        background: #0d0d14;
+    }
+
+    .poster-art {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .poster-graphic {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #1f1b2b 0%, #0a0a10 100%);
+        text-align: center;
+        padding: 15px;
+    }
+
+    .hidden-fallback {
+        display: none !important;
+    }
+
+    .poster-emblem {
+        font-size: 3.5rem;
+        color: #dfb76c;
+        margin-bottom: 10px;
+        text-shadow: 0 0 15px rgba(223, 183, 108, 0.6);
+    }
+
+    .poster-title-short {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.3;
+        margin-bottom: 12px;
+    }
+
+    .poster-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #dfb76c;
+        border: 1px solid rgba(223, 183, 108, 0.5);
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+
+    .movie-hero-info {
+        flex: 1;
+    }
+
+    .badge-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .badge-tag {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .gold-tag {
+        background: rgba(223, 183, 108, 0.15);
+        border: 1px solid #dfb76c;
+        color: #dfb76c;
+    }
+
+    .age-tag {
+        background: rgba(220, 53, 69, 0.2);
+        border: 1px solid #dc3545;
+        color: #ff6b7d;
+    }
+
+    .genre-tag {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #d1d1db;
+    }
+
+    .movie-title {
+        font-size: 2.3rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 16px 0;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .meta-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 0.95rem;
+        color: #a4a4b5;
+        margin-bottom: 22px;
+    }
+
+    .meta-separator {
+        color: #4f4f62;
+    }
+
+    .rating-stars {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .stars {
+        color: #dfb76c;
+        letter-spacing: 2px;
+        font-size: 1.05rem;
+    }
+
+    .rating-value {
+        color: #dfb76c;
+        font-weight: 700;
+    }
+
+    .price-range {
+        color: #e2c17c;
+        font-weight: 500;
+    }
+
+    .credits-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 0.95rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 16px;
+    }
+
+    .credit-item {
+        display: flex;
+        gap: 12px;
+    }
+
+    .credit-label {
+        width: 90px;
+        color: #8b8b9a;
+        flex-shrink: 0;
+    }
+
+    .credit-value {
+        color: #e2e2ec;
+    }
+
+    /* 2 Columns Detail Grid */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 30px;
+    }
+
+    .content-panel {
+        background: #12121c;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 24px;
+    }
+
+    .gold-bar {
+        width: 4px;
+        height: 22px;
+        background: #dfb76c;
+        border-radius: 2px;
+    }
+
+    .synopsis-content p {
+        font-size: 1rem;
+        line-height: 1.8;
+        color: #b8b8c8;
+        margin-bottom: 16px;
+    }
+
+    .highlight-boxes {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .highlight-box {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: rgba(223, 183, 108, 0.05);
+        border: 1px solid rgba(223, 183, 108, 0.2);
+        border-radius: 10px;
+        padding: 14px 18px;
+    }
+
+    .hl-icon {
+        font-size: 1.6rem;
+        color: #dfb76c;
+        flex-shrink: 0;
+    }
+
+    .hl-text strong {
+        display: block;
+        color: #ffffff;
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+    }
+
+    .hl-text span {
+        color: #8b8b9e;
+        font-size: 0.82rem;
+    }
+
+    /* Right Showtime Panel */
+    .showtime-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Date Picker Pills */
+    .date-pills-container {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        margin-bottom: 26px;
+        scrollbar-width: thin;
+    }
+
+    .date-pill {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 90px;
+        padding: 12px 14px;
+        background: #181824;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: #b5b5c5;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .date-pill:hover {
+        border-color: #dfb76c;
+        color: #dfb76c;
+        background: #1f1f2e;
+    }
+
+    .date-pill.active {
+        background: #dfb76c;
+        border-color: #dfb76c;
+        color: #0b0b12;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(223, 183, 108, 0.4);
+    }
+
+    .pill-day {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .pill-date {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    /* Cinemas & Showtimes */
+    .cinemas-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .cinema-group {
+        background: #171723;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 18px 20px;
+    }
+
+    .cinema-group-header {
+        margin-bottom: 14px;
+    }
+
+    .cinema-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #dfb76c;
+        letter-spacing: 0.3px;
+    }
+
+    .time-slots-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .time-slot-btn {
+        background: #1f1f2d;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        font-size: 1.05rem;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .time-slot-btn:hover {
+        border-color: #dfb76c;
+        color: #dfb76c;
+        background: #272738;
+        transform: translateY(-2px);
+    }
+
+    .time-slot-btn.active {
+        background: #dfb76c;
+        border-color: #dfb76c;
+        color: #0b0b12;
+        box-shadow: 0 4px 16px rgba(223, 183, 108, 0.45);
+        transform: translateY(-2px);
+    }
+
+    /* Selected Bar at Bottom */
+    .selected-showtime-bar {
+        margin-top: auto;
+        background: linear-gradient(90deg, #181826 0%, #1c1c2e 100%);
+        border: 1px solid rgba(223, 183, 108, 0.3);
+        border-radius: 12px;
+        padding: 18px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .bar-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .bar-label {
+        font-size: 0.8rem;
+        color: #8b8b9a;
+    }
+
+    .bar-val-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+    }
+
+    .bar-name {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .bar-divider {
+        color: #555566;
+    }
+
+    .bar-price {
+        color: #dfb76c;
+        font-weight: 600;
+    }
+
+    .btn-select-seat {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #dfb76c;
+        color: #0b0b12;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 12px 28px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 15px rgba(223, 183, 108, 0.3);
+        white-space: nowrap;
+    }
+
+    .btn-select-seat:hover {
+        background: #ecc57c;
+        color: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(223, 183, 108, 0.5);
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+        .movie-header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .poster-wrapper {
+            margin: 0 auto;
+        }
+    }
+</style>
+
+<script>
+    let currentShowtimeId = @(Model.SelectedShowtimeId ?? 103);
+    const movieId = @Model.MovieId;
+
+    function selectShowtime(btn) {
+        // Remove active class from all buttons
+        document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const showtimeId = btn.getAttribute('data-showtime-id');
+        const cinemaName = btn.getAttribute('data-cinema-name');
+        const timeStr = btn.getAttribute('data-time');
+        const price = parseInt(btn.getAttribute('data-price')).toLocaleString();
+
+        currentShowtimeId = showtimeId;
+
+        // Update summary bar
+        document.getElementById('selectedCinemaTime').innerText = cinemaName + ' - ' + timeStr + ' น.';
+        document.getElementById('selectedPriceDisplay').innerText = price;
+
+        // Update proceed button link
+        const btnProceed = document.getElementById('btnProceedToSeat');
+        btnProceed.href = '/Home/SelectSeat?showtimeId=' + showtimeId + '&movieId=' + movieId;
+    }
+</script>
+

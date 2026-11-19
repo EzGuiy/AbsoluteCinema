@@ -1,0 +1,588 @@
+@model Kawin_67091861_002.ViewModels.InvoicesListViewModel
+@{
+    ViewData["Title"] = "ใบแจ้งหนี้และใบเสร็จ";
+    Layout = "_LayoutAccountant";
+}
+
+<div class="page-top-header">
+    <div>
+        <div class="header-pre-title">INVOICES & RECEIPTS</div>
+        <h1 class="header-main-title">ใบแจ้งหนี้และใบเสร็จ</h1>
+    </div>
+    <div class="system-live-badge">
+        <span class="live-dot"></span>
+        <span>SYSTEM LIVE</span>
+    </div>
+</div>
+
+<!-- Tabs Bar -->
+<div class="invoices-tabs-bar">
+    <a href="@Url.Action("Invoices", new { tab = "invoices" })" 
+       class="tab-btn @(Model.ActiveTab == "invoices" ? "active" : "")">
+        ใบแจ้งหนี้ (Invoices)
+    </a>
+    <a href="@Url.Action("Invoices", new { tab = "receipts" })" 
+       class="tab-btn @(Model.ActiveTab == "receipts" ? "active" : "")">
+        ใบเสร็จชำระเงิน (Payment Receipts)
+    </a>
+</div>
+
+<!-- Controls Toolbar -->
+<div class="toolbar-row">
+    <div class="toolbar-left">
+        <!-- Search Input -->
+        <form method="get" asp-action="Invoices" class="search-form-box">
+            <input type="hidden" name="tab" value="@Model.ActiveTab" />
+            <input type="hidden" name="status" value="@Model.StatusFilter" />
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" name="q" value="@Model.SearchQuery" 
+                   placeholder="ค้นหาเลขที่เอกสาร, ผู้จ่าย..." 
+                   class="search-input" />
+        </form>
+
+        <!-- Status Filter Dropdown -->
+        <div class="dropdown">
+            <button class="filter-select-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                สถานะ: @(Model.StatusFilter switch {
+                    "รอชำระ" => "รอชำระ",
+                    "ชำระแล้ว" => "ชำระแล้ว",
+                    "เกินกำหนด" => "เกินกำหนด",
+                    _ => "ทั้งหมด"
+                })
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark custom-dropdown-menu">
+                <li><a class="dropdown-item" href="@Url.Action("Invoices", new { tab = Model.ActiveTab, q = Model.SearchQuery, status = "all" })">สถานะ: ทั้งหมด</a></li>
+                <li><a class="dropdown-item" href="@Url.Action("Invoices", new { tab = Model.ActiveTab, q = Model.SearchQuery, status = "รอชำระ" })">สถานะ: รอชำระ</a></li>
+                <li><a class="dropdown-item" href="@Url.Action("Invoices", new { tab = Model.ActiveTab, q = Model.SearchQuery, status = "ชำระแล้ว" })">สถานะ: ชำระแล้ว</a></li>
+                <li><a class="dropdown-item" href="@Url.Action("Invoices", new { tab = Model.ActiveTab, q = Model.SearchQuery, status = "เกินกำหนด" })">สถานะ: เกินกำหนด</a></li>
+            </ul>
+        </div>
+
+        <!-- Date Range Filter Button -->
+        <button type="button" class="date-range-btn" onclick="filterDatePrompt()">
+            <i class="bi bi-clock"></i> ช่วงวันที่ (Date Range)
+        </button>
+    </div>
+
+    <div class="toolbar-right">
+        <!-- Download PDF Button -->
+        <button type="button" class="btn-download-pdf" onclick="window.print()">
+            <i class="bi bi-download"></i> ดาวน์โหลด PDF
+        </button>
+
+        <!-- Create Invoice Button -->
+        <button type="button" class="btn-create-invoice" data-bs-toggle="modal" data-bs-target="#createInvoiceModal">
+            <i class="bi bi-plus-circle"></i> สร้างใบแจ้งหนี้ใหม่
+        </button>
+    </div>
+</div>
+
+<!-- Table Container -->
+<div class="table-card">
+    @if (Model.ActiveTab == "invoices")
+    {
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width: 16%;">เลขที่เอกสาร</th>
+                    <th style="width: 14%;">วันที่</th>
+                    <th style="width: 28%;">ผู้จ่าย/ผู้รับ</th>
+                    <th style="width: 24%;">รายการ</th>
+                    <th style="width: 10%; text-align: right;">จำนวนเงิน</th>
+                    <th style="width: 8%; text-align: center;">สถานะ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Invoices.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-file-earmark-x fs-1 d-block mb-2"></i>
+                            ไม่พบรายการใบแจ้งหนี้ตามเงื่อนไขที่ค้นหา
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var inv in Model.Invoices)
+                    {
+                        <tr>
+                            <td class="font-doc-no">@inv.InvoiceNo</td>
+                            <td class="text-secondary-sub">@inv.DateText</td>
+                            <td class="font-party">@inv.Party</td>
+                            <td class="text-secondary-sub">@inv.Description</td>
+                            <td class="font-amount">฿@inv.Amount.ToString("N0")</td>
+                            <td style="text-align: center;">
+                                @if (inv.Status == "รอชำระ")
+                                {
+                                    <span class="badge-status badge-waiting">รอชำระ</span>
+                                }
+                                else if (inv.Status == "ชำระแล้ว")
+                                {
+                                    <span class="badge-status badge-paid">ชำระแล้ว</span>
+                                }
+                                else if (inv.Status == "เกินกำหนด")
+                                {
+                                    <span class="badge-status badge-overdue">เกินกำหนด</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-waiting">@inv.Status</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <!-- Tab: ใบเสร็จชำระเงิน (Payment Receipts) -->
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width: 16%;">เลขที่ใบเสร็จ</th>
+                    <th style="width: 14%;">วันที่ชำระ</th>
+                    <th style="width: 22%;">ผู้รับบริการ / ลูกค้า</th>
+                    <th style="width: 30%;">ภาพยนตร์และที่นั่ง</th>
+                    <th style="width: 10%; text-align: right;">ยอดชำระ</th>
+                    <th style="width: 8%; text-align: center;">สถานะ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Receipts.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+                            ยังไม่มีรายการใบเสร็จรับเงิน
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var r in Model.Receipts)
+                    {
+                        <tr>
+                            <td class="font-doc-no">@r.ReceiptNo</td>
+                            <td class="text-secondary-sub">@r.DateText</td>
+                            <td class="font-party">@r.CustomerName</td>
+                            <td class="text-secondary-sub">
+                                <span class="text-white">@r.MovieTitle</span> 
+                                <span class="text-muted">(@r.Seats)</span>
+                            </td>
+                            <td class="font-amount">฿@r.Amount.ToString("N0")</td>
+                            <td style="text-align: center;">
+                                @if (r.IsRefunded)
+                                {
+                                    <span class="badge-status badge-overdue">คืนเงินแล้ว</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-paid">ชำระแล้ว</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<!-- Modal: สร้างใบแจ้งหนี้ใหม่ -->
+<div class="modal fade" id="createInvoiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-dark-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-weight: 700; color:#fff; font-size:16px;">
+                    <i class="bi bi-plus-circle text-danger me-2"></i> สร้างใบแจ้งหนี้ใหม่
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-action="CreateInvoice">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">เลขที่ใบแจ้งหนี้ (ระบบจะสร้างให้อัตโนมัติหากเว้นว่าง)</label>
+                        <input type="text" name="InvoiceNo" class="form-control dark-input" placeholder="INV-2026-0090" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">ผู้จ่าย / ผู้รับ <span class="text-danger">*</span></label>
+                        <input type="text" name="Party" class="form-control dark-input" placeholder="เช่น บริษัท สหมงคลฟิล์ม จำกัด" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">รายการ / รายละเอียด <span class="text-danger">*</span></label>
+                        <input type="text" name="Description" class="form-control dark-input" placeholder="เช่น ค่าส่วนแบ่งตั๋วภาพยนตร์ หรือเช่ารอบเหมาโรง" required />
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">จำนวนเงิน (บาท) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" name="Amount" class="form-control dark-input" placeholder="50000" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">สถานะเริ่มต้น</label>
+                            <select name="Status" class="form-select dark-input">
+                                <option value="รอชำระ">รอชำระ (Pending)</option>
+                                <option value="ชำระแล้ว">ชำระแล้ว (Paid)</option>
+                                <option value="เกินกำหนด">เกินกำหนด (Overdue)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-4" style="background:#e50914; border:none;">
+                        <i class="bi bi-save me-1"></i> บันทึกใบแจ้งหนี้
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Header Pre-title */
+    .header-pre-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #e50914;
+        letter-spacing: 1.5px;
+        margin-bottom: 2px;
+    }
+    .header-main-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* Tabs Bar */
+    .invoices-tabs-bar {
+        display: flex;
+        gap: 32px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 24px;
+        margin-bottom: 24px;
+    }
+
+    .tab-btn {
+        font-size: 14.5px;
+        font-weight: 600;
+        color: #8e8e9f;
+        text-decoration: none;
+        padding-bottom: 14px;
+        position: relative;
+        transition: color 0.2s ease;
+    }
+
+    .tab-btn:hover {
+        color: #ffffff;
+    }
+
+    .tab-btn.active {
+        color: #ffffff;
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #e50914;
+    }
+
+    /* Toolbar */
+    .toolbar-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-form-box {
+        position: relative;
+        width: 270px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666675;
+        font-size: 13px;
+    }
+
+    .search-input {
+        width: 100%;
+        background: #15151a;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        padding: 9px 14px 9px 36px;
+        font-size: 13px;
+        color: #ffffff;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        border-color: #e50914;
+        box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+    }
+
+    .search-input::placeholder {
+        color: #666675;
+    }
+
+    .filter-select-btn, .date-range-btn {
+        background: #15151a;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-size: 13px;
+        color: #c0c0d0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .filter-select-btn:hover, .date-range-btn:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
+    .btn-download-pdf {
+        background: #15151a;
+        border: 1px solid #282834;
+        border-radius: 8px;
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-download-pdf:hover {
+        background: #1d1d24;
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-create-invoice {
+        background: #171518;
+        border: 1px solid #3a1b20;
+        border-radius: 8px;
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-create-invoice:hover {
+        background: rgba(229, 9, 20, 0.15);
+        border-color: #e50914;
+        color: #ff5e65;
+    }
+
+    .btn-create-invoice i {
+        color: #e50914;
+    }
+
+    /* Custom Dropdown Menu */
+    .custom-dropdown-menu {
+        background: #15151a;
+        border: 1px solid #262632;
+        border-radius: 8px;
+        padding: 6px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .custom-dropdown-menu .dropdown-item {
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: 6px;
+        color: #c0c0d0;
+    }
+
+    .custom-dropdown-menu .dropdown-item:hover {
+        background: rgba(229, 9, 20, 0.1);
+        color: #ffffff;
+    }
+
+    /* Table Card */
+    .table-card {
+        background: #121217;
+        border: 1px solid #1f1f28;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom thead tr {
+        border-bottom: 1px solid #1f1f28;
+    }
+
+    .table-custom th {
+        padding: 18px 24px;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #666675;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-custom tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        transition: background 0.15s ease;
+    }
+
+    .table-custom tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .table-custom tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .table-custom td {
+        padding: 20px 24px;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .font-doc-no {
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 13px;
+        letter-spacing: 0.3px;
+    }
+
+    .text-secondary-sub {
+        color: #8e8e9f;
+        font-size: 13px;
+    }
+
+    .font-party {
+        color: #ffffff;
+        font-weight: 500;
+        font-size: 13px;
+    }
+
+    .font-amount {
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 13.5px;
+        text-align: right;
+    }
+
+    /* Badges */
+    .badge-status {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-align: center;
+        min-width: 76px;
+    }
+
+    /* รอชำระ: Orange/Gold outline */
+    .badge-waiting {
+        background: rgba(202, 138, 4, 0.12);
+        border: 1px solid #b54708;
+        color: #fbbf24;
+    }
+
+    /* ชำระแล้ว: Green outline */
+    .badge-paid {
+        background: rgba(18, 183, 106, 0.12);
+        border: 1px solid #027a48;
+        color: #34d399;
+    }
+
+    /* เกินกำหนด: Red outline */
+    .badge-overdue {
+        background: rgba(229, 9, 20, 0.12);
+        border: 1px solid #b42318;
+        color: #f87171;
+    }
+
+    /* Dark Modal */
+    .custom-dark-modal {
+        background: #15151a;
+        border: 1px solid #282834;
+        border-radius: 12px;
+        color: #ffffff;
+    }
+
+    .custom-dark-modal .modal-header,
+    .custom-dark-modal .modal-footer {
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .dark-input {
+        background: #0d0d12;
+        border: 1px solid #282834;
+        color: #ffffff;
+        font-size: 13.5px;
+    }
+
+    .dark-input:focus {
+        background: #0d0d12;
+        border-color: #e50914;
+        color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.2);
+    }
+
+    @@media (max-width: 768px) {
+        .toolbar-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-form-box {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    function filterDatePrompt() {
+        const val = prompt("กรอกช่วงวันที่ที่ต้องการกรอง (เช่น 01/02/2026 - 28/02/2026):", "20/02/2026 - 24/02/2026");
+        if (val) {
+            alert("กรองข้อมูลช่วงวันที่: " + val);
+        }
+    }
+</script>

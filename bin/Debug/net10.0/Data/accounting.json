@@ -1,0 +1,75 @@
+[
+  {
+    "TransactionId": 1,
+    "Type": "Income",
+    "Category": "Concessions",
+    "Description": "ยอดจำหน่ายป๊อปคอร์น เครื่องดื่ม และชุดคอมโบประจำวัน",
+    "Amount": 62325.00,
+    "TransactionDate": "2026-11-12T11:30:00",
+    "ReferenceNo": "CON-261112-001"
+  },
+  {
+    "TransactionId": 2,
+    "Type": "Income",
+    "Category": "Merchandise",
+    "Description": "สินค้าของที่ระลึก ถังป๊อปคอร์นลายพิเศษ และโปสเตอร์ลิมิเต็ด",
+    "Amount": 24850.00,
+    "TransactionDate": "2026-11-12T13:45:00",
+    "ReferenceNo": "MER-261112-002"
+  },
+  {
+    "TransactionId": 3,
+    "Type": "Income",
+    "Category": "Advertising",
+    "Description": "โฆษณาในโรงฉาย สปอนเซอร์รอบพรีเมียร์ (Air-Time Ads)",
+    "Amount": 15000.00,
+    "TransactionDate": "2026-11-12T10:00:00",
+    "ReferenceNo": "ADV-261112-003"
+  },
+  {
+    "TransactionId": 4,
+    "Type": "Expense",
+    "Category": "Staff Wages",
+    "Description": "ค่าจ้างพนักงานรายวัน ฝ่ายบริการตั๋วและเครื่องดื่ม",
+    "Amount": 42500.00,
+    "TransactionDate": "2026-11-12T09:00:00",
+    "ReferenceNo": "EXP-261112-WAG"
+  },
+  {
+    "TransactionId": 5,
+    "Type": "Expense",
+    "Category": "Utilities",
+    "Description": "ค่าสาธารณูปโภค ค่าไฟฟ้าระบบปรับอากาศและโปรเจกเตอร์",
+    "Amount": 18200.00,
+    "TransactionDate": "2026-11-12T09:15:00",
+    "ReferenceNo": "EXP-261112-UTL"
+  },
+  {
+    "TransactionId": 6,
+    "Type": "Expense",
+    "Category": "Supplies",
+    "Description": "พัสดุและวัตถุดิบ เมล็ดข้าวโพด แก้วน้ำ บรรจุภัณฑ์",
+    "Amount": 12400.00,
+    "TransactionDate": "2026-11-12T09:30:00",
+    "ReferenceNo": "EXP-261112-SUP"
+  },
+  {
+    "TransactionId": 7,
+    "Type": "Expense",
+    "Category": "Maintenance",
+    "Description": "การบำรุงรักษาเครื่องเสียง Dolby Atmos และระบบฉาย",
+    "Amount": 9500.00,
+    "TransactionDate": "2026-11-12T10:30:00",
+    "ReferenceNo": "EXP-261112-MNT"
+  },
+  {
+    "TransactionId": 8,
+    "Type": "Expense",
+    "Category": "Licensing",
+    "Description": "ส่วนแบ่งค่าลิขสิทธิ์ภาพยนตร์ (Film Studio Licensing)",
+    "Amount": 85000.00,
+    "TransactionDate": "2026-11-12T11:00:00",
+    "ReferenceNo": "EXP-261112-LIC"
+  }
+]
+

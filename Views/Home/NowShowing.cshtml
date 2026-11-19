@@ -1,0 +1,485 @@
+@model List<Kawin_67091861_002.ViewModels.MovieItemViewModel>
+@{
+    ViewData["Title"] = "หนังกำลังฉาย - ABSOLUTE CINEMA";
+}
+
+<style>
+    :root {
+        --cinema-gold: #c69c43;
+        --cinema-gold-light: #dfb76c;
+        --cinema-gold-dark: #8c6a23;
+        --cinema-card: #111116;
+        --cinema-border: rgba(255, 255, 255, 0.05);
+    }
+
+    .page-header-wrap {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 36px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .page-title-main {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--cinema-gold-light);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .page-subtitle-main {
+        font-size: 13.5px;
+        color: #7d7d8c;
+        font-weight: 300;
+    }
+
+    .filter-controls-row {
+        display: flex;
+        gap: 12px;
+    }
+
+    .filter-select {
+        background: #14141c;
+        border: 1px solid rgba(198, 156, 67, 0.25);
+        color: #d0d0dc;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'Prompt', sans-serif;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+
+    .filter-select:focus, .filter-select:hover {
+        border-color: var(--cinema-gold-light);
+    }
+
+    /* ===== MOVIE CARDS 4 COLUMNS ===== */
+    .movies-grid-4col {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+        margin-bottom: 70px;
+    }
+
+    .nowshowing-box {
+        background: var(--cinema-card);
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid var(--cinema-border);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .nowshowing-box:hover {
+        transform: translateY(-7px);
+        border-color: #dfb76c;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(223, 183, 108, 0.3);
+    }
+
+    .nowshowing-box:hover .movie-box-title {
+        color: #dfb76c;
+    }
+
+    .nowshowing-box:hover .btn-booking-card {
+        background: linear-gradient(135deg, #eed08d 0%, #d4a74e 100%);
+        color: #000;
+        box-shadow: 0 4px 15px rgba(223, 183, 108, 0.4);
+    }
+
+    /* EXAMPLE STAMP BOX (White rectangle with red rubber stamp) */
+    .stamp-box-wrap {
+        width: 100%;
+        aspect-ratio: 1 / 1.05;
+        background: #ffffff;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.12);
+    }
+
+    .red-rubber-stamp {
+        border: 4px double #b82b2b;
+        color: #b82b2b;
+        padding: 8px 20px;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        transform: rotate(-18deg);
+        border-radius: 8px;
+        opacity: 0.85;
+        user-select: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 2px rgba(184, 43, 43, 0.25);
+    }
+
+    .stamp-inner-text {
+        font-size: 8px;
+        letter-spacing: 3px;
+        margin-top: 2px;
+        border-top: 1px solid #b82b2b;
+        padding-top: 2px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .poster-real-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .movie-box-title {
+        font-size: 15.5px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .movie-box-genre {
+        font-size: 12px;
+        color: #7d7d8c;
+        margin-bottom: 4px;
+    }
+
+    .movie-box-duration {
+        font-size: 11.5px;
+        color: #5d5d6c;
+        margin-bottom: 10px;
+    }
+
+    .movie-box-meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .stars-group {
+        display: flex;
+        gap: 2px;
+        color: var(--cinema-gold-light);
+        font-size: 11px;
+    }
+
+    .stars-group .empty {
+        color: #333344;
+    }
+
+    .movie-box-price {
+        color: var(--cinema-gold-light);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-booking-card {
+        width: 100%;
+        padding: 10px 0;
+        background: linear-gradient(135deg, #dfb76c 0%, #c69c43 100%);
+        color: #120e06;
+        border: none;
+        border-radius: 6px;
+        font-size: 13.5px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: all 0.25s;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    .btn-booking-card:hover {
+        background: linear-gradient(135deg, #eed08d 0%, #d4a74e 100%);
+        transform: translateY(-2px);
+        color: #000;
+        box-shadow: 0 4px 15px rgba(198, 156, 67, 0.3);
+    }
+
+    /* ===== LUXURY FOOTER ===== */
+    .cinema-luxury-footer {
+        background: #08080c;
+        border-top: 1px solid rgba(198, 156, 67, 0.15);
+        margin: 0 -24px -40px;
+        padding: 60px 0 30px;
+    }
+
+    .footer-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .footer-columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.6fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .footer-logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #dfb76c;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .footer-about-text {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.8;
+        font-weight: 300;
+        margin-bottom: 20px;
+    }
+
+    .footer-social-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .footer-social-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888899;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .footer-social-btn:hover {
+        border-color: #dfb76c;
+        color: #dfb76c;
+    }
+
+    .footer-group-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #dfb76c;
+        margin-bottom: 16px;
+    }
+
+    .footer-links-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links-list li {
+        margin-bottom: 10px;
+    }
+
+    .footer-links-list a {
+        color: #7d7d8c;
+        font-size: 13px;
+        text-decoration: none;
+        transition: color 0.2s;
+        font-weight: 300;
+    }
+
+    .footer-links-list a:hover {
+        color: #dfb76c;
+    }
+
+    .footer-contact-info {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.9;
+        font-weight: 300;
+    }
+
+    .footer-bottom-row {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #555566;
+    }
+
+    .footer-luxury-tag {
+        color: #8c6a23;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 992px) {
+        .movies-grid-4col { grid-template-columns: repeat(2, 1fr); }
+        .footer-columns { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 600px) {
+        .movies-grid-4col { grid-template-columns: 1fr; }
+        .footer-columns { grid-template-columns: 1fr; }
+        .page-header-wrap { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+
+<!-- Header -->
+<div class="page-header-wrap">
+    <div>
+        <h1 class="page-title-main">หนังกำลังฉาย</h1>
+        <div class="page-subtitle-main">เลือกรอบฉายและจองที่นั่งเพื่อสัมผัสประสบการณ์ภาพและเสียงที่ดีที่สุดในโลก</div>
+    </div>
+    <div class="filter-controls-row">
+        <select class="filter-select">
+            <option>ทุกหมวดหมู่</option>
+            <option>แอ็คชั่น / สงคราม</option>
+            <option>ดราม่า</option>
+            <option>โรแมนติก</option>
+            <option>สยองขวัญ</option>
+            <option>ไซไฟ</option>
+        </select>
+        <select class="filter-select">
+            <option>เรียงตาม: ล่าสุด</option>
+            <option>คะแนนสูงสุด</option>
+            <option>ราคา: ต่ำไปสูง</option>
+            <option>ราคา: สูงไปต่ำ</option>
+        </select>
+    </div>
+</div>
+
+<!-- Grid 8 Movies -->
+<div class="movies-grid-4col">
+    @foreach (var movie in Model)
+    {
+        <a asp-controller="Home" asp-action="MovieDetail" asp-route-id="@movie.MovieId" class="nowshowing-box">
+            <div>
+                <!-- ช่องรูป: ถ้ามีรูปให้แสดงรูป ถ้าไม่มีแสดงกล่องขาวปั๊มตราแดง EXAMPLE ตามแบบ -->
+                <div class="stamp-box-wrap">
+                    @if (!string.IsNullOrEmpty(movie.PosterUrl))
+                    {
+                        <img src="@movie.PosterUrl" alt="@movie.Title" class="poster-real-img" />
+                    }
+                    else
+                    {
+                        <div class="red-rubber-stamp">
+                            EXAMPLE
+                            <div class="stamp-inner-text">CINEMA</div>
+                        </div>
+                    }
+                </div>
+
+                <div class="movie-box-title" title="@movie.Title">@movie.Title</div>
+                <div class="movie-box-genre">@movie.Genre</div>
+                <div class="movie-box-duration">@movie.DurationMins นาที</div>
+            </div>
+
+            <div>
+                <div class="movie-box-meta-row">
+                    <div class="stars-group">
+                        @{
+                            int starCount = (int)Math.Round(movie.Rating / 2);
+                            for (int i = 0; i < 5; i++)
+                            {
+                                if (i < starCount)
+                                {
+                                    <i class="fas fa-star"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-star empty"></i>
+                                }
+                            }
+                        }
+                    </div>
+                    <div class="movie-box-price">
+                        ฿@movie.PriceMin.ToString("0") - ฿@movie.PriceMax.ToString("0")
+                    </div>
+                </div>
+
+                <div class="btn-booking-card">
+                    จองตั๋ว
+                </div>
+            </div>
+        </a>
+    }
+</div>
+
+<!-- LUXURY FOOTER -->
+<footer class="cinema-luxury-footer">
+    <div class="footer-inner">
+        <div class="footer-columns">
+            <div>
+                <div class="footer-logo-title">
+                    <i class="fas fa-crown"></i> ABSOLUTE CINEMA
+                </div>
+                <p class="footer-about-text">
+                    สัมผัสประสบการณ์การชมภาพยนตร์ระดับพรีเมียมอันน่าตื่นตา พร้อมบริการสุดหรูหรา สะดวกสบาย และเทคโนโลยีคุณภาพและเสียงที่ดีที่สุดในประเทศ
+                </p>
+                <div class="footer-social-row">
+                    <a href="#" class="footer-social-btn"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fas fa-link"></i></a>
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-group-title">เมนูหลัก</div>
+                <ul class="footer-links-list">
+                    <li><a asp-controller="Home" asp-action="Index">หน้าแรก</a></li>
+                    <li><a asp-controller="Home" asp-action="Promotions">โปรโมชัน</a></li>
+                    <li><a asp-controller="Home" asp-action="NowShowing">หนังกำลังฉาย</a></li>
+                    <li><a asp-controller="Home" asp-action="ComingSoon">โปรแกรมหน้า</a></li>
+                    <li><a asp-controller="Home" asp-action="Special">รอบพิเศษ</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">บริการลูกค้า</div>
+                <ul class="footer-links-list">
+                    <li><a href="#">คำถามที่พบบ่อย</a></li>
+                    <li><a href="#">นโยบายความเป็นส่วนตัว</a></li>
+                    <li><a href="#">ข้อกำหนดการใช้งาน</a></li>
+                    <li><a href="#">ติดต่อเรา</a></li>
+                    <li><a href="#">แผนที่เว็บไซต์</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">ที่ตั้งและติดต่อ</div>
+                <div class="footer-contact-info">
+                    ชั้น 5 สยามพารากอน แขวงปทุมวัน เขตปทุมวัน<br>
+                    กรุงเทพมหานคร 10330<br><br>
+                    โทร : 02-123-4567<br>
+                    อีเมล : <a href="mailto:contact@cinemaxgold.com">contact@cinemaxgold.com</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom-row">
+            <div>&copy; @DateTime.Now.Year CINEMAX GOLD. All rights reserved.</div>
+            <div class="footer-luxury-tag">LUXURY CINEMA EXPERIENCE</div>
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,126 @@
+@model IEnumerable<Kawin_67091861_002.ViewModels.UserViewModel>
+@{
+    ViewData["Title"] = "รายชื่อผู้ใช้ทั้งหมด";
+    Layout = "_LayoutAuth";
+}
+
+<section class="auth-hero">
+    <div class="gold-line-top"></div>
+    <div class="gold-line-bottom"></div>
+
+    <div class="auth-card" style="max-width: 900px;">
+        <div class="auth-card-header">
+            <span class="crown"><i class="fas fa-users"></i></span>
+            <div class="brand">ABSOLUTE CINEMA</div>
+            <div class="subtitle">รายชื่อผู้ใช้ทั้งหมดจาก DB (@Model.Count() คน)</div>
+        </div>
+
+        @* ==========================================
+           แสดงข้อความ Success / Error จาก TempData
+           ========================================== *@
+        @if (TempData["Success"] != null)
+        {
+            <div style="background: rgba(39, 174, 96, 0.12); border: 1px solid rgba(39, 174, 96, 0.3); border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; color: #6bff9e; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-check-circle"></i>
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="auth-error">
+                <i class="fas fa-exclamation-circle"></i>
+                @TempData["Error"]
+            </div>
+        }
+
+        @* ==========================================
+           ส่วนแสดงผล (Display) - ตารางผู้ใช้จาก DB
+           ========================================== *@
+        @if (!Model.Any())
+        {
+            <div style="text-align: center; padding: 40px 0; color: #999;">
+                <i class="fas fa-user-slash" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.5;"></i>
+                <p style="font-size: 16px;">ยังไม่มีผู้ใช้ในระบบ (DB)</p>
+                <p style="font-size: 13px; color: #666; margin-top: 8px;">กรุณาเพิ่มผู้ใช้ใหม่จากหน้า "เพิ่มผู้ใช้" หรือ "สมัครสมาชิก"</p>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid rgba(212, 168, 67, 0.3);">
+                            <th style="padding: 12px 10px; text-align: left; color: var(--gold); font-weight: 500;">ID</th>
+                            <th style="padding: 12px 10px; text-align: left; color: var(--gold); font-weight: 500;">ชื่อ - นามสกุล</th>
+                            <th style="padding: 12px 10px; text-align: left; color: var(--gold); font-weight: 500;">อีเมล/Username</th>
+                            <th style="padding: 12px 10px; text-align: left; color: var(--gold); font-weight: 500;">บทบาท</th>
+                            <th style="padding: 12px 10px; text-align: left; color: var(--gold); font-weight: 500;">วันที่สมัคร</th>
+                            <th style="padding: 12px 10px; text-align: center; color: var(--gold); font-weight: 500;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06); transition: background 0.2s;"
+                                onmouseover="this.style.background='rgba(212, 168, 67, 0.06)'"
+                                onmouseout="this.style.background='transparent'">
+                                <td style="padding: 12px 10px; color: #999;">@user.UserId</td>
+                                <td style="padding: 12px 10px;">
+                                    <i class="fas fa-user-circle" style="color: var(--gold); margin-right: 6px;"></i>
+                                    @user.FirstName @user.LastName
+                                </td>
+                                <td style="padding: 12px 10px; color: #b0b0b0;">@user.Email</td>
+                                <td style="padding: 12px 10px;">
+                                    @{
+                                        string roleBadgeColor = (user.Role ?? "").ToLower() switch
+                                        {
+                                            "admin" => "background: rgba(229, 9, 20, 0.2); color: #ff4757; border: 1px solid rgba(229, 9, 20, 0.3);",
+                                            "accountant" => "background: rgba(39, 174, 96, 0.15); color: #6bff9e; border: 1px solid rgba(39, 174, 96, 0.3);",
+                                            "staff" => "background: rgba(52, 152, 219, 0.15); color: #74b9ff; border: 1px solid rgba(52, 152, 219, 0.3);",
+                                            _ => "background: rgba(255, 255, 255, 0.06); color: #999; border: 1px solid rgba(255, 255, 255, 0.1);"
+                                        };
+                                    }
+                                    <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; @roleBadgeColor">@user.Role</span>
+                                </td>
+                                <td style="padding: 12px 10px; color: #b0b0b0;">
+                                    @(user.CreatedAt.HasValue ? user.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")
+                                </td>
+                                <td style="padding: 12px 10px; text-align: center;">
+                                    @* ปุ่ม Edit - ลิงก์ไปหน้าแก้ไข *@
+                                    <a asp-controller="Account" asp-action="EditUser" asp-route-id="@user.UserId"
+                                       style="display: inline-block; padding: 6px 12px; background: rgba(52, 152, 219, 0.15); border: 1px solid rgba(52, 152, 219, 0.3); border-radius: 6px; color: #74b9ff; font-size: 12px; text-decoration: none; margin-right: 4px; transition: all 0.2s;"
+                                       onmouseover="this.style.background='rgba(52, 152, 219, 0.3)'"
+                                       onmouseout="this.style.background='rgba(52, 152, 219, 0.15)'">
+                                        <i class="fas fa-edit"></i> แก้ไข
+                                    </a>
+
+                                    @* ปุ่ม Delete - ส่ง POST เพื่อลบ *@
+                                    <form method="post" asp-controller="Account" asp-action="DeleteUser" asp-route-id="@user.UserId"
+                                          style="display: inline;" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้ \'@user.FirstName @user.LastName\' ?');">
+                                        <button type="submit"
+                                                style="padding: 6px 12px; background: rgba(229, 9, 20, 0.15); border: 1px solid rgba(229, 9, 20, 0.3); border-radius: 6px; color: #ff4757; font-size: 12px; cursor: pointer; font-family: 'Prompt', sans-serif; transition: all 0.2s;"
+                                                onmouseover="this.style.background='rgba(229, 9, 20, 0.3)'"
+                                                onmouseout="this.style.background='rgba(229, 9, 20, 0.15)'">
+                                            <i class="fas fa-trash-alt"></i> ลบ
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="auth-switch" style="margin-top: 24px;">
+            <a asp-controller="Account" asp-action="AddUser" style="margin-right: 16px;">
+                <i class="fas fa-user-plus"></i> เพิ่มผู้ใช้ใหม่
+            </a>
+            |
+            <a asp-controller="Home" asp-action="Index" style="margin-left: 16px;">
+                กลับหน้าแรก
+            </a>
+        </div>
+    </div>
+</section>

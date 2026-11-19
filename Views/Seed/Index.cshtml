@@ -1,0 +1,336 @@
+@{
+    ViewData["Title"] = "จัดการข้อมูล Database";
+    var stats = ViewBag.Stats;
+}
+
+<style>
+    .seed-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .seed-header {
+        margin-bottom: 30px;
+    }
+
+    .seed-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--gold, #f5c518);
+    }
+
+    .seed-header p {
+        color: #888;
+        font-size: 14px;
+    }
+
+    /* Stats */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: #1a1a2e;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .stat-card .stat-num {
+        font-size: 32px;
+        font-weight: 700;
+        color: #f5c518;
+    }
+
+    .stat-card .stat-label {
+        font-size: 13px;
+        color: #888;
+        margin-top: 4px;
+    }
+
+    /* Alert */
+    .alert-box {
+        padding: 16px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-box.success {
+        background: rgba(74, 222, 128, 0.1);
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        color: #4ade80;
+    }
+
+    .alert-box.error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    /* Action Cards */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .action-card {
+        background: #1a1a2e;
+        border-radius: 14px;
+        padding: 24px;
+        border: 1px solid rgba(255,255,255,0.05);
+        text-align: center;
+    }
+
+    .action-card .action-icon {
+        font-size: 36px;
+        margin-bottom: 12px;
+    }
+
+    .action-card h3 {
+        font-size: 16px;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .action-card p {
+        font-size: 13px;
+        color: #888;
+        margin-bottom: 16px;
+        line-height: 1.6;
+    }
+
+    .action-card .btn {
+        display: inline-block;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        font-family: 'Prompt', sans-serif;
+        transition: all 0.3s;
+    }
+
+    .action-card .btn-seed {
+        background: linear-gradient(135deg, #4ade80, #22c55e);
+        color: #000;
+    }
+
+    .action-card .btn-reset {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    .action-card .btn-view {
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: #818cf8;
+    }
+
+    .action-card .btn-export {
+        background: rgba(245, 197, 24, 0.15);
+        border: 1px solid rgba(245, 197, 24, 0.3);
+        color: #f5c518;
+    }
+
+    .action-card .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    /* SQL Section */
+    .sql-section {
+        background: #1a1a2e;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .sql-section h3 {
+        color: #f5c518;
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .sql-section p {
+        color: #888;
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .sql-section code {
+        display: block;
+        background: #0e0e1a;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #4ade80;
+        overflow-x: auto;
+        white-space: pre;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .action-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="seed-container">
+    <div class="seed-header">
+        <h1>🗄️ จัดการข้อมูล Database</h1>
+        <p>เพิ่ม/ลบข้อมูลตัวอย่างได้ง่ายๆ กดปุ่มเดียว — ไม่ต้อง query เอง</p>
+    </div>
+
+    @if (ViewBag.DbConnected == true)
+    {
+        <div class="alert-box success" style="display:flex; align-items:center; gap:10px;">
+            <i class="fas fa-check-circle" style="font-size:18px;"></i>
+            <div>
+                <strong>สถานะ MySQL Database:</strong> เชื่อมต่อสำเร็จ (Database พร้อมสำหรับการบันทึกและจัดการข้อมูล)
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert-box error" style="display:flex; align-items:flex-start; gap:10px;">
+            <i class="fas fa-exclamation-triangle" style="font-size:18px; margin-top:2px;"></i>
+            <div>
+                <strong>สถานะ MySQL Database:</strong> ยังไม่ได้เชื่อมต่อ (@ViewBag.DbError)
+                <div style="margin-top:6px; font-size:12.5px; color:#fca5a5;">
+                    💡 <em>ระบบได้เตรียมข้อมูลสำรองในรูปแบบไฟล์ <code>Data/movies.json</code> ให้แล้ว ทำให้หน้าแรกของเว็บสามารถแสดงผลได้อย่างสมบูรณ์แบบโดยไม่ต้องเปิด MySQL</em>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-box success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-box error">@TempData["Error"]</div>
+    }
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-num">@stats.Movies</div>
+            <div class="stat-label">🎬 หนัง</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">@stats.Cinemas</div>
+            <div class="stat-label">🎪 โรงภาพยนตร์</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">@stats.Showtimes</div>
+            <div class="stat-label">🕐 รอบฉาย</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">@stats.Users</div>
+            <div class="stat-label">👤 ผู้ใช้</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">@stats.Roles</div>
+            <div class="stat-label">🏷️ Roles</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">@stats.Bookings</div>
+            <div class="stat-label">🎟️ การจอง</div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-grid">
+        <div class="action-card">
+            <div class="action-icon">🌱</div>
+            <h3>Seed ข้อมูลตัวอย่าง</h3>
+            <p>เพิ่มหนัง 10 เรื่อง, โรงภาพยนตร์ 4 โรง, รอบฉาย 3 วัน<br>พร้อม Roles (ถ้ายังไม่มี)</p>
+            <form asp-action="SeedAll" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-seed">🚀 Seed ข้อมูลเลย!</button>
+            </form>
+        </div>
+        <div class="action-card">
+            <div class="action-icon">🗑️</div>
+            <h3>ลบข้อมูลทั้งหมด (Reset)</h3>
+            <p>ลบหนัง, โรงภาพยนตร์, รอบฉาย, และการจอง<br>(ไม่ลบ Users & Roles)</p>
+            <form asp-action="ResetAll" method="post" style="display:inline;"
+                  onsubmit="return confirm('⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลทั้งหมด?');">
+                <button type="submit" class="btn btn-reset">🗑️ Reset ข้อมูล</button>
+            </form>
+        </div>
+        <div class="action-card">
+            <div class="action-icon">👁️</div>
+            <h3>ดูข้อมูลทั้งหมด</h3>
+            <p>ดูข้อมูลใน Database ทุกตาราง แสดงผลแบบสวยงาม อ่านง่าย</p>
+            <a asp-action="ViewDatabase" class="btn btn-view">📋 ดูข้อมูล</a>
+        </div>
+        <div class="action-card">
+            <div class="action-icon">📥</div>
+            <h3>Export เป็นไฟล์ JSON</h3>
+            <p>ดาวน์โหลดข้อมูลทั้งหมดเป็นไฟล์ JSON เก็บไว้ดูหรือ import กลับ</p>
+            <a asp-action="ExportJson" class="btn btn-export">📥 ดาวน์โหลด JSON</a>
+        </div>
+        <div class="action-card" style="border-color: rgba(229, 9, 20, 0.4);">
+            <div class="action-icon">📊</div>
+            <h3>ระบบบัญชี (Accountant)</h3>
+            <p>ดูภาพรวมประจำวัน, รายรับ-รายจ่าย, สัดส่วนรายได้ และสถิติตั๋ว</p>
+            <a asp-controller="Accountant" asp-action="Dashboard" class="btn" style="background: #e50914; color: #fff;">📊 เปิดระบบบัญชี</a>
+        </div>
+        <div class="action-card" style="border-color: rgba(245, 158, 11, 0.4);">
+            <div class="action-icon">💼</div>
+            <h3>ผู้จัดการสาขา (Manager)</h3>
+            <p>จัดการรอบฉาย, สถานะภาพยนตร์, โปรโมชั่น และยอดขายประจำวัน</p>
+            <a asp-controller="Manager" asp-action="Index" class="btn" style="background: #f59e0b; color: #111; font-weight:700;">💼 แดชบอร์ดผู้จัดการ</a>
+        </div>
+        <div class="action-card" style="border-color: rgba(16, 185, 129, 0.4);">
+            <div class="action-icon">🛠️</div>
+            <h3>ศูนย์ควบคุมเทคนิค (Tech Ops)</h3>
+            <p>ติดตามสุขภาพระบบ, มอนิเตอร์เหตุขัดข้อง, งานบำรุงรักษาแบบเรียลไทม์</p>
+            <a asp-controller="Operations" asp-action="Index" class="btn" style="background: #10b981; color: #052e16; font-weight:700;">🛠️ ศูนย์ควบคุมเทคนิค</a>
+        </div>
+        <div class="action-card" style="border-color: rgba(14, 165, 233, 0.4);">
+            <div class="action-icon">📋</div>
+            <h3>พนักงานบริการ (Floor Staff)</h3>
+            <p>สถิติจำนวนลูกค้า, ตรวจความสะอาดโรงภาพยนตร์, ดูผังที่นั่ง และเช็คอินตั๋ว</p>
+            <a asp-controller="Staff" asp-action="Index" class="btn" style="background: #0ea5e9; color: #000; font-weight:700;">📋 งานบริการพนักงาน</a>
+        </div>
+    </div>
+
+    <!-- SQL Info -->
+    <div class="sql-section">
+        <h3>📝 SQL Script (สำหรับ run ใน MySQL Workbench)</h3>
+        <p>ถ้าต้องการ run SQL เอง สามารถใช้ script ที่อยู่ในไฟล์ <code style="display:inline; padding:2px 6px;">Scripts/01_add_movie_columns_and_seed.sql</code></p>
+        <p>หรือถ้าต้องการเพิ่ม column ใหม่ให้ตาราง movies สำหรับ homepage ให้ run:</p>
+        <code>ALTER TABLE movies
+    ADD COLUMN Genre VARCHAR(100) NULL,
+    ADD COLUMN Description TEXT NULL,
+    ADD COLUMN PosterUrl VARCHAR(500) NULL,
+    ADD COLUMN TrailerUrl VARCHAR(500) NULL,
+    ADD COLUMN PriceMin DECIMAL(10,2) DEFAULT 0.00,
+    ADD COLUMN PriceMax DECIMAL(10,2) DEFAULT 0.00,
+    ADD COLUMN Rating DOUBLE DEFAULT 0,
+    ADD COLUMN ReleaseDate DATE NULL;
+
+ALTER TABLE cinemas
+    ADD COLUMN TotalSeats INT DEFAULT 100;</code>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <a asp-controller="Home" asp-action="Index" style="color: #f5c518; text-decoration: none; font-size: 14px;">
+            ← กลับหน้าแรก
+        </a>
+    </div>
+</div>
+

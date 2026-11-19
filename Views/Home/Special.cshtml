@@ -1,0 +1,672 @@
+@model List<Kawin_67091861_002.ViewModels.MovieItemViewModel>
+@{
+    ViewData["Title"] = "รอบฉายพิเศษระดับพรีเมียม - ABSOLUTE CINEMA";
+}
+
+<style>
+    :root {
+        --cinema-gold: #c69c43;
+        --cinema-gold-light: #dfb76c;
+        --cinema-gold-dark: #8c6a23;
+        --cinema-card: #111116;
+        --cinema-border: rgba(255, 255, 255, 0.05);
+    }
+
+    .special-header-wrap {
+        margin-bottom: 36px;
+    }
+
+    .special-title-main {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--cinema-gold-light);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .special-subtitle-main {
+        font-size: 13.5px;
+        color: #7d7d8c;
+        font-weight: 300;
+    }
+
+    /* ===== SPECIAL CARDS GRID 4 COLUMNS ===== */
+    .special-grid-4col {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+        margin-bottom: 50px;
+    }
+
+    .special-box {
+        background: var(--cinema-card);
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid var(--cinema-border);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .special-box:hover {
+        transform: translateY(-6px);
+        border-color: #dfb76c;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.8), 0 0 18px rgba(223, 183, 108, 0.25);
+    }
+
+    .special-box:hover .special-movie-title {
+        color: #dfb76c;
+    }
+
+    .special-box:hover .btn-special-reserve {
+        background: linear-gradient(135deg, #eed08d 0%, #d4a74e 100%);
+        color: #000;
+        box-shadow: 0 4px 15px rgba(223, 183, 108, 0.4);
+    }
+
+    /* Poster Box with Yellow/Gold Badge */
+    .special-poster-container {
+        width: 100%;
+        aspect-ratio: 1 / 1.05;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .special-tag-top {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(223, 183, 108, 0.2);
+        color: #ffd875;
+        border: 1px solid rgba(223, 183, 108, 0.5);
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        z-index: 2;
+        backdrop-filter: blur(4px);
+    }
+
+    /* Monster Art Graphic */
+    .poster-monster {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1f1c2c 0%, #0d0c14 60%, #2b1810 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .monster-icon {
+        font-size: 44px;
+        filter: drop-shadow(0 4px 15px rgba(220, 50, 50, 0.4));
+        margin-bottom: 6px;
+    }
+
+    /* EXAMPLE Rubber Stamp */
+    .special-stamp-box {
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.12);
+    }
+
+    .red-rubber-stamp {
+        border: 4px double #b82b2b;
+        color: #b82b2b;
+        padding: 8px 18px;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        transform: rotate(-18deg);
+        border-radius: 8px;
+        opacity: 0.85;
+        user-select: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 2px rgba(184, 43, 43, 0.25);
+    }
+
+    .stamp-sub {
+        font-size: 8px;
+        letter-spacing: 3px;
+        margin-top: 2px;
+        border-top: 1px solid #b82b2b;
+        padding-top: 2px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .special-movie-title {
+        font-size: 15.5px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .special-showtime-text {
+        font-size: 12px;
+        color: #8d8d9c;
+        margin-bottom: 12px;
+    }
+
+    .special-price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .special-price-val {
+        color: var(--cinema-gold-light);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .seats-pill {
+        font-size: 10.5px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-weight: 500;
+    }
+
+    .seats-pill.red {
+        background: rgba(248, 81, 73, 0.15);
+        color: #f85149;
+        border: 1px solid rgba(248, 81, 73, 0.3);
+    }
+
+    .seats-pill.orange {
+        background: rgba(210, 153, 34, 0.15);
+        color: #e3b341;
+        border: 1px solid rgba(210, 153, 34, 0.3);
+    }
+
+    .btn-special-reserve {
+        width: 100%;
+        padding: 9px 0;
+        background: transparent;
+        color: var(--cinema-gold-light);
+        border: 1px solid rgba(198, 156, 67, 0.5);
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: all 0.25s;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    .btn-special-reserve:hover {
+        background: var(--cinema-gold-light);
+        color: #0b0b12;
+        border-color: var(--cinema-gold-light);
+        font-weight: 600;
+    }
+
+    /* ===== VIP EXPERIENCE & PRIVATE BOOKING BANNER ===== */
+    .vip-experience-section {
+        background: linear-gradient(135deg, #15131c 0%, #1a1622 40%, #0f0d14 100%);
+        border: 1px solid rgba(198, 156, 67, 0.25);
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 70px;
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 40px;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .vip-bg-glow {
+        position: absolute;
+        top: -50px;
+        left: -50px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(198, 156, 67, 0.12) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .vip-tag-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border: 1px solid rgba(198, 156, 67, 0.5);
+        background: rgba(198, 156, 67, 0.1);
+        color: #dfb76c;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+    }
+
+    .vip-title-main {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.35;
+        margin-bottom: 16px;
+    }
+
+    .vip-desc-main {
+        font-size: 13px;
+        color: #9a9aa8;
+        line-height: 1.8;
+        margin-bottom: 26px;
+        font-weight: 300;
+    }
+
+    .vip-features-row {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .vip-feat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .vip-feat-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--cinema-gold-light);
+    }
+
+    .vip-feat-sub {
+        font-size: 11.5px;
+        color: #7d7d8c;
+    }
+
+    /* VIP Form Box */
+    .vip-booking-card {
+        background: #111018;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 28px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .vip-form-title {
+        font-size: 17px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 6px;
+    }
+
+    .vip-form-desc {
+        font-size: 12px;
+        color: #7d7d8c;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        font-weight: 300;
+    }
+
+    .vip-form-input {
+        width: 100%;
+        background: #191824;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e0e0ec;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'Prompt', sans-serif;
+        margin-bottom: 12px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .vip-form-input:focus {
+        border-color: var(--cinema-gold-light);
+    }
+
+    .btn-vip-submit {
+        width: 100%;
+        padding: 12px 0;
+        background: linear-gradient(135deg, #dfb76c 0%, #c69c43 100%);
+        color: #120e06;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.25s;
+        font-family: 'Prompt', sans-serif;
+        margin-top: 6px;
+    }
+
+    .btn-vip-submit:hover {
+        background: linear-gradient(135deg, #eed08d 0%, #d4a74e 100%);
+        transform: translateY(-2px);
+        color: #000;
+        box-shadow: 0 4px 15px rgba(198, 156, 67, 0.35);
+    }
+
+    /* ===== LUXURY FOOTER ===== */
+    .cinema-luxury-footer {
+        background: #08080c;
+        border-top: 1px solid rgba(198, 156, 67, 0.15);
+        margin: 0 -24px -40px;
+        padding: 60px 0 30px;
+    }
+
+    .footer-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .footer-columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.6fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .footer-logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #dfb76c;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .footer-about-text {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.8;
+        font-weight: 300;
+        margin-bottom: 20px;
+    }
+
+    .footer-social-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .footer-social-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888899;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .footer-social-btn:hover {
+        border-color: #dfb76c;
+        color: #dfb76c;
+    }
+
+    .footer-group-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #dfb76c;
+        margin-bottom: 16px;
+    }
+
+    .footer-links-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links-list li {
+        margin-bottom: 10px;
+    }
+
+    .footer-links-list a {
+        color: #7d7d8c;
+        font-size: 13px;
+        text-decoration: none;
+        transition: color 0.2s;
+        font-weight: 300;
+    }
+
+    .footer-links-list a:hover {
+        color: #dfb76c;
+    }
+
+    .footer-contact-info {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.9;
+        font-weight: 300;
+    }
+
+    .footer-bottom-row {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #555566;
+    }
+
+    .footer-luxury-tag {
+        color: #8c6a23;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 992px) {
+        .special-grid-4col { grid-template-columns: repeat(2, 1fr); }
+        .vip-experience-section { grid-template-columns: 1fr; padding: 30px; }
+        .footer-columns { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 600px) {
+        .special-grid-4col { grid-template-columns: 1fr; }
+        .footer-columns { grid-template-columns: 1fr; }
+    }
+</style>
+
+<!-- Header -->
+<div class="special-header-wrap">
+    <h1 class="special-title-main">รอบฉายพิเศษระดับพรีเมียม</h1>
+    <div class="special-subtitle-main">ยกระดับการชมภาพยนตร์ด้วยที่นั่งส่วนตัว เทคโนโลยีล้ำเลิศ และการบริการที่ดีที่สุดระดับโลก</div>
+</div>
+
+<!-- 4 Special Screening Cards Grid -->
+<div class="special-grid-4col">
+    @foreach (var item in Model)
+    {
+        <a asp-controller="Home" asp-action="MovieDetail" asp-route-id="@item.MovieId" class="special-box">
+            <div>
+                <div class="special-poster-container">
+                    <div class="special-tag-top">@item.BadgeText</div>
+
+                    @if (item.PosterUrl == "monster")
+                    {
+                        <div class="poster-monster">
+                            <div class="monster-icon">🦖⚡</div>
+                            <div style="font-weight:700; color:#fff; font-size:14px; letter-spacing:1px; text-align:center;">GODZILLA APOCALYPSE</div>
+                            <div style="font-size:9px; color:#f87171; letter-spacing:2px;">SPECIAL SCREENING</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="special-stamp-box">
+                            <div class="red-rubber-stamp">
+                                EXAMPLE
+                                <div class="stamp-sub">CINEMA</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="special-movie-title" title="@item.Title">@item.Title</div>
+                <div class="special-showtime-text">@item.ShowtimeText</div>
+            </div>
+
+            <div>
+                <div class="special-price-row">
+                    <div class="special-price-val">@item.PriceText</div>
+                    @if (item.IsLowSeats)
+                    {
+                        <span class="seats-pill red">@item.SeatsBadgeText</span>
+                    }
+                    else
+                    {
+                        <span class="seats-pill orange">@item.SeatsBadgeText</span>
+                    }
+                </div>
+
+                <div class="btn-special-reserve">
+                    จองที่นั่งรอบพิเศษ
+                </div>
+            </div>
+        </a>
+    }
+</div>
+
+<!-- VIP Private Experience & Group Booking -->
+<div class="vip-experience-section">
+    <div class="vip-bg-glow"></div>
+    <div>
+        <div class="vip-tag-badge">VIP PRIVATE EXPERIENCE</div>
+        <h2 class="vip-title-main">สัมผัสบริการระดับ 6 ดาว<br>ที่ดีที่สุดในโลกภาพยนตร์</h2>
+        <p class="vip-desc-main">
+            ยกระดับการรับชมภาพยนตร์ของคุณด้วยโซนรับรอง VIP สุดเอ็กซ์คลูซีฟ เก้าอี้ไฟฟ้าปรับเอนนอนได้ 180 องศา พร้อมบริการเสิร์ฟอาหารและเครื่องดื่มชั้นเลิศตลอดการรับชม ผ่อนคลายกับบรรยากาศส่วนตัวและการดูแลเฉพาะบุคคล
+        </p>
+        <div class="vip-features-row">
+            <div class="vip-feat-item">
+                <span class="vip-feat-title">Personal Butler</span>
+                <span class="vip-feat-sub">บริการผู้ดูแลส่วนตัว</span>
+            </div>
+            <div class="vip-feat-item">
+                <span class="vip-feat-title">Luxury Sofa Bed</span>
+                <span class="vip-feat-sub">โซฟาเบดปรับนอน 180°</span>
+            </div>
+            <div class="vip-feat-item">
+                <span class="vip-feat-title">Welcome Lounge</span>
+                <span class="vip-feat-sub">เลานจ์รับรองส่วนตัว</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Form Box -->
+    <div class="vip-booking-card">
+        <div class="vip-form-title">สำรองที่นั่งแบบกลุ่ม VIP</div>
+        <div class="vip-form-desc">
+            สำหรับการจัดอีเวนต์พิเศษ เลี้ยงรับรองลูกค้า หรือปิดรอบส่วนตัว พร้อมแพ็กเกจอาหารและเครื่องดื่มแบบฟูลคอร์ส
+        </div>
+
+        <select class="vip-form-input">
+            <option>เลือกจำนวนที่นั่ง (เริ่มต้น 10 ท่าน)</option>
+            <option>10 - 20 ท่าน</option>
+            <option>21 - 50 ท่าน</option>
+            <option>ปิดทั้งโรงภาพยนตร์ (Private Hall)</option>
+        </select>
+
+        <select class="vip-form-input">
+            <option>เลือกแพ็กเกจอาหารและเครื่องดื่ม</option>
+            <option>Standard Snack & Beverage</option>
+            <option>Premium Canapé & Wine Set</option>
+            <option>Full-Course Luxury Dining</option>
+        </select>
+
+        <button type="button" class="btn-vip-submit">
+            จองบริการเหมารอบ VIP
+        </button>
+    </div>
+</div>
+
+<!-- LUXURY FOOTER -->
+<footer class="cinema-luxury-footer">
+    <div class="footer-inner">
+        <div class="footer-columns">
+            <div>
+                <div class="footer-logo-title">
+                    <i class="fas fa-crown"></i> ABSOLUTE CINEMA
+                </div>
+                <p class="footer-about-text">
+                    สัมผัสประสบการณ์การชมภาพยนตร์ระดับพรีเมียมอันน่าตื่นตา พร้อมบริการสุดหรูหรา สะดวกสบาย และเทคโนโลยีคุณภาพและเสียงที่ดีที่สุดในประเทศ
+                </p>
+                <div class="footer-social-row">
+                    <a href="#" class="footer-social-btn"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fas fa-link"></i></a>
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-group-title">เมนูหลัก</div>
+                <ul class="footer-links-list">
+                    <li><a asp-controller="Home" asp-action="Index">หน้าแรก</a></li>
+                    <li><a asp-controller="Home" asp-action="Promotions">โปรโมชัน</a></li>
+                    <li><a asp-controller="Home" asp-action="NowShowing">หนังกำลังฉาย</a></li>
+                    <li><a asp-controller="Home" asp-action="ComingSoon">โปรแกรมหน้า</a></li>
+                    <li><a asp-controller="Home" asp-action="Special">รอบพิเศษ</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">บริการลูกค้า</div>
+                <ul class="footer-links-list">
+                    <li><a href="#">คำถามที่พบบ่อย</a></li>
+                    <li><a href="#">นโยบายความเป็นส่วนตัว</a></li>
+                    <li><a href="#">ข้อกำหนดการใช้งาน</a></li>
+                    <li><a href="#">ติดต่อเรา</a></li>
+                    <li><a href="#">แผนที่เว็บไซต์</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">ที่ตั้งและติดต่อ</div>
+                <div class="footer-contact-info">
+                    ชั้น 5 สยามพารากอน แขวงปทุมวัน เขตปทุมวัน<br>
+                    กรุงเทพมหานคร 10330<br><br>
+                    โทร : 02-123-4567<br>
+                    อีเมล : <a href="mailto:contact@cinemaxgold.com">contact@cinemaxgold.com</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom-row">
+            <div>&copy; @DateTime.Now.Year CINEMAX GOLD. All rights reserved.</div>
+            <div class="footer-luxury-tag">LUXURY CINEMA EXPERIENCE</div>
+        </div>
+    </div>
+</footer>
+

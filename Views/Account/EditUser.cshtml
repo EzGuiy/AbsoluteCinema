@@ -1,0 +1,134 @@
+@model Kawin_67091861_002.ViewModels.UserViewModel
+@{
+    ViewData["Title"] = "แก้ไขข้อมูลผู้ใช้";
+    Layout = "_LayoutAuth";
+    var roles = ViewBag.Roles as List<Kawin_67091861_002.Models.Role> ?? new List<Kawin_67091861_002.Models.Role>();
+}
+
+<section class="auth-hero">
+    <div class="gold-line-top"></div>
+    <div class="gold-line-bottom"></div>
+
+    <div class="auth-card" style="max-width: 560px;">
+        <div class="auth-card-header">
+            <span class="crown"><i class="fas fa-user-edit"></i></span>
+            <div class="brand">ABSOLUTE CINEMA</div>
+            <div class="subtitle">แก้ไขข้อมูลผู้ใช้ (ID: @Model.UserId)</div>
+        </div>
+
+        @* ==========================================
+           แสดงข้อความ Error
+           ========================================== *@
+        @if (ViewBag.Error != null)
+        {
+            <div class="auth-error">
+                <i class="fas fa-exclamation-circle"></i>
+                @ViewBag.Error
+            </div>
+        }
+
+        @* ==========================================
+           ส่วนแสดงผล (Display) - ฟอร์มแก้ไขข้อมูล
+           ========================================== *@
+        <form method="post" asp-controller="Account" asp-action="EditUser" asp-route-id="@Model.UserId">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="firstName">ชื่อ</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="firstName" name="firstName" placeholder="กรอกชื่อ"
+                               value="@Model.FirstName" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">นามสกุล</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="lastName" name="lastName" placeholder="กรอกนามสกุล"
+                               value="@Model.LastName" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">อีเมล / Username</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" name="email" placeholder="example@email.com"
+                           value="@Model.Email" required />
+                    <span class="input-icon">
+                        <i class="fas fa-envelope"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">ตำแหน่ง / บทบาท</label>
+                <div class="input-wrapper">
+                    <select id="role" name="role" style="width: 100%; height: 48px; background: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0 16px; font-size: 14px; color: #f0f0f0; font-family: 'Prompt', sans-serif; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; transition: all 0.3s ease;">
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r.RoleName" style="background: #1a1a1a;"
+                                    selected="@(r.RoleName == Model.Role ? true : false)">
+                                @r.RoleName
+                            </option>
+                        }
+                    </select>
+                    <span class="input-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">รหัสผ่านใหม่ <span style="color: #999; font-weight: 300;">(เว้นว่างหากไม่ต้องการเปลี่ยน)</span></label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="กรอกรหัสผ่านใหม่ (ไม่บังคับ)" />
+                    <span class="input-icon" onclick="togglePassword('password', this)">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save" style="margin-right: 8px;"></i>บันทึกการแก้ไข
+            </button>
+        </form>
+
+        <div class="auth-switch" style="margin-top: 20px;">
+            <a asp-controller="Account" asp-action="UserList" style="margin-right: 16px;">
+                <i class="fas fa-arrow-left"></i> กลับไปรายชื่อผู้ใช้
+            </a>
+            |
+            <a asp-controller="Account" asp-action="AddUser" style="margin-left: 16px;">
+                <i class="fas fa-user-plus"></i> เพิ่มผู้ใช้ใหม่
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function togglePassword(inputId, iconEl) {
+            const input = document.getElementById(inputId);
+            const icon = iconEl.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-lock');
+                icon.classList.add('fa-lock-open');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-lock-open');
+                icon.classList.add('fa-lock');
+            }
+        }
+
+        // Focus highlight for select
+        document.querySelector('select')?.addEventListener('focus', function() {
+            this.style.borderColor = '#d4a843';
+            this.style.boxShadow = '0 0 0 2px rgba(212, 168, 67, 0.15)';
+        });
+        document.querySelector('select')?.addEventListener('blur', function() {
+            this.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            this.style.boxShadow = 'none';
+        });
+    </script>
+}

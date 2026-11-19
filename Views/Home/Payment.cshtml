@@ -1,0 +1,1325 @@
+@model Kawin_67091861_002.ViewModels.PaymentViewModel
+@{
+    ViewData["Title"] = "ชำระเงิน - " + Model.MovieTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="payment-page-container">
+    <!-- Stepper Flow -->
+    <div class="checkout-stepper">
+        <div class="step-item completed">
+            <div class="step-circle"><i class="bi bi-check"></i></div>
+            <span class="step-label">1. เลือกรอบฉาย</span>
+        </div>
+        <div class="step-line active"></div>
+        <div class="step-item completed">
+            <div class="step-circle"><i class="bi bi-check"></i></div>
+            <span class="step-label">2. เลือกที่นั่ง</span>
+        </div>
+        <div class="step-line active"></div>
+        <div class="step-item current">
+            <div class="step-circle">3</div>
+            <span class="step-label">3. ชำระเงิน</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item">
+            <div class="step-circle">4</div>
+            <span class="step-label">4. รับตั๋วชมภาพยนตร์</span>
+        </div>
+    </div>
+
+    <!-- 2 Columns Payment Layout -->
+    <div class="payment-grid">
+        <!-- LEFT COLUMN: Booking Order Details -->
+        <div class="payment-left-col">
+            <div class="order-card">
+                <h3 class="card-heading">
+                    <span class="gold-accent-dot"></span>
+                    รายละเอียดการจอง
+                </h3>
+
+                <!-- Movie Info Box -->
+                <div class="movie-receipt-header">
+                    <div class="receipt-poster">
+                        @if (!string.IsNullOrEmpty(Model.PosterUrl))
+                        {
+                            <img src="@Model.PosterUrl" alt="@Model.MovieTitle" class="receipt-poster-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                        }
+                        <div class="receipt-graphic @(string.IsNullOrEmpty(Model.PosterUrl) ? "" : "hidden-fallback")">
+                            <span class="receipt-crown">&#9818;</span>
+                        </div>
+                    </div>
+                    <div class="receipt-title-box">
+                        <h4 class="receipt-movie-title">@Model.MovieTitle</h4>
+                        <span class="receipt-hall-pill">@Model.HallTier</span>
+                        <div class="receipt-cinema-name"><i class="bi bi-geo-alt-fill"></i> @Model.CinemaName</div>
+                    </div>
+                </div>
+
+                <div class="receipt-divider"></div>
+
+                <!-- Showtime & Seat Details -->
+                <div class="receipt-specs">
+                    <div class="spec-row">
+                        <span class="spec-label">วันที่และเวลา</span>
+                        <span class="spec-value">@Model.DateDisplayTh | @Model.TimeDisplayTh</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">ที่นั่งที่เลือก</span>
+                        <div class="seats-pill-list">
+                            @foreach (var s in Model.SelectedSeats)
+                            {
+                                <span class="seat-badge">@s</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">จำนวนตั๋ว</span>
+                        <span class="spec-value">@Model.SeatCount ที่นั่ง</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">ราคาต่อที่นั่ง</span>
+                        <span class="spec-value">฿@Model.PricePerSeat.ToString("N0")</span>
+                    </div>
+                </div>
+
+                <div class="receipt-divider"></div>
+
+                <!-- Price Calculations -->
+                <div class="receipt-calc">
+                    <div class="spec-row small">
+                        <span class="spec-label">ยอดรวมค่าตั๋ว</span>
+                        <span class="spec-value">฿@Model.Subtotal.ToString("N0")</span>
+                    </div>
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <div class="spec-row small discount-spec">
+                            <span class="spec-label">ส่วนลดโปรโมชั่น (@Model.AppliedPromoCode)</span>
+                            <span class="spec-value discount-green">-฿@Model.DiscountAmount.ToString("N0")</span>
+                        </div>
+                    }
+                    <div class="spec-row small">
+                        <span class="spec-label">ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+                        <span class="spec-value">รวมในยอดชำระแล้ว</span>
+                    </div>
+                </div>
+
+                <div class="receipt-divider thick"></div>
+
+                <!-- Grand Total -->
+                <div class="grand-total-row">
+                    <div class="gt-label">
+                        <span class="gt-title">ยอดชำระสุทธิ</span>
+                        <span class="gt-sub">Total Amount (THB)</span>
+                    </div>
+                    <div class="gt-value">฿@Model.TotalAmount.ToString("N0")</div>
+                </div>
+
+                <div class="ref-code-box">
+                    <span>รหัสอ้างอิง:</span>
+                    <strong>@Model.BookingReferenceCode</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Payment Method Selection -->
+        <div class="payment-right-col">
+            <div class="payment-box-card">
+                <!-- Top Timer & Heading -->
+                <div class="payment-box-header">
+                    <h3 class="card-heading">
+                        <span class="gold-accent-dot"></span>
+                        เลือกช่องทางการชำระเงิน
+                    </h3>
+                    <div class="countdown-badge">
+                        <span class="timer-icon">&#9201;</span>
+                        <span>กรุณาชำระเงินภายใน</span>
+                        <strong id="timerDisplay" class="timer-digits">14:59</strong>
+                        <span>นาที</span>
+                    </div>
+                </div>
+
+                <!-- Payment Methods Tabs -->
+                <div class="payment-method-tabs">
+                    <button type="button" class="method-tab active" data-method="PromptPay" onclick="switchTab(this, 'qrTab')">
+                        <i class="bi bi-qr-code-scan"></i>
+                        <span>สแกนจ่ายด้วย QR CODE</span>
+                    </button>
+                    <button type="button" class="method-tab" data-method="CreditCard" onclick="switchTab(this, 'creditTab')">
+                        <i class="bi bi-credit-card-2-front"></i>
+                        <span>บัตรเครดิต/เดบิต</span>
+                    </button>
+                    <button type="button" class="method-tab" data-method="BankTransfer" onclick="switchTab(this, 'bankTab')">
+                        <i class="bi bi-bank"></i>
+                        <span>โอนผ่านธนาคาร</span>
+                    </button>
+                </div>
+
+                <!-- TAB 1: QR Code PromptPay -->
+                <div id="qrTab" class="tab-pane active">
+                    <div class="qr-payment-panel">
+                        <div class="thai-qr-header">
+                            <div class="thai-qr-logo">Thai QR Payment</div>
+                            <div class="promptpay-badge">พร้อมเพย์ PromptPay</div>
+                        </div>
+
+                        <div class="qr-canvas-wrapper">
+                            <!-- High Quality SVG QR Code Simulation with Center Absolute Cinema Crown Emblem -->
+                            <div class="styled-qr-box">
+                                <svg class="qr-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- QR Finder Patterns -->
+                                    <rect width="200" height="200" fill="#ffffff" rx="10" />
+                                    <!-- Top Left Finder -->
+                                    <rect x="15" y="15" width="46" height="46" fill="#000000" rx="4" />
+                                    <rect x="23" y="23" width="30" height="30" fill="#ffffff" rx="2" />
+                                    <rect x="30" y="30" width="16" height="16" fill="#000000" rx="2" />
+                                    <!-- Top Right Finder -->
+                                    <rect x="139" y="15" width="46" height="46" fill="#000000" rx="4" />
+                                    <rect x="147" y="23" width="30" height="30" fill="#ffffff" rx="2" />
+                                    <rect x="154" y="30" width="16" height="16" fill="#000000" rx="2" />
+                                    <!-- Bottom Left Finder -->
+                                    <rect x="15" y="139" width="46" height="46" fill="#000000" rx="4" />
+                                    <rect x="23" y="147" width="30" height="30" fill="#ffffff" rx="2" />
+                                    <rect x="30" y="154" width="16" height="16" fill="#000000" rx="2" />
+                                    <!-- QR Data Matrix Dots Simulation -->
+                                    <rect x="70" y="18" width="8" height="8" fill="#000000" />
+                                    <rect x="85" y="18" width="8" height="8" fill="#000000" />
+                                    <rect x="100" y="18" width="8" height="8" fill="#000000" />
+                                    <rect x="115" y="18" width="8" height="8" fill="#000000" />
+                                    <rect x="70" y="35" width="8" height="8" fill="#000000" />
+                                    <rect x="90" y="35" width="8" height="8" fill="#000000" />
+                                    <rect x="115" y="35" width="8" height="8" fill="#000000" />
+                                    <rect x="70" y="52" width="8" height="8" fill="#000000" />
+                                    <rect x="85" y="52" width="8" height="8" fill="#000000" />
+                                    <rect x="105" y="52" width="8" height="8" fill="#000000" />
+                                    <rect x="18" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="35" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="52" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="70" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="85" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="105" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="125" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="145" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="165" y="70" width="8" height="8" fill="#000000" />
+                                    <rect x="25" y="90" width="8" height="8" fill="#000000" />
+                                    <rect x="45" y="90" width="8" height="8" fill="#000000" />
+                                    <rect x="145" y="90" width="8" height="8" fill="#000000" />
+                                    <rect x="170" y="90" width="8" height="8" fill="#000000" />
+                                    <rect x="18" y="110" width="8" height="8" fill="#000000" />
+                                    <rect x="50" y="110" width="8" height="8" fill="#000000" />
+                                    <rect x="135" y="110" width="8" height="8" fill="#000000" />
+                                    <rect x="160" y="110" width="8" height="8" fill="#000000" />
+                                    <rect x="70" y="125" width="8" height="8" fill="#000000" />
+                                    <rect x="90" y="125" width="8" height="8" fill="#000000" />
+                                    <rect x="110" y="125" width="8" height="8" fill="#000000" />
+                                    <rect x="145" y="125" width="8" height="8" fill="#000000" />
+                                    <rect x="70" y="145" width="8" height="8" fill="#000000" />
+                                    <rect x="100" y="145" width="8" height="8" fill="#000000" />
+                                    <rect x="125" y="145" width="8" height="8" fill="#000000" />
+                                    <rect x="155" y="145" width="8" height="8" fill="#000000" />
+                                    <rect x="175" y="145" width="8" height="8" fill="#000000" />
+                                    <rect x="70" y="165" width="8" height="8" fill="#000000" />
+                                    <rect x="90" y="165" width="8" height="8" fill="#000000" />
+                                    <rect x="115" y="165" width="8" height="8" fill="#000000" />
+                                    <rect x="140" y="165" width="8" height="8" fill="#000000" />
+                                    <rect x="170" y="165" width="8" height="8" fill="#000000" />
+                                    <!-- Center Logo Emblem -->
+                                    <circle cx="100" cy="100" r="22" fill="#111119" stroke="#dfb76c" stroke-width="3" />
+                                    <text x="100" y="107" font-size="20" text-anchor="middle" fill="#dfb76c">&#9818;</text>
+                                </svg>
+                            </div>
+                            <div class="qr-scan-guide">
+                                <span class="guide-lead">สแกน QR CODE ด้วยแอปธนาคารใดก็ได้</span>
+                                <span class="biller-info">ชื่อบัญชี: บจก. แอบโซลูท ซินีม่า (ประเทศไทย)</span>
+                                <span class="amount-tag">ยอดชำระ: ฿@Model.TotalAmount.ToString("N0")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Credit Card Form -->
+                <div id="creditTab" class="tab-pane">
+                    <div class="credit-card-form">
+                        <div class="form-group">
+                            <label>หมายเลขบัตรเครดิต / เดบิต</label>
+                            <input type="text" class="card-input" placeholder="XXXX - XXXX - XXXX - XXXX" maxlength="19" />
+                        </div>
+                        <div class="form-group">
+                            <label>ชื่อบนบัตร</label>
+                            <input type="text" class="card-input" placeholder="SURNAME FIRSTNAME" />
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>วันหมดอายุ (MM/YY)</label>
+                                <input type="text" class="card-input" placeholder="MM/YY" maxlength="5" />
+                            </div>
+                            <div class="form-group">
+                                <label>รหัส CVV</label>
+                                <input type="password" class="card-input" placeholder="XXX" maxlength="3" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Bank Transfer -->
+                <div id="bankTab" class="tab-pane">
+                    <div class="bank-transfer-list">
+                        <div class="bank-item">
+                            <div class="bank-badge kbank">KBANK</div>
+                            <div class="bank-details">
+                                <span class="bank-name">ธนาคารกสิกรไทย</span>
+                                <span class="acc-num">095-2-67891-0</span>
+                                <span class="acc-name">บจก. แอบโซลูท ซินีม่า</span>
+                            </div>
+                        </div>
+                        <div class="bank-item">
+                            <div class="bank-badge scb">SCB</div>
+                            <div class="bank-details">
+                                <span class="bank-name">ธนาคารไทยพาณิชย์</span>
+                                <span class="acc-num">408-9-12345-6</span>
+                                <span class="acc-name">บจก. แอบโซลูท ซินีม่า</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Details for Receipt / DB -->
+                <div class="customer-info-box">
+                    <div class="ci-title"><i class="bi bi-person-fill"></i> ข้อมูลผู้จองภาพยนตร์</div>
+                    <div class="ci-row">
+                        <input type="text" id="custName" class="ci-input" placeholder="ชื่อ-นามสกุล ผู้จอง" value="คุณลูกค้า Absolute Cinema" />
+                        <input type="tel" id="custPhone" class="ci-input" placeholder="เบอร์โทรศัพท์มือถือ" value="081-234-5678" />
+                    </div>
+                </div>
+
+                <!-- CTA Confirmation Button -->
+                <button type="button" id="btnConfirmPay" class="btn-confirm-payment" onclick="executePayment()">
+                    <span id="btnPayText">ยืนยันการชำระเงิน (CHECK) - ฿@Model.TotalAmount.ToString("N0")</span>
+                    <span id="btnPaySpinner" class="spinner-border spinner-border-sm" style="display: none;"></span>
+                </button>
+
+                <div class="payment-guarantee">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>ระบบเข้ารหัสความปลอดภัย 256-bit SSL | บันทึกประวัติและออกตั๋วลง Database อัตโนมัติ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: Digital Cinema Ticket / Success Confirmation Pop-up -->
+<!-- ======================================================== -->
+<div id="ticketModal" class="ticket-modal-overlay">
+    <div class="ticket-modal-content">
+        <div class="ticket-gold-header">
+            <div class="th-brand">
+                <span class="th-crown">&#9818;</span>
+                <span class="th-name">ABSOLUTE CINEMA</span>
+            </div>
+            <div class="th-status">
+                <i class="bi bi-check-circle-fill"></i> การจองสำเร็จ (CONFIRMED)
+            </div>
+        </div>
+
+        <!-- Cinema Ticket Card Body -->
+        <div class="cinema-ticket-card">
+            <div class="ticket-top-section">
+                <div class="t-movie-title" id="tMovieTitle">@Model.MovieTitle</div>
+                <div class="t-badges">
+                    <span class="t-badge gold">GOLD CLASS</span>
+                    <span class="t-badge">DOLBY ATMOS</span>
+                    <span class="t-badge">4K LASER</span>
+                </div>
+            </div>
+
+            <div class="ticket-tear-line">
+                <div class="notch left"></div>
+                <div class="tear-dots"></div>
+                <div class="notch right"></div>
+            </div>
+
+            <div class="ticket-info-grid">
+                <div class="ti-item">
+                    <span class="ti-label">โรงภาพยนตร์</span>
+                    <span class="ti-val" id="tCinemaName">@Model.CinemaName</span>
+                </div>
+                <div class="ti-item">
+                    <span class="ti-label">รอบฉาย</span>
+                    <span class="ti-val" id="tShowtime">@Model.DateDisplayTh | @Model.TimeDisplayTh</span>
+                </div>
+                <div class="ti-item full-width">
+                    <span class="ti-label">ที่นั่งของคุณ (SEATS)</span>
+                    <span class="ti-val highlight-gold" id="tSeats">@Model.SelectedSeatsString</span>
+                </div>
+                <div class="ti-item">
+                    <span class="ti-label">ยอดชำระ</span>
+                    <span class="ti-val" id="tAmount">฿@Model.TotalAmount.ToString("N0")</span>
+                </div>
+                <div class="ti-item">
+                    <span class="ti-label">รหัสอ้างอิงการจอง</span>
+                    <span class="ti-val" id="tRefCode">@Model.BookingReferenceCode</span>
+                </div>
+                <div class="ti-item full-width">
+                    <span class="ti-label">เลขที่ใบกำกับภาษี</span>
+                    <span class="ti-val mono" id="tInvoiceNo">INV-261110-8491</span>
+                </div>
+            </div>
+
+            <!-- Barcode Visual -->
+            <div class="ticket-barcode-box">
+                <div class="barcode-lines">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <div class="barcode-num" id="tBarcodeText">AC-67091861-@Model.ShowtimeId</div>
+            </div>
+        </div>
+
+        <!-- Action Buttons inside Modal -->
+        <div class="ticket-actions">
+            <button type="button" class="btn-ticket-print" onclick="window.print()">
+                <i class="bi bi-printer"></i> พิมพ์ / บันทึกตั๋ว
+            </button>
+            <a href="@Url.Action("ViewDatabase", "Seed")" class="btn-ticket-db" target="_blank">
+                <i class="bi bi-database-check"></i> ดูใน Database
+            </a>
+            <a href="@Url.Action("Index", "Home")" class="btn-ticket-home">
+                <i class="bi bi-house"></i> กลับสู่หน้าหลัก
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-page-container {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+        color: #e5e5ec;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    /* Stepper Flow */
+    .checkout-stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 760px;
+        margin: 0 auto 35px;
+    }
+
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .step-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #1c1c2b;
+        border: 2px solid #36364c;
+        color: #8b8b9e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+
+    .step-item.completed .step-circle {
+        background: #dfb76c;
+        border-color: #dfb76c;
+        color: #0b0b12;
+    }
+
+    .step-item.current .step-circle {
+        background: #dfb76c;
+        border-color: #dfb76c;
+        color: #0b0b12;
+        box-shadow: 0 0 15px rgba(223, 183, 108, 0.6);
+    }
+
+    .step-label {
+        font-size: 0.8rem;
+        color: #79798e;
+        white-space: nowrap;
+    }
+
+    .step-item.current .step-label, .step-item.completed .step-label {
+        color: #dfb76c;
+        font-weight: 600;
+    }
+
+    .step-line {
+        flex: 1;
+        height: 2px;
+        background: #2a2a3e;
+        margin: 0 12px 20px;
+    }
+
+    .step-line.active {
+        background: #dfb76c;
+    }
+
+    /* 2 Column Payment Grid */
+    .payment-grid {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    /* Left Order Details Card */
+    .order-card, .payment-box-card {
+        background: #12121e;
+        border: 1px solid rgba(223, 183, 108, 0.25);
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 20px 0;
+    }
+
+    .gold-accent-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #dfb76c;
+        box-shadow: 0 0 8px #dfb76c;
+    }
+
+    /* Movie Receipt Header */
+    .movie-receipt-header {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .receipt-poster {
+        width: 80px;
+        height: 115px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(223, 183, 108, 0.4);
+        background: #090910;
+        flex-shrink: 0;
+    }
+
+    .receipt-poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .receipt-graphic {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #1f1b2b 0%, #0a0a10 100%);
+    }
+
+    .receipt-crown {
+        font-size: 2rem;
+        color: #dfb76c;
+    }
+
+    .receipt-title-box {
+        flex: 1;
+    }
+
+    .receipt-movie-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 6px 0;
+        line-height: 1.3;
+    }
+
+    .receipt-hall-pill {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: rgba(223, 183, 108, 0.15);
+        color: #dfb76c;
+        border: 1px solid rgba(223, 183, 108, 0.4);
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-bottom: 6px;
+    }
+
+    .receipt-cinema-name {
+        font-size: 0.82rem;
+        color: #a4a4b8;
+    }
+
+    .receipt-cinema-name i {
+        color: #dfb76c;
+    }
+
+    .receipt-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 16px 0;
+    }
+
+    .receipt-divider.thick {
+        background: rgba(223, 183, 108, 0.3);
+        height: 2px;
+    }
+
+    .receipt-specs, .receipt-calc {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .spec-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.88rem;
+    }
+
+    .spec-row.small {
+        font-size: 0.82rem;
+        color: #a0a0b2;
+    }
+
+    .spec-label {
+        color: #8c8c9e;
+    }
+
+    .spec-value {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .seats-pill-list {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .seat-badge {
+        background: #dfb76c;
+        color: #0b0b12;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    .discount-green {
+        color: #34d399 !important;
+        font-weight: 600;
+    }
+
+    /* Grand Total Row */
+    .grand-total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 18px 0;
+    }
+
+    .gt-title {
+        display: block;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .gt-sub {
+        font-size: 0.75rem;
+        color: #79798e;
+    }
+
+    .gt-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #dfb76c;
+        text-shadow: 0 0 15px rgba(223, 183, 108, 0.4);
+    }
+
+    .ref-code-box {
+        background: #171725;
+        border: 1px dashed rgba(223, 183, 108, 0.3);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+        color: #8c8c9e;
+    }
+
+    .ref-code-box strong {
+        color: #dfb76c;
+        letter-spacing: 1px;
+    }
+
+    /* Right Payment Card */
+    .payment-box-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .countdown-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(220, 53, 69, 0.15);
+        border: 1px solid #dc3545;
+        color: #ff6b7d;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+    .timer-digits {
+        color: #ff4757;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    /* Tabs */
+    .payment-method-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .method-tab {
+        background: #191928;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px 10px;
+        color: #9f9fb2;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.25s;
+        font-family: inherit;
+    }
+
+    .method-tab i {
+        font-size: 1.25rem;
+    }
+
+    .method-tab:hover {
+        border-color: #dfb76c;
+        color: #dfb76c;
+    }
+
+    .method-tab.active {
+        background: rgba(223, 183, 108, 0.12);
+        border-color: #dfb76c;
+        color: #dfb76c;
+        box-shadow: 0 4px 15px rgba(223, 183, 108, 0.2);
+    }
+
+    /* Tab Panes */
+    .tab-pane {
+        display: none;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    /* QR Code Display */
+    .qr-payment-panel {
+        background: #171726;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .thai-qr-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #10375c;
+        color: #ffffff;
+        padding: 10px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .styled-qr-box {
+        display: inline-block;
+        padding: 12px;
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        margin-bottom: 16px;
+    }
+
+    .qr-svg {
+        width: 180px;
+        height: 180px;
+        display: block;
+    }
+
+    .qr-scan-guide {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .guide-lead {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .biller-info {
+        font-size: 0.82rem;
+        color: #8c8c9e;
+    }
+
+    .amount-tag {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #dfb76c;
+        margin-top: 4px;
+    }
+
+    /* Credit Card Form */
+    .credit-card-form {
+        background: #171726;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .card-input {
+        width: 100%;
+        background: #101018;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: #fff;
+        font-size: 0.9rem;
+        outline: none;
+    }
+
+    .card-input:focus {
+        border-color: #dfb76c;
+    }
+
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    /* Bank Transfer */
+    .bank-transfer-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .bank-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: #171726;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 14px 18px;
+    }
+
+    .bank-badge {
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #fff;
+    }
+
+    .bank-badge.kbank { background: #138f2d; }
+    .bank-badge.scb { background: #4e2a84; }
+
+    .bank-details {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.85rem;
+    }
+
+    .bank-name { font-weight: 600; color: #fff; }
+    .acc-num { color: #dfb76c; font-weight: 700; font-size: 1rem; }
+    .acc-name { color: #8c8c9e; font-size: 0.78rem; }
+
+    /* Customer details box */
+    .customer-info-box {
+        background: #181827;
+        border-radius: 10px;
+        padding: 16px 18px;
+        margin-bottom: 24px;
+    }
+
+    .ci-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #dfb76c;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ci-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .ci-input {
+        background: #101018;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: #fff;
+        font-size: 0.82rem;
+        outline: none;
+    }
+
+    .ci-input:focus {
+        border-color: #dfb76c;
+    }
+
+    /* Confirm CTA button */
+    .btn-confirm-payment {
+        width: 100%;
+        background: #dfb76c;
+        border: none;
+        color: #0b0b12;
+        font-size: 1.15rem;
+        font-weight: 700;
+        padding: 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-family: inherit;
+        box-shadow: 0 4px 20px rgba(223, 183, 108, 0.4);
+    }
+
+    .btn-confirm-payment:hover {
+        background: #ecc57c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(223, 183, 108, 0.6);
+    }
+
+    .payment-guarantee {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: #8c8c9e;
+        margin-top: 14px;
+        text-align: center;
+    }
+
+    .payment-guarantee i {
+        color: #34d399;
+    }
+
+    /* ========================================= */
+    /* DIGITAL CINEMA TICKET MODAL */
+    /* ========================================= */
+    .ticket-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .ticket-modal-content {
+        background: #141420;
+        border: 2px solid #dfb76c;
+        border-radius: 18px;
+        max-width: 540px;
+        width: 100%;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(223, 183, 108, 0.3);
+        animation: modalScaleUp 0.35s ease-out;
+    }
+
+    @@keyframes modalScaleUp {
+        from { transform: scale(0.85); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .ticket-gold-header {
+        background: linear-gradient(90deg, #dfb76c 0%, #b88d3e 100%);
+        color: #0b0b12;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .th-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+    }
+
+    .th-crown {
+        font-size: 1.4rem;
+    }
+
+    .th-status {
+        font-size: 0.82rem;
+        font-weight: 700;
+        background: #0b0b12;
+        color: #dfb76c;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+
+    .cinema-ticket-card {
+        padding: 24px;
+        background: #111119;
+    }
+
+    .t-movie-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 8px;
+    }
+
+    .t-badges {
+        display: flex;
+        gap: 6px;
+    }
+
+    .t-badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #a4a4b8;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    .t-badge.gold {
+        background: rgba(223, 183, 108, 0.15);
+        border-color: #dfb76c;
+        color: #dfb76c;
+    }
+
+    /* Tear line with notches */
+    .ticket-tear-line {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin: 20px -24px;
+    }
+
+    .notch {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #141420;
+    }
+
+    .notch.left { margin-left: -10px; }
+    .notch.right { margin-right: -10px; }
+
+    .tear-dots {
+        flex: 1;
+        border-bottom: 2px dashed rgba(223, 183, 108, 0.4);
+    }
+
+    .ticket-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .ti-item.full-width {
+        grid-column: span 2;
+    }
+
+    .ti-label {
+        display: block;
+        font-size: 0.75rem;
+        color: #8c8c9e;
+        margin-bottom: 2px;
+    }
+
+    .ti-val {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .ti-val.highlight-gold {
+        color: #dfb76c;
+        font-size: 1.25rem;
+        letter-spacing: 1px;
+    }
+
+    .ti-val.mono {
+        font-family: monospace;
+        letter-spacing: 0.5px;
+        color: #34d399;
+    }
+
+    /* Barcode Visual */
+    .ticket-barcode-box {
+        text-align: center;
+        background: #ffffff;
+        padding: 14px 10px 8px;
+        border-radius: 8px;
+    }
+
+    .barcode-lines {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        height: 42px;
+        align-items: stretch;
+    }
+
+    .barcode-lines span {
+        background: #000;
+        width: 3px;
+        display: block;
+    }
+
+    .barcode-lines span:nth-child(even) { width: 5px; }
+    .barcode-lines span:nth-child(3n) { width: 2px; }
+    .barcode-lines span:nth-child(5n) { width: 6px; }
+
+    .barcode-num {
+        color: #000;
+        font-family: monospace;
+        font-size: 0.75rem;
+        margin-top: 6px;
+        letter-spacing: 2px;
+    }
+
+    /* Actions in modal */
+    .ticket-actions {
+        padding: 18px 24px 22px;
+        background: #171726;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .btn-ticket-print, .btn-ticket-db, .btn-ticket-home {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-ticket-print {
+        background: #dfb76c;
+        color: #0b0b12;
+    }
+
+    .btn-ticket-print:hover {
+        background: #ecc57c;
+    }
+
+    .btn-ticket-db {
+        background: #252538;
+        color: #34d399;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .btn-ticket-db:hover {
+        background: #2e2e46;
+        color: #fff;
+    }
+
+    .btn-ticket-home {
+        background: #252538;
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-ticket-home:hover {
+        background: #2e2e46;
+        color: #dfb76c;
+    }
+
+    /* Responsive */
+    @@media (max-width: 900px) {
+        .payment-grid {
+            grid-template-columns: 1fr;
+        }
+        .ticket-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    const showtimeId = @Model.ShowtimeId;
+    const movieId = @Model.MovieId;
+    const selectedSeatsStr = "@Model.SelectedSeatsString";
+    const totalAmount = @Model.TotalAmount;
+    const promoCode = "@Model.AppliedPromoCode";
+    let activePaymentMethod = "PromptPay";
+
+    // Switch payment tabs
+    function switchTab(btn, tabId) {
+        document.querySelectorAll('.method-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+        activePaymentMethod = btn.getAttribute('data-method');
+    }
+
+    // 15-Minute Countdown Timer
+    let totalSeconds = 15 * 60;
+    const timerElem = document.getElementById('timerDisplay');
+    const timerInterval = setInterval(function () {
+        totalSeconds--;
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerElem.innerText = "00:00";
+            alert("⚠️ เวลาในการชำระเงินหมดอายุแล้ว กรุณาเริ่มทำรายการใหม่อีกครั้ง");
+            window.location.href = `/Home/SelectSeat?showtimeId=${showtimeId}`;
+            return;
+        }
+
+        const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const secs = (totalSeconds % 60).toString().padStart(2, '0');
+        timerElem.innerText = `${mins}:${secs}`;
+    }, 1000);
+
+    // Execute Payment & Save to Database
+    function executePayment() {
+        const btnPay = document.getElementById('btnConfirmPay');
+        const textSpan = document.getElementById('btnPayText');
+        const spinner = document.getElementById('btnPaySpinner');
+        const custName = document.getElementById('custName').value.trim();
+        const custPhone = document.getElementById('custPhone').value.trim();
+
+        btnPay.disabled = true;
+        textSpan.innerText = "กำลังตรวจสอบยอดชำระเงินและบันทึกลง Database...";
+        spinner.style.display = "inline-block";
+
+        const payload = {
+            showtimeId: showtimeId,
+            movieId: movieId,
+            selectedSeats: selectedSeatsStr,
+            totalAmount: totalAmount,
+            promoCode: promoCode,
+            paymentMethod: activePaymentMethod,
+            customerName: custName,
+            customerPhone: custPhone
+        };
+
+        fetch('/Home/ConfirmBooking', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Populate ticket modal
+                document.getElementById('tMovieTitle').innerText = data.movieTitle || "@Model.MovieTitle";
+                document.getElementById('tCinemaName').innerText = data.cinemaName || "@Model.CinemaName";
+                document.getElementById('tShowtime').innerText = data.showtimeStr || "@Model.DateDisplayTh | @Model.TimeDisplayTh";
+                document.getElementById('tSeats').innerText = data.seats || selectedSeatsStr;
+                document.getElementById('tAmount').innerText = "฿" + Number(data.totalAmount).toLocaleString();
+                document.getElementById('tRefCode').innerText = data.referenceCode;
+                document.getElementById('tInvoiceNo').innerText = data.taxInvoiceNo;
+                document.getElementById('tBarcodeText').innerText = data.referenceCode;
+
+                // Stop countdown
+                clearInterval(timerInterval);
+
+                // Show modal
+                const modal = document.getElementById('ticketModal');
+                modal.style.display = 'flex';
+            } else {
+                alert(data.message || "เกิดข้อผิดพลาดในการชำระเงิน");
+                btnPay.disabled = false;
+                textSpan.innerText = "ยืนยันการชำระเงิน (CHECK) - ฿" + totalAmount.toLocaleString();
+                spinner.style.display = "none";
+            }
+        })
+        .catch(err => {
+            alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง");
+            btnPay.disabled = false;
+            textSpan.innerText = "ยืนยันการชำระเงิน (CHECK) - ฿" + totalAmount.toLocaleString();
+            spinner.style.display = "none";
+        });
+    }
+</script>
+

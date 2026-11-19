@@ -1,0 +1,516 @@
+@model Kawin_67091861_002.ViewModels.CinemaHallCardDto
+@{
+    ViewData["Title"] = $"{Model.HallName} - ผังที่นั่งและข้อมูลลูกค้า";
+    Layout = "_LayoutStaff";
+    var rows = Model.Seats.Select(s => s.Row).Distinct().OrderBy(r => r).ToList();
+    var bookedSeats = Model.Seats.Where(s => s.IsBooked).ToList();
+    var checkedInCount = Model.Seats.Count(s => s.IsCheckedIn);
+}
+
+<!-- Top Header with Back Button -->
+<div class="hall-detail-top">
+    <div class="hdt-left">
+        <a asp-action="Halls" class="btn-back-halls">
+            <i class="bi bi-arrow-left me-1"></i> กลับหน้ารวมโรงภาพยนตร์
+        </a>
+        <div class="mt-2">
+            <div class="hall-sub-tag">@Model.HallType</div>
+            <h1 class="hall-title-main">@Model.HallName</h1>
+            <div class="hall-movie-sub">
+                <span class="text-white fw-bold">@Model.CurrentMovieTitle</span> 
+                <span class="text-muted ms-2">• รอบ @Model.StartTimeText - @Model.EndTimeText น.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="hall-quick-stats">
+        <div class="hqs-item">
+            <span class="hqs-lbl">ที่นั่งทั้งหมด</span>
+            <span class="hqs-val">@Model.TotalSeats</span>
+        </div>
+        <div class="hqs-item">
+            <span class="hqs-lbl">จองแล้ว</span>
+            <span class="hqs-val text-info">@Model.BookedSeatsCount</span>
+        </div>
+        <div class="hqs-item">
+            <span class="hqs-lbl">เช็คอินแล้ว</span>
+            <span class="hqs-val text-success">@checkedInCount</span>
+        </div>
+        <div class="hqs-item">
+            <span class="hqs-lbl">ว่าง</span>
+            <span class="hqs-val text-muted">@Model.AvailableSeatsCount</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Section: Seat Map (Left) vs Customer Inspector (Right) -->
+<div class="seatmap-main-grid mt-4">
+    <!-- Left: Screen & Seat Grid -->
+    <div class="seat-grid-card">
+        <!-- Cinema Screen Curve -->
+        <div class="cinema-screen-wrap">
+            <div class="screen-curve"></div>
+            <span class="screen-label">จอภาพยนตร์ (SCREEN)</span>
+        </div>
+
+        <!-- Legend -->
+        <div class="seat-legend-row">
+            <div class="legend-item">
+                <span class="legend-box available"></span>
+                <span>ที่นั่งว่าง</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-box booked"></span>
+                <span>มีลูกค้าจองแล้ว (คลิกดูชื่อ)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-box checkedin"></span>
+                <span>เช็คอินเข้าโรงแล้ว</span>
+            </div>
+        </div>
+
+        <!-- Seats Container -->
+        <div class="seats-matrix-container mt-4">
+            @foreach (var r in rows)
+            {
+                var rowSeats = Model.Seats.Where(s => s.Row == r).OrderBy(s => s.Number).ToList();
+                <div class="seat-row-flex">
+                    <span class="row-indicator">@r</span>
+
+                    <div class="row-seats-group">
+                        @foreach (var seat in rowSeats)
+                        {
+                            string seatClass = "seat-node";
+                            if (seat.IsCheckedIn) seatClass += " checked-in";
+                            else if (seat.IsBooked) seatClass += " is-booked";
+                            else seatClass += " is-available";
+
+                            <button type="button" 
+                                    class="@seatClass" 
+                                    onclick="selectSeat('@seat.SeatCode', @seat.IsBooked.ToString().ToLower(), @seat.IsCheckedIn.ToString().ToLower(), '@seat.CustomerName', '@seat.CustomerPhone', '@seat.BookingCode', @seat.Price, '@seat.Tier')"
+                                    title="@seat.SeatCode: @(seat.IsBooked ? seat.CustomerName : "ว่าง")">
+                                @seat.Number
+                            </button>
+                        }
+                    </div>
+
+                    <span class="row-indicator">@r</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Right: Customer Ticket & Seat Inspector -->
+    <div class="customer-inspector-card" id="inspectorCard">
+        <div class="inspector-header">
+            <i class="bi bi-person-badge text-info fs-5 me-2"></i>
+            <div>
+                <h3 class="inspector-title">ข้อมูลผู้จองที่นั่ง</h3>
+                <span class="inspector-sub">คลิกที่นั่งในผังเพื่อตรวจสอบข้อมูลลูกค้า</span>
+            </div>
+        </div>
+
+        <div id="inspectorContent" class="inspector-content-box mt-3">
+            <!-- Default selected first booked seat if any -->
+            @if (bookedSeats.Any())
+            {
+                var first = bookedSeats.First();
+                <div class="seat-hero-badge">
+                    <div class="sh-code" id="inspectSeatCode">@first.SeatCode</div>
+                    <div class="sh-tier" id="inspectSeatTier">ที่นั่งระดับ @first.Tier</div>
+                </div>
+
+                <div class="customer-info-list mt-3">
+                    <div class="ci-row">
+                        <span class="ci-lbl">ชื่อลูกค้าผู้จอง</span>
+                        <strong class="ci-val text-white" id="inspectCustName">@first.CustomerName</strong>
+                    </div>
+                    <div class="ci-row">
+                        <span class="ci-lbl">เบอร์โทรศัพท์</span>
+                        <span class="ci-val text-info" id="inspectCustPhone">@first.CustomerPhone</span>
+                    </div>
+                    <div class="ci-row">
+                        <span class="ci-lbl">รหัสอ้างอิงการจอง</span>
+                        <span class="ci-val font-monospace text-warning" id="inspectRefCode">@first.BookingCode</span>
+                    </div>
+                    <div class="ci-row">
+                        <span class="ci-lbl">ราคาตั๋ว</span>
+                        <span class="ci-val font-monospace text-white" id="inspectPrice">฿@first.Price.ToString("N0")</span>
+                    </div>
+                    <div class="ci-row">
+                        <span class="ci-lbl">สถานะการตรวจตั๋ว</span>
+                        <span class="badge @(first.IsCheckedIn ? "bg-success" : "bg-warning text-dark")" id="inspectStatusBadge">
+                            @(first.IsCheckedIn ? "เช็คอินเข้าโรงแล้ว" : "ยังไม่เช็คอิน")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="ci-action-box mt-4">
+                    <form method="post" asp-action="CheckInTicket">
+                        <input type="hidden" name="hallId" value="@Model.HallId" />
+                        <input type="hidden" name="seatCode" id="inspectCheckInSeatCode" value="@first.SeatCode" />
+                        <button type="submit" class="btn-checkin-action" id="btnCheckInSubmit">
+                            <i class="bi bi-qr-code-scan me-1"></i> เช็คอินตั๋วที่นั่งนี้
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    ยังไม่มีข้อมูลการจองในโรงนี้
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Top */
+    .hall-detail-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .btn-back-halls {
+        display: inline-flex;
+        align-items: center;
+        color: var(--accent-cyan);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .btn-back-halls:hover {
+        color: var(--accent-cyan-hover);
+    }
+
+    .hall-sub-tag {
+        font-size: 11px;
+        color: #38bdf8;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .hall-title-main {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .hall-movie-sub {
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    /* Quick Stats */
+    .hall-quick-stats {
+        display: flex;
+        gap: 14px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 12px;
+        padding: 12px 20px;
+    }
+
+    .hqs-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 10px;
+        border-right: 1px solid var(--border-subtle);
+    }
+
+    .hqs-item:last-child {
+        border-right: none;
+    }
+
+    .hqs-lbl {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .hqs-val {
+        font-size: 18px;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    /* Main Grid */
+    .seatmap-main-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 24px;
+    }
+
+    .seat-grid-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 14px;
+        padding: 26px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Screen Curve */
+    .cinema-screen-wrap {
+        width: 80%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .screen-curve {
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(90deg, rgba(14, 165, 233, 0.1) 0%, rgba(14, 165, 233, 1) 50%, rgba(14, 165, 233, 0.1) 100%);
+        border-radius: 50% 50% 0 0;
+        box-shadow: 0 4px 18px rgba(14, 165, 233, 0.5);
+    }
+
+    .screen-label {
+        font-size: 11px;
+        color: #38bdf8;
+        letter-spacing: 2px;
+        margin-top: 6px;
+        font-weight: 700;
+    }
+
+    /* Legend */
+    .seat-legend-row {
+        display: flex;
+        gap: 20px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legend-box {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+    }
+
+    .legend-box.available { background: #1c2738; border: 1px solid #28374e; }
+    .legend-box.booked { background: #0284c7; box-shadow: 0 0 6px #0ea5e9; }
+    .legend-box.checkedin { background: #10b981; box-shadow: 0 0 6px #10b981; }
+
+    /* Seats Matrix */
+    .seats-matrix-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        max-width: 620px;
+    }
+
+    .seat-row-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .row-indicator {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-muted);
+        width: 18px;
+        text-align: center;
+    }
+
+    .row-seats-group {
+        display: flex;
+        gap: 6px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .seat-node {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .seat-node:hover {
+        transform: scale(1.15);
+    }
+
+    .seat-node.is-available {
+        background: #172130;
+        border-color: #24334a;
+        color: #556780;
+    }
+
+    .seat-node.is-booked {
+        background: #0284c7;
+        color: #ffffff;
+        box-shadow: 0 0 8px rgba(14, 165, 233, 0.4);
+    }
+
+    .seat-node.checked-in {
+        background: #10b981;
+        color: #042f2e;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        font-weight: 800;
+    }
+
+    /* Right Inspector Card */
+    .customer-inspector-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 14px;
+        padding: 24px;
+        height: fit-content;
+    }
+
+    .inspector-header {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 14px;
+    }
+
+    .inspector-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .inspector-sub {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .seat-hero-badge {
+        background: #121c2a;
+        border: 1px solid #1c2c42;
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .sh-code {
+        font-size: 32px;
+        font-weight: 800;
+        color: #38bdf8;
+        line-height: 1;
+    }
+
+    .sh-tier {
+        font-size: 11.5px;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .customer-info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ci-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .ci-lbl {
+        color: var(--text-secondary);
+        font-size: 12px;
+    }
+
+    .btn-checkin-action {
+        width: 100%;
+        background: #0284c7;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-checkin-action:hover {
+        background: #0ea5e9;
+    }
+
+    @@media (max-width: 992px) {
+        .seatmap-main-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+@section Scripts {
+<script>
+    function selectSeat(code, isBooked, isCheckedIn, name, phone, refCode, price, tier) {
+        document.getElementById('inspectSeatCode').innerText = code;
+        document.getElementById('inspectSeatTier').innerText = "ที่นั่งระดับ " + tier;
+        document.getElementById('inspectCheckInSeatCode').value = code;
+
+        if (isBooked) {
+            document.getElementById('inspectCustName').innerText = name || "ลูกค้าสมาชิก Absolute Cinema";
+            document.getElementById('inspectCustPhone').innerText = phone || "081-xxx-xxxx";
+            document.getElementById('inspectRefCode').innerText = refCode || "BK-89" + Math.floor(100 + Math.random() * 900);
+            document.getElementById('inspectPrice').innerText = "฿" + Number(price).toLocaleString();
+
+            const badge = document.getElementById('inspectStatusBadge');
+            const btn = document.getElementById('btnCheckInSubmit');
+            if (isCheckedIn) {
+                badge.className = "badge bg-success";
+                badge.innerText = "เช็คอินเข้าโรงแล้ว";
+                btn.disabled = true;
+                btn.innerText = "✓ ลูกค้าเช็คอินเข้าโรงเรียบร้อยแล้ว";
+                btn.style.background = "#059669";
+            } else {
+                badge.className = "badge bg-warning text-dark";
+                badge.innerText = "ยังไม่เช็คอิน";
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-qr-code-scan me-1"></i> เช็คอินตั๋วที่นั่งนี้';
+                btn.style.background = "#0284c7";
+            }
+        } else {
+            document.getElementById('inspectCustName').innerText = "ที่นั่งว่าง (ยังไม่มีผู้จอง)";
+            document.getElementById('inspectCustPhone').innerText = "-";
+            document.getElementById('inspectRefCode').innerText = "-";
+            document.getElementById('inspectPrice').innerText = "฿" + Number(price).toLocaleString();
+            document.getElementById('inspectStatusBadge').className = "badge bg-secondary";
+            document.getElementById('inspectStatusBadge').innerText = "ที่นั่งว่าง";
+
+            const btn = document.getElementById('btnCheckInSubmit');
+            btn.disabled = true;
+            btn.innerText = "ไม่สามารถเช็คอินได้ (ที่นั่งว่าง)";
+            btn.style.background = "#334155";
+        }
+    }
+</script>
+}
+

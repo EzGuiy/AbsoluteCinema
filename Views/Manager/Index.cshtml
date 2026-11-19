@@ -1,0 +1,763 @@
+@model Kawin_67091861_002.ViewModels.ManagerDashboardViewModel
+@{
+    ViewData["Title"] = "ผู้จัดการสาขา - ภาพรวม";
+    Layout = "_LayoutManager";
+}
+
+<!-- Top Header Row -->
+<div class="mgr-top-bar">
+    <div>
+        <h1 class="mgr-greeting-title">สวัสดี, ณัฐชา</h1>
+        <div class="mgr-greeting-sub">
+            ภาพรวมการปฏิบัติงาน • วันอังคารที่ 15 กันยายน 2569
+        </div>
+    </div>
+
+    <div class="mgr-top-tools">
+        <!-- Search -->
+        <div class="mgr-search-box">
+            <i class="bi bi-search mgr-search-icon"></i>
+            <input type="text" class="mgr-search-input" placeholder="ค้นหาข้อมูลหรือรายการ..." />
+        </div>
+
+        <!-- Notification Bell -->
+        <button type="button" class="mgr-btn-icon">
+            <i class="bi bi-bell"></i>
+        </button>
+
+        <!-- Add Movie Button (Gold) -->
+        <button type="button" class="mgr-btn-add-movie" data-bs-toggle="modal" data-bs-target="#addMovieModal">
+            <i class="bi bi-plus me-1"></i> เพิ่มภาพยนตร์
+        </button>
+    </div>
+</div>
+
+<!-- 4 Key Stat Cards Row -->
+<div class="mgr-kpi-grid">
+    <!-- Card 1: ยอดขายวันนี้ -->
+    <div class="mgr-stat-box">
+        <div class="mgr-stat-top">
+            <span class="mgr-stat-title">ยอดขายวันนี้</span>
+            <div class="mgr-stat-icon-wrap">
+                <i class="bi bi-wallet2"></i>
+            </div>
+        </div>
+        <div class="mgr-stat-amount">฿@Model.TodayRevenue.ToString("N0")</div>
+        <div class="mgr-stat-badge green">@Model.RevenueChangeText</div>
+    </div>
+
+    <!-- Card 2: ตั๋วที่ขายได้ -->
+    <div class="mgr-stat-box">
+        <div class="mgr-stat-top">
+            <span class="mgr-stat-title">ตั๋วที่ขายได้</span>
+            <div class="mgr-stat-icon-wrap">
+                <i class="bi bi-ticket-perforated"></i>
+            </div>
+        </div>
+        <div class="mgr-stat-amount">@Model.TicketsSold.ToString("N0")</div>
+        <div class="mgr-stat-badge muted">@Model.TicketsGoalText</div>
+    </div>
+
+    <!-- Card 3: อัตราการเข้าชมเฉลี่ย -->
+    <div class="mgr-stat-box">
+        <div class="mgr-stat-top">
+            <span class="mgr-stat-title">อัตราการเข้าชมเฉลี่ย</span>
+            <div class="mgr-stat-icon-wrap">
+                <i class="bi bi-people"></i>
+            </div>
+        </div>
+        <div class="mgr-stat-amount">@Model.AvgAttendancePercent.ToString("0.0")%</div>
+        <div class="mgr-stat-badge green">@Model.AttendanceChangeText</div>
+    </div>
+
+    <!-- Card 4: รอบฉายวันนี้ -->
+    <div class="mgr-stat-box">
+        <div class="mgr-stat-top">
+            <span class="mgr-stat-title">รอบฉายวันนี้</span>
+            <div class="mgr-stat-icon-wrap">
+                <i class="bi bi-clock"></i>
+            </div>
+        </div>
+        <div class="mgr-stat-amount">@Model.TodayShowtimesCount</div>
+        <div class="mgr-stat-badge muted">@Model.RemainingShowtimesText</div>
+    </div>
+</div>
+
+<!-- Main 2-Column Grid -->
+<div class="mgr-main-grid">
+    <!-- Left Column: Upcoming Showtimes & Movie Status -->
+    <div class="mgr-left-col">
+        <!-- Upcoming Showtimes Card -->
+        <div class="mgr-card-panel">
+            <div class="panel-header-split">
+                <h2 class="panel-title-text">รอบฉายที่กำลังมาถึง</h2>
+                <a href="@Url.Action("Index")" class="panel-link-gold">จัดการรอบทั้งหมด +</a>
+            </div>
+
+            <div class="table-responsive mt-3">
+                <table class="table-showtimes-custom">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">เวลา</th>
+                            <th style="width: 45%;">ภาพยนตร์ / โรง</th>
+                            <th style="width: 20%;">ยอดจอง</th>
+                            <th style="width: 20%; text-align: center;">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var show in Model.UpcomingShowtimes)
+                        {
+                            <tr>
+                                <td class="font-show-time">@show.TimeText</td>
+                                <td>
+                                    <div class="movie-name-bold">@show.MovieTitle</div>
+                                    <div class="movie-hall-sub">@show.HallAndType</div>
+                                </td>
+                                <td class="seats-sold-text">@show.SeatsSoldText</td>
+                                <td style="text-align: center;">
+                                    @if (show.StatusBadgeColor == "green")
+                                    {
+                                        <span class="badge-status-pill pill-green">• @show.Status</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status-pill pill-red">• @show.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Movie Status Management Card -->
+        <div class="mgr-card-panel mt-4">
+            <div class="panel-header-split mb-3">
+                <h2 class="panel-title-text">จัดการสถานะภาพยนตร์</h2>
+                <a href="@Url.Action("Index")" class="panel-link-gold">ดูประวัติทั้งหมด <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="movie-status-cards-row">
+                <!-- Movie Card 1: A Quiet Place -->
+                <div class="movie-status-item">
+                    <div class="m-card-top">
+                        <span class="m-badge-outline">• โปรแกรมหน้า</span>
+                    </div>
+                    <div class="m-poster-ph"></div>
+                    <div class="m-card-body">
+                        <div class="m-card-title">A Quiet Place: Day One</div>
+                        <div class="m-card-sub">กำหนดฉาย 27 มิ.ย.</div>
+                        <form method="post" asp-action="SetMovieReady" class="mt-2">
+                            <input type="hidden" name="title" value="A Quiet Place" />
+                            <button type="submit" class="btn-set-ready">
+                                เปลี่ยนเป็น "พร้อมฉาย"
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Movie Card 2: Inside Out 2 -->
+                <div class="movie-status-item">
+                    <div class="m-card-top">
+                        <span class="m-badge-yellow">• พร้อมฉาย</span>
+                    </div>
+                    <div class="m-poster-ph white-cover"></div>
+                    <div class="m-card-body">
+                        <div class="m-card-title">Inside Out 2</div>
+                        <div class="m-card-sub">เริ่มฉายวันนี้</div>
+                    </div>
+                </div>
+
+                <!-- Movie Card 3: Bad Boys -->
+                <div class="movie-status-item">
+                    <div class="m-card-top">
+                        <span class="m-badge-green">• กำลังฉาย</span>
+                    </div>
+                    <div class="m-poster-ph"></div>
+                    <div class="m-card-body">
+                        <div class="m-card-title">Bad Boys: Ride or Die</div>
+                        <div class="m-card-sub">เหลือ 18 รอบ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Promotions & Team Chat -->
+    <div class="mgr-right-col">
+        <!-- Promotions Card -->
+        <div class="mgr-card-panel">
+            <div class="panel-header-split mb-3">
+                <h3 class="panel-section-title">โปรโมชั่น</h3>
+                <a href="@Url.Action("Index")" class="panel-link-gold">+ เพิ่ม</a>
+            </div>
+
+            <!-- Gold Gradient Banner Card -->
+            <div class="promotion-gold-card">
+                <div class="promo-tag">WEEKDAY SPECIAL</div>
+                <div class="promo-title">อังคารคู่สุดคุ้ม ฿299</div>
+                <div class="promo-sub">ใช้คะแนนสะสม 69</div>
+            </div>
+            <div class="promo-footer-text">
+                ใช้งาน 4 รายการ • รออนุมัติ 1 รายการ
+            </div>
+        </div>
+
+        <!-- Team Chat Card -->
+        <div class="mgr-card-panel mt-4">
+            <div class="panel-header-split mb-3">
+                <h3 class="panel-section-title">แชททีมงาน</h3>
+                <a href="@Url.Action("Index")" class="panel-link-gold">เปิดห้องแชท <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="team-chat-notifications-list">
+                @foreach (var chat in Model.ChatNotifications)
+                {
+                    <div class="chat-notif-row" onclick="alert('เปิดห้องแชท @chat.DepartmentName')">
+                        <div class="chat-dept-avatar @chat.AvatarColor">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div class="chat-dept-info">
+                            <div class="dept-name">@chat.DepartmentName</div>
+                            <div class="dept-msg">@chat.LastMessage</div>
+                        </div>
+                        <span class="badge-unread-circle @chat.AvatarColor">@chat.UnreadCount</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: เพิ่มภาพยนตร์ใหม่ -->
+<div class="modal fade" id="addMovieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-dark-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white fs-6 fw-bold">
+                    <i class="bi bi-film text-warning me-2"></i> เพิ่มภาพยนตร์ใหม่ (Manager Console)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-action="AddMovie">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">ชื่อภาพยนตร์ <span class="text-danger">*</span></label>
+                        <input type="text" name="Title" class="form-control dark-input" placeholder="เช่น Gladiator II หรือ Moana 2" required />
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">หมวดหมู่ / แนวหนัง</label>
+                            <input type="text" name="Genre" class="form-control dark-input" placeholder="แอ็คชั่น / ผจญภัย" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">ความยาว (นาที)</label>
+                            <input type="number" name="DurationMins" class="form-control dark-input" value="120" />
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">ราคาเริ่มต้น (บาท)</label>
+                            <input type="number" name="PriceMin" class="form-control dark-input" value="220" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">ราคาสูงสุด (บาท)</label>
+                            <input type="number" name="PriceMax" class="form-control dark-input" value="380" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">สถานะเริ่มต้น</label>
+                        <select name="Status" class="form-select dark-input">
+                            <option value="Showing">กำลังฉาย (Showing)</option>
+                            <option value="ComingSoon">โปรแกรมหน้า (Coming Soon)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">เรื่องย่อ</label>
+                        <textarea name="Description" class="form-control dark-input" rows="2" placeholder="รายละเอียดภาพยนตร์..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold" style="background:#f59e0b; border:none; color:#111;">
+                        บันทึกภาพยนตร์
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Top Bar */
+    .mgr-top-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .mgr-greeting-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .mgr-greeting-sub {
+        font-size: 12px;
+        color: #7b7b8c;
+        margin-top: 4px;
+    }
+
+    .mgr-top-tools {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .mgr-search-box {
+        position: relative;
+        width: 250px;
+    }
+
+    .mgr-search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #656575;
+        font-size: 13px;
+    }
+
+    .mgr-search-input {
+        width: 100%;
+        background: #15151a;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        padding: 8px 14px 8px 34px;
+        font-size: 12.5px;
+        color: #ffffff;
+        outline: none;
+    }
+
+    .mgr-search-input:focus {
+        border-color: #f59e0b;
+    }
+
+    .mgr-btn-icon {
+        width: 36px;
+        height: 36px;
+        background: #15151a;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        color: #9292a0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mgr-btn-add-movie {
+        background: #f59e0b;
+        color: #111111;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .mgr-btn-add-movie:hover {
+        background: #fbbf24;
+    }
+
+    /* 4 KPI Grid */
+    .mgr-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .mgr-stat-box {
+        background: #15151a;
+        border: 1px solid #202028;
+        border-radius: 12px;
+        padding: 18px 20px;
+    }
+
+    .mgr-stat-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .mgr-stat-title {
+        font-size: 12px;
+        color: #8c8c9c;
+    }
+
+    .mgr-stat-icon-wrap {
+        width: 28px;
+        height: 28px;
+        background: rgba(245, 158, 11, 0.12);
+        border-radius: 6px;
+        color: #f59e0b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .mgr-stat-amount {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 4px;
+    }
+
+    .mgr-stat-badge {
+        font-size: 11px;
+    }
+
+    .mgr-stat-badge.green { color: #10b981; }
+    .mgr-stat-badge.muted { color: #6c6c7d; }
+
+    /* Main Grid */
+    .mgr-main-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 20px;
+    }
+
+    .mgr-card-panel {
+        background: #15151a;
+        border: 1px solid #202028;
+        border-radius: 12px;
+        padding: 22px;
+    }
+
+    .panel-header-split {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .panel-title-text {
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .panel-section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .panel-link-gold {
+        font-size: 12px;
+        color: #f59e0b;
+        text-decoration: none;
+    }
+
+    /* Showtimes Table */
+    .table-showtimes-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-showtimes-custom thead tr {
+        border-bottom: 1px solid #202028;
+    }
+
+    .table-showtimes-custom th {
+        padding: 10px 14px;
+        font-size: 11px;
+        color: #5d5d6e;
+        font-weight: 500;
+    }
+
+    .table-showtimes-custom tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .table-showtimes-custom td {
+        padding: 14px;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .font-show-time {
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 13px;
+    }
+
+    .movie-name-bold {
+        font-weight: 600;
+        color: #ffffff;
+        font-size: 13px;
+    }
+
+    .movie-hall-sub {
+        font-size: 11px;
+        color: #7b7b8c;
+    }
+
+    .seats-sold-text {
+        font-size: 12.5px;
+        color: #9292a0;
+    }
+
+    .badge-status-pill {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .pill-green {
+        background: rgba(16, 185, 129, 0.12);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .pill-red {
+        background: rgba(229, 9, 20, 0.12);
+        color: #ff6b6b;
+        border: 1px solid rgba(229, 9, 20, 0.4);
+    }
+
+    /* Movie Status Cards */
+    .movie-status-cards-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .movie-status-item {
+        background: #111115;
+        border: 1px solid #202028;
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .m-card-top {
+        margin-bottom: 8px;
+    }
+
+    .m-badge-outline {
+        font-size: 10px;
+        color: #8c8c9c;
+        border: 1px solid #2d2d38;
+        border-radius: 10px;
+        padding: 1px 7px;
+    }
+
+    .m-badge-yellow {
+        font-size: 10px;
+        color: #fbbf24;
+        background: rgba(245, 158, 11, 0.15);
+        border-radius: 10px;
+        padding: 2px 7px;
+        font-weight: 600;
+    }
+
+    .m-badge-green {
+        font-size: 10px;
+        color: #34d399;
+        background: rgba(16, 185, 129, 0.15);
+        border-radius: 10px;
+        padding: 2px 7px;
+        font-weight: 600;
+    }
+
+    .m-poster-ph {
+        height: 60px;
+        background: #1c1c24;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+
+    .m-poster-ph.white-cover {
+        background: #2b2b36;
+    }
+
+    .m-card-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.3;
+    }
+
+    .m-card-sub {
+        font-size: 10px;
+        color: #6c6c7d;
+        margin-top: 2px;
+    }
+
+    .btn-set-ready {
+        width: 100%;
+        background: #252530;
+        border: 1px solid #333342;
+        color: #d1d1dc;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 5px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-set-ready:hover {
+        background: #f59e0b;
+        color: #000;
+        border-color: #f59e0b;
+    }
+
+    /* Promotions Gold Banner */
+    .promotion-gold-card {
+        background: linear-gradient(135deg, #c27a2b 0%, #e09848 100%);
+        border-radius: 10px;
+        padding: 18px 20px;
+        color: #ffffff;
+    }
+
+    .promo-tag {
+        font-size: 9.5px;
+        font-weight: 800;
+        color: #331705;
+        letter-spacing: 0.8px;
+        margin-bottom: 4px;
+    }
+
+    .promo-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: #111111;
+        margin-bottom: 4px;
+    }
+
+    .promo-sub {
+        font-size: 11px;
+        color: #331705;
+    }
+
+    .promo-footer-text {
+        font-size: 11px;
+        color: #7b7b8c;
+        margin-top: 10px;
+    }
+
+    /* Team Chat Notifications */
+    .team-chat-notifications-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .chat-notif-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .chat-notif-row:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .chat-dept-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .chat-dept-avatar.blue { background: #1e3a8a; }
+    .chat-dept-avatar.orange { background: #7c2d12; }
+    .chat-dept-avatar.green { background: #064e3b; }
+    .chat-dept-avatar.brown { background: #451a03; }
+
+    .chat-dept-info {
+        flex: 1;
+        line-height: 1.25;
+    }
+
+    .dept-name {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .dept-msg {
+        font-size: 11px;
+        color: #7b7b8c;
+    }
+
+    .badge-unread-circle {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+
+    .badge-unread-circle.blue { background: #3b82f6; }
+    .badge-unread-circle.orange { background: #f97316; }
+    .badge-unread-circle.green { background: #10b981; }
+    .badge-unread-circle.brown { background: #ea580c; }
+
+    /* Modal */
+    .custom-dark-modal {
+        background: #15151a;
+        border: 1px solid #282834;
+        border-radius: 12px;
+    }
+
+    .dark-input {
+        background: #0d0d12;
+        border: 1px solid #282834;
+        color: #ffffff;
+        font-size: 13px;
+    }
+
+    .dark-input:focus {
+        background: #0d0d12;
+        border-color: #f59e0b;
+        color: #ffffff;
+        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    @@media (max-width: 992px) {
+        .mgr-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        .mgr-main-grid { grid-template-columns: 1fr; }
+        .movie-status-cards-row { grid-template-columns: 1fr; }
+    }
+</style>
+

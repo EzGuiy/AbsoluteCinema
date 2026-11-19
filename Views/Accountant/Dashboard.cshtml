@@ -1,0 +1,548 @@
+@model Kawin_67091861_002.ViewModels.DailyOverviewViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "ภาพรวมประจำวัน";
+    Layout = "_LayoutAccountant";
+}
+
+<!-- Page Header with Live Status -->
+<div class="page-top-header">
+    <div>
+        <div class="header-pre-title">DAILY OVERVIEW</div>
+        <h1 class="header-main-title">ภาพรวมประจำวัน</h1>
+    </div>
+    <div class="system-live-badge">
+        <span class="live-dot"></span>
+        <span>SYSTEM LIVE</span>
+    </div>
+</div>
+
+<!-- 4 Key Stat Cards Row -->
+<div class="stats-cards-grid">
+    <!-- Card 1: ยอดขายประจำวัน -->
+    <div class="stat-box">
+        <div class="stat-top-row">
+            <div class="stat-labels">
+                <span class="stat-title-th">ยอดขายประจำวัน</span>
+                <span class="stat-title-en">TODAY'S REVENUE</span>
+            </div>
+            <div class="stat-icon-wrap">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+        </div>
+        <div class="stat-value">฿@Model.TodayRevenue.ToString("N0")</div>
+        <div class="stat-subtext green">@Model.RevenueChangeText</div>
+    </div>
+
+    <!-- Card 2: จำนวนลูกค้า -->
+    <div class="stat-box">
+        <div class="stat-top-row">
+            <div class="stat-labels">
+                <span class="stat-title-th">จำนวนลูกค้า</span>
+                <span class="stat-title-en">CUSTOMERS</span>
+            </div>
+            <div class="stat-icon-wrap">
+                <i class="bi bi-people-fill"></i>
+            </div>
+        </div>
+        <div class="stat-value">@Model.TodayCustomers.ToString("N0")</div>
+        <div class="stat-subtext muted">@Model.CustomersChangeText</div>
+    </div>
+
+    <!-- Card 3: จำนวนการจอง -->
+    <div class="stat-box">
+        <div class="stat-top-row">
+            <div class="stat-labels">
+                <span class="stat-title-th">จำนวนการจอง</span>
+                <span class="stat-title-en">BOOKINGS</span>
+            </div>
+            <div class="stat-icon-wrap">
+                <i class="bi bi-ticket-perforated-fill"></i>
+            </div>
+        </div>
+        <div class="stat-value">@Model.TodayBookings.ToString("N0")</div>
+        <div class="stat-subtext muted">@Model.BookingsSubtext</div>
+    </div>
+
+    <!-- Card 4: อัตราการเข้าชม -->
+    <div class="stat-box">
+        <div class="stat-top-row">
+            <div class="stat-labels">
+                <span class="stat-title-th">อัตราการเข้าชม</span>
+                <span class="stat-title-en">ATTENDANCE RATE</span>
+            </div>
+            <div class="stat-icon-wrap">
+                <i class="bi bi-bar-chart-steps"></i>
+            </div>
+        </div>
+        <div class="stat-value">@Model.AttendanceRate.ToString("0.0")%</div>
+        <div class="stat-subtext muted">@Model.AttendanceChangeText</div>
+    </div>
+</div>
+
+<!-- Middle Row: Revenue Trend (Left) & Category Share (Right) -->
+<div class="middle-charts-grid">
+    <!-- Left: Line Chart -->
+    <div class="card-panel">
+        <div class="card-pre-title">REVENUE TREND (LAST 7 DAYS)</div>
+        <h3 class="card-title">แนวโน้มรายรับสัปดาห์นี้</h3>
+        
+        <div class="line-chart-container">
+            <canvas id="revenueTrendChart" height="230"></canvas>
+        </div>
+    </div>
+
+    <!-- Right: Donut Chart -->
+    <div class="card-panel">
+        <div class="card-pre-title">REVENUE BY CATEGORY</div>
+        <h3 class="card-title">สัดส่วนรายรับวันนี้</h3>
+
+        <div class="donut-chart-wrapper">
+            <div class="donut-canvas-box">
+                <canvas id="categoryDonutChart" width="180" height="180"></canvas>
+                <div class="donut-center-text">
+                    <span class="center-val">@Model.CategoryBreakdown.CenterDisplay</span>
+                </div>
+            </div>
+
+            <!-- Legend List -->
+            <div class="category-legend-list">
+                <div class="legend-row">
+                    <div class="legend-left">
+                        <span class="leg-dot red"></span>
+                        <div class="leg-names">
+                            <span class="leg-th">ตั๋วหนัง</span>
+                            <span class="leg-en">Tickets</span>
+                        </div>
+                    </div>
+                    <span class="leg-percent">@Model.CategoryBreakdown.TicketsPercent%</span>
+                </div>
+
+                <div class="legend-row">
+                    <div class="legend-left">
+                        <span class="leg-dot orange"></span>
+                        <div class="leg-names">
+                            <span class="leg-th">ขนมและเครื่องดื่ม</span>
+                            <span class="leg-en">Concessions</span>
+                        </div>
+                    </div>
+                    <span class="leg-percent">@Model.CategoryBreakdown.ConcessionsPercent%</span>
+                </div>
+
+                <div class="legend-row">
+                    <div class="legend-left">
+                        <span class="leg-dot dark-red"></span>
+                        <div class="leg-names">
+                            <span class="leg-th">สินค้า</span>
+                            <span class="leg-en">Merchandise</span>
+                        </div>
+                    </div>
+                    <span class="leg-percent">@Model.CategoryBreakdown.MerchandisePercent%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row: Top Grossing Shows Today Table -->
+<div class="card-panel top-grossing-card">
+    <div class="card-pre-title">TOP GROSSING SHOWS (TODAY)</div>
+    <h3 class="card-title">ภาพยนตร์ทำรายได้สูงสุดวันนี้</h3>
+
+    <div class="table-responsive">
+        <table class="table custom-dark-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">อันดับ</th>
+                    <th>ชื่อภาพยนตร์</th>
+                    <th class="text-center" style="width: 180px;">รอบที่ฉายวันนี้</th>
+                    <th class="text-end" style="width: 180px;">ยอดได้สุทธิ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.TopGrossingMovies)
+                {
+                    <tr>
+                        <td class="rank-col">@m.Rank</td>
+                        <td class="title-col">@m.MovieTitle</td>
+                        <td class="text-center showtimes-col">@m.ShowtimesCount รอบ</td>
+                        <td class="text-end gross-col">฿@m.NetGross.ToString("N0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    /* Top Header */
+    .page-top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 24px;
+    }
+
+    .header-pre-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent-red);
+        letter-spacing: 1.5px;
+        margin-bottom: 4px;
+    }
+
+    .header-main-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* 4 Stat Cards */
+    .stats-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .stat-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .stat-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .stat-labels {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .stat-title-th {
+        font-size: 13.5px;
+        font-weight: 500;
+        color: #d1d1de;
+    }
+
+    .stat-title-en {
+        font-size: 9.5px;
+        color: var(--text-muted);
+        letter-spacing: 0.8px;
+        margin-top: 2px;
+    }
+
+    .stat-icon-wrap {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(229, 9, 20, 0.12);
+        color: var(--accent-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 6px;
+        letter-spacing: -0.3px;
+    }
+
+    .stat-subtext {
+        font-size: 11.5px;
+    }
+
+    .stat-subtext.green {
+        color: var(--accent-green);
+    }
+
+    .stat-subtext.muted {
+        color: var(--text-muted);
+    }
+
+    /* Card Panels */
+    .card-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .card-pre-title {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--accent-red);
+        letter-spacing: 1.5px;
+        margin-bottom: 4px;
+    }
+
+    .card-title {
+        font-size: 17px;
+        font-weight: 600;
+        color: #ffffff;
+        margin: 0 0 20px 0;
+    }
+
+    /* Middle Row Grid */
+    .middle-charts-grid {
+        display: grid;
+        grid-template-columns: 1.8fr 1.2fr;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .line-chart-container {
+        width: 100%;
+        position: relative;
+    }
+
+    /* Donut Chart Box */
+    .donut-chart-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .donut-canvas-box {
+        position: relative;
+        width: 170px;
+        height: 170px;
+    }
+
+    .donut-center-text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+
+    .center-val {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .category-legend-list {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .legend-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .legend-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .leg-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .leg-dot.red { background: #e50914; }
+    .leg-dot.orange { background: #ff7a00; }
+    .leg-dot.dark-red { background: #881337; }
+
+    .leg-names {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+    }
+
+    .leg-th {
+        font-size: 13px;
+        color: #e5e5ec;
+    }
+
+    .leg-en {
+        font-size: 9.5px;
+        color: var(--text-muted);
+    }
+
+    .leg-percent {
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    /* Top Grossing Table */
+    .custom-dark-table {
+        margin: 0;
+        border-color: var(--border-subtle);
+    }
+
+    .custom-dark-table th {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--text-muted);
+        background: transparent;
+        border-bottom: 1px solid var(--border-card);
+        padding: 12px 14px;
+    }
+
+    .custom-dark-table td {
+        font-size: 13.5px;
+        color: #d1d1de;
+        background: transparent;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 16px 14px;
+        vertical-align: middle;
+    }
+
+    .rank-col {
+        color: var(--accent-red) !important;
+        font-weight: 700;
+        font-size: 14px !important;
+    }
+
+    .title-col {
+        font-weight: 500;
+        color: #ffffff !important;
+    }
+
+    .showtimes-col {
+        color: var(--text-muted) !important;
+    }
+
+    .gross-col {
+        font-weight: 700;
+        color: #ffffff !important;
+    }
+
+    @@media (max-width: 1200px) {
+        .stats-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .middle-charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .stats-cards-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@section Scripts {
+<script>
+    // 1. Line Chart: Revenue Trend Last 7 Days
+    const trendCtx = document.getElementById('revenueTrendChart').getContext('2d');
+    const trendLabels = @Html.Raw(JsonSerializer.Serialize(Model.WeeklyRevenueTrend.Select(d => d.DayName)));
+    const trendData = @Html.Raw(JsonSerializer.Serialize(Model.WeeklyRevenueTrend.Select(d => d.Revenue)));
+
+    const trendGradient = trendCtx.createLinearGradient(0, 0, 0, 220);
+    trendGradient.addColorStop(0, 'rgba(229, 9, 20, 0.25)');
+    trendGradient.addColorStop(1, 'rgba(229, 9, 20, 0.0)');
+
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [{
+                data: trendData,
+                borderColor: '#e50914',
+                borderWidth: 2.5,
+                backgroundColor: trendGradient,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#e50914',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 1.5,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#191920',
+                    titleColor: '#8e8e9f',
+                    bodyColor: '#ffffff',
+                    borderColor: '#262630',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            return ' ฿' + Number(context.raw).toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#666675', font: { family: 'Prompt', size: 11 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                    ticks: {
+                        color: '#666675',
+                        font: { family: 'Prompt', size: 10 },
+                        callback: function(value) { return '฿' + (value / 1000) + 'k'; }
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Donut Chart: Revenue By Category
+    const donutCtx = document.getElementById('categoryDonutChart').getContext('2d');
+    new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['ตั๋วหนัง', 'ขนมและเครื่องดื่ม', 'สินค้า'],
+            datasets: [{
+                data: [
+                    @Model.CategoryBreakdown.TicketsPercent,
+                    @Model.CategoryBreakdown.ConcessionsPercent,
+                    @Model.CategoryBreakdown.MerchandisePercent
+                ],
+                backgroundColor: ['#e50914', '#ff7a00', '#881337'],
+                borderColor: '#15151a',
+                borderWidth: 3,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '76%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#191920',
+                    callbacks: {
+                        label: function(context) { return ' ' + context.label + ': ' + context.raw + '%'; }
+                    }
+                }
+            }
+        }
+    });
+</script>
+}

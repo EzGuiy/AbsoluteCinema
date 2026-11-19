@@ -1,0 +1,960 @@
+@model Kawin_67091861_002.ViewModels.SeatSelectionViewModel
+@{
+    ViewData["Title"] = "เลือกที่นั่ง - " + Model.MovieTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="seat-selection-container">
+    <!-- Breadcrumb & Realtime Indicator Header -->
+    <div class="seat-top-bar">
+        <div class="detail-breadcrumb">
+            <a asp-controller="Home" asp-action="Index">หน้าแรก</a>
+            <span>&rsaquo;</span>
+            <a asp-controller="Home" asp-action="MovieDetail" asp-route-id="@Model.MovieId">@Model.MovieTitle</a>
+            <span>&rsaquo;</span>
+            <span class="current">เลือกที่นั่ง</span>
+        </div>
+        <div class="realtime-status-pill">
+            <span class="pulse-dot"></span>
+            <span class="status-text">ระบบที่นั่ง Real-time (อัปเดตอัตโนมัติ)</span>
+            <span id="lastSyncTime" class="sync-time"></span>
+        </div>
+    </div>
+
+    <!-- 3-Column Layout: Left (Movie card), Center (Seat map), Right (Order summary) -->
+    <div class="seat-layout-grid">
+        <!-- LEFT PANEL: Movie & Showtime Info -->
+        <div class="left-panel">
+            <div class="movie-mini-card">
+                <div class="mini-poster">
+                    @if (!string.IsNullOrEmpty(Model.PosterUrl))
+                    {
+                        <img src="@Model.PosterUrl" alt="@Model.MovieTitle" class="mini-poster-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    }
+                    <div class="mini-poster-graphic @(string.IsNullOrEmpty(Model.PosterUrl) ? "" : "hidden-fallback")">
+                        <div class="mini-emblem">&#9818;</div>
+                        <div class="mini-title">@Model.MovieTitle</div>
+                    </div>
+                </div>
+
+                <div class="mini-info">
+                    <h3 class="mini-movie-title">@Model.MovieTitle</h3>
+                    <div class="mini-meta">
+                        <span class="hall-badge">@Model.HallTier</span>
+                        <div class="info-row">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <span>@Model.CinemaName</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="bi bi-calendar3"></i>
+                            <span>@Model.DateDisplayTh</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="bi bi-clock-fill"></i>
+                            <span class="highlight-time">@Model.TimeDisplayTh</span>
+                        </div>
+                    </div>
+
+                    <div class="price-tier-guide">
+                        <div class="pt-item">
+                            <span class="pt-dot pt-vip"></span>
+                            <span class="pt-label">VIP (แถว A-B):</span>
+                            <span class="pt-val">฿@Model.PremiumPricePerSeat.ToString("N0")</span>
+                        </div>
+                        <div class="pt-item">
+                            <span class="pt-dot pt-std"></span>
+                            <span class="pt-label">Standard (แถว C-H):</span>
+                            <span class="pt-val">฿@Model.BasePricePerSeat.ToString("N0")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER PANEL: Interactive Seat Map Grid -->
+        <div class="center-panel">
+            <div class="screen-stage">
+                <div class="screen-curve"></div>
+                <div class="screen-label">จอภาพยนตร์ SCREEN</div>
+                <div class="screen-glow"></div>
+            </div>
+
+            <!-- Seat Grid Container -->
+            <div class="seat-grid-container">
+                <div class="seat-grid" id="seatGrid">
+                    @foreach (var row in Model.Rows)
+                    {
+                        bool isVipRow = Model.VipRows.Contains(row);
+                        decimal seatPrice = isVipRow ? Model.PremiumPricePerSeat : Model.BasePricePerSeat;
+
+                        <div class="seat-row" data-row="@row">
+                            <span class="row-label left">@row</span>
+
+                            <div class="seats-in-row">
+                                @for (int col = 1; col <= Model.ColumnsCount; col++)
+                                {
+                                    string seatId = $"{row}{col}";
+                                    bool isOccupied = Model.OccupiedSeats.Contains(seatId, StringComparer.OrdinalIgnoreCase);
+
+                                    <!-- Add middle aisle separation after seat 7 -->
+                                    if (col == 8)
+                                    {
+                                        <div class="aisle-spacer"></div>
+                                    }
+
+                                    <button type="button"
+                                            class="seat-btn @(isVipRow ? "vip-seat" : "std-seat") @(isOccupied ? "occupied" : "available")"
+                                            data-seat-id="@seatId"
+                                            data-row="@row"
+                                            data-col="@col"
+                                            data-price="@seatPrice"
+                                            data-is-vip="@isVipRow.ToString().ToLower()"
+                                            title="ที่นั่ง @seatId - ฿@seatPrice.ToString("N0") @(isOccupied ? " (จองแล้ว)" : "")"
+                                            @(isOccupied ? "disabled" : "")
+                                            onclick="toggleSeat(this)">
+                                        @if (isOccupied)
+                                        {
+                                            <span class="seat-text">&times;</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="seat-text">@col</span>
+                                        }
+                                    </button>
+                                }
+                            </div>
+
+                            <span class="row-label right">@row</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Seat Legend -->
+            <div class="seat-legend">
+                <div class="legend-item">
+                    <span class="legend-box available-box"></span>
+                    <span>ว่าง (Available)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-box selected-box"></span>
+                    <span>เลือกแล้ว (Selected)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-box occupied-box">&times;</span>
+                    <span>จองแล้ว (Occupied)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-box vip-box">&#9818;</span>
+                    <span>VIP แถว A-B</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Order Summary & Checkout -->
+        <div class="right-panel">
+            <div class="order-summary-card">
+                <h3 class="summary-card-title">สรุปคำสั่งซื้อของคุณ</h3>
+
+                <div class="summary-details">
+                    <div class="sum-row">
+                        <span class="sum-label">ภาพยนตร์</span>
+                        <span class="sum-value font-bold">@Model.MovieTitle</span>
+                    </div>
+                    <div class="sum-row">
+                        <span class="sum-label">โรงภาพยนตร์</span>
+                        <span class="sum-value">@Model.CinemaName</span>
+                    </div>
+                    <div class="sum-row">
+                        <span class="sum-label">รอบฉาย</span>
+                        <span class="sum-value">@Model.DateDisplayTh - @Model.TimeDisplayTh</span>
+                    </div>
+                    <div class="sum-row">
+                        <span class="sum-label">ที่นั่งที่เลือก</span>
+                        <span id="selectedSeatsDisplay" class="sum-value seats-tag-list">-</span>
+                    </div>
+                    <div class="sum-row">
+                        <span class="sum-label">จำนวนที่นั่ง</span>
+                        <span id="selectedSeatsCount" class="sum-value">0 ที่นั่ง</span>
+                    </div>
+
+                    <!-- Promo Code Box -->
+                    <div class="promo-box">
+                        <label class="promo-label">โค้ดส่วนลด / โปรโมชั่น</label>
+                        <div class="promo-input-group">
+                            <input type="text" id="promoInput" placeholder="กรอกโค้ด เช่น CINEMA50" class="promo-input" />
+                            <button type="button" class="btn-apply-promo" onclick="applyPromo()">ใช้โค้ด</button>
+                        </div>
+                        <div id="promoMessage" class="promo-feedback"></div>
+                    </div>
+
+                    <div class="sum-divider"></div>
+
+                    <!-- Pricing breakdown -->
+                    <div class="price-breakdown">
+                        <div class="sum-row small">
+                            <span class="sum-label">ยอดรวมค่าตั๋ว</span>
+                            <span id="subtotalDisplay" class="sum-value">฿0</span>
+                        </div>
+                        <div id="discountRow" class="sum-row small discount-row" style="display: none;">
+                            <span class="sum-label">ส่วนลดโปรโมชั่น (15%)</span>
+                            <span id="discountDisplay" class="sum-value discount-val">-฿0</span>
+                        </div>
+                        <div class="sum-row small">
+                            <span class="sum-label">ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+                            <span class="sum-value">รวมแล้ว</span>
+                        </div>
+                    </div>
+
+                    <div class="sum-divider"></div>
+
+                    <!-- Total Amount -->
+                    <div class="total-row">
+                        <span class="total-label">ยอดชำระสุทธิ</span>
+                        <span id="totalAmountDisplay" class="total-val">฿0</span>
+                    </div>
+
+                    <!-- Proceed to Payment Button -->
+                    <button type="button" id="btnCheckout" class="btn-checkout disabled" disabled onclick="proceedToPayment()">
+                        ดำเนินการชำระเงิน <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <div class="lock-note"><i class="bi bi-shield-check"></i> ระบบจะจองที่นั่งให้ทันทีเมื่อเริ่มชำระเงิน</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .seat-selection-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 25px 20px 80px;
+        color: #e5e5ec;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    .seat-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .detail-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: #8b8b98;
+    }
+
+    .detail-breadcrumb a {
+        color: #afafbe;
+        text-decoration: none;
+    }
+
+    .detail-breadcrumb a:hover {
+        color: #dfb76c;
+    }
+
+    .detail-breadcrumb .current {
+        color: #dfb76c;
+        font-weight: 500;
+    }
+
+    /* Realtime Status Pill */
+    .realtime-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        color: #34d399;
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulseAnimation 1.8s infinite;
+    }
+
+    @@keyframes pulseAnimation {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .sync-time {
+        color: #8b8b98;
+        font-size: 0.75rem;
+        margin-left: 4px;
+    }
+
+    /* 3-Column Layout */
+    .seat-layout-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr 340px;
+        gap: 25px;
+        align-items: start;
+    }
+
+    /* Left Panel: Movie Card */
+    .movie-mini-card {
+        background: #13131e;
+        border: 1px solid rgba(223, 183, 108, 0.2);
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .mini-poster {
+        width: 100%;
+        height: 280px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 16px;
+        border: 1px solid rgba(223, 183, 108, 0.3);
+        background: #0a0a10;
+    }
+
+    .mini-poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .mini-poster-graphic {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #1b1726 0%, #09090f 100%);
+        padding: 15px;
+        text-align: center;
+    }
+
+    .mini-emblem {
+        font-size: 3rem;
+        color: #dfb76c;
+        margin-bottom: 8px;
+    }
+
+    .mini-title {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .hidden-fallback {
+        display: none !important;
+    }
+
+    .mini-movie-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 12px 0;
+        line-height: 1.3;
+    }
+
+    .hall-badge {
+        display: inline-block;
+        background: rgba(223, 183, 108, 0.15);
+        border: 1px solid #dfb76c;
+        color: #dfb76c;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+    }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #a4a4b5;
+        margin-bottom: 6px;
+    }
+
+    .info-row i {
+        color: #dfb76c;
+        font-size: 0.9rem;
+    }
+
+    .highlight-time {
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    .price-tier-guide {
+        margin-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.8rem;
+    }
+
+    .pt-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pt-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+    }
+
+    .pt-vip { background: #dfb76c; }
+    .pt-std { background: #2f2f44; border: 1px solid #4a4a62; }
+    .pt-label { color: #8f8f9f; flex: 1; }
+    .pt-val { color: #ffffff; font-weight: 600; }
+
+    /* Center Panel: Interactive Seat Map */
+    .center-panel {
+        background: #101018;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 30px 20px 25px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Screen Stage */
+    .screen-stage {
+        width: 80%;
+        max-width: 520px;
+        margin-bottom: 35px;
+        text-align: center;
+        position: relative;
+    }
+
+    .screen-curve {
+        height: 10px;
+        border-top: 4px solid #dfb76c;
+        border-radius: 50% / 100% 100% 0 0;
+        box-shadow: 0 -4px 15px rgba(223, 183, 108, 0.5);
+    }
+
+    .screen-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 4px;
+        color: #dfb76c;
+        margin-top: 8px;
+        text-transform: uppercase;
+    }
+
+    .screen-glow {
+        position: absolute;
+        top: 0;
+        left: 10%;
+        right: 10%;
+        height: 40px;
+        background: radial-gradient(ellipse at top, rgba(223, 183, 108, 0.15) 0%, transparent 80%);
+        pointer-events: none;
+    }
+
+    /* Seat Grid */
+    .seat-grid-container {
+        width: 100%;
+        overflow-x: auto;
+        padding: 0 10px;
+    }
+
+    .seat-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        min-width: 560px;
+    }
+
+    .seat-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .row-label {
+        width: 22px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #79798e;
+        text-align: center;
+        user-select: none;
+    }
+
+    .seats-in-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .aisle-spacer {
+        width: 22px;
+    }
+
+    .seat-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        border: 1px solid #36364a;
+        background: #1c1c28;
+        color: #a4a4b8;
+        font-size: 0.72rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+        user-select: none;
+        outline: none;
+    }
+
+    .seat-btn:hover:not(:disabled) {
+        border-color: #dfb76c;
+        background: #2a2a3c;
+        color: #dfb76c;
+        transform: translateY(-2px);
+    }
+
+    .seat-btn.vip-seat {
+        border-color: rgba(223, 183, 108, 0.4);
+    }
+
+    /* Selected state */
+    .seat-btn.selected {
+        background: #dfb76c !important;
+        border-color: #dfb76c !important;
+        color: #0b0b12 !important;
+        font-weight: 700;
+        box-shadow: 0 2px 10px rgba(223, 183, 108, 0.5);
+        transform: translateY(-2px);
+    }
+
+    /* Occupied state */
+    .seat-btn.occupied {
+        background: #2b1418 !important;
+        border-color: #5c1d24 !important;
+        color: #ff6b7d !important;
+        cursor: not-allowed !important;
+        opacity: 0.7;
+    }
+
+    /* Legend */
+    .seat-legend {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 35px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: #9d9db0;
+    }
+
+    .legend-box {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+    }
+
+    .available-box { background: #1c1c28; border: 1px solid #36364a; }
+    .selected-box { background: #dfb76c; border: 1px solid #dfb76c; color: #0b0b12; }
+    .occupied-box { background: #2b1418; border: 1px solid #5c1d24; color: #ff6b7d; }
+    .vip-box { background: #1c1c28; border: 1px solid rgba(223, 183, 108, 0.6); color: #dfb76c; }
+
+    /* Right Panel: Order Summary Card */
+    .order-summary-card {
+        background: #13131f;
+        border: 1px solid rgba(223, 183, 108, 0.25);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .summary-card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 20px 0;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .summary-details {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sum-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        font-size: 0.88rem;
+    }
+
+    .sum-row.small {
+        font-size: 0.82rem;
+        color: #a4a4b5;
+    }
+
+    .sum-label {
+        color: #8b8b9c;
+    }
+
+    .sum-value {
+        color: #ffffff;
+        text-align: right;
+        max-width: 180px;
+    }
+
+    .font-bold {
+        font-weight: 700;
+    }
+
+    .seats-tag-list {
+        color: #dfb76c;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    /* Promo code box */
+    .promo-box {
+        margin: 10px 0;
+        background: #1a1a27;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .promo-label {
+        display: block;
+        font-size: 0.78rem;
+        color: #a4a4b6;
+        margin-bottom: 6px;
+    }
+
+    .promo-input-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .promo-input {
+        flex: 1;
+        background: #111119;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        padding: 8px 10px;
+        color: #fff;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        outline: none;
+    }
+
+    .promo-input:focus {
+        border-color: #dfb76c;
+    }
+
+    .btn-apply-promo {
+        background: #28283a;
+        border: 1px solid rgba(223, 183, 108, 0.3);
+        color: #dfb76c;
+        border-radius: 6px;
+        padding: 0 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-apply-promo:hover {
+        background: #dfb76c;
+        color: #0b0b12;
+    }
+
+    .promo-feedback {
+        font-size: 0.75rem;
+        margin-top: 6px;
+    }
+
+    .promo-success { color: #34d399; }
+    .promo-error { color: #f87171; }
+
+    .sum-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 4px 0;
+    }
+
+    .discount-val {
+        color: #34d399;
+        font-weight: 600;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 8px 0;
+    }
+
+    .total-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .total-val {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dfb76c;
+    }
+
+    /* Checkout button */
+    .btn-checkout {
+        width: 100%;
+        background: #dfb76c;
+        border: none;
+        color: #0b0b12;
+        font-size: 1.05rem;
+        font-weight: 700;
+        padding: 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: inherit;
+        box-shadow: 0 4px 15px rgba(223, 183, 108, 0.3);
+    }
+
+    .btn-checkout:hover:not(:disabled) {
+        background: #ecc57c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(223, 183, 108, 0.5);
+    }
+
+    .btn-checkout.disabled, .btn-checkout:disabled {
+        background: #2b2b3b;
+        color: #6a6a7c;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+    .lock-note {
+        text-align: center;
+        font-size: 0.75rem;
+        color: #79798e;
+        margin-top: 8px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1100px) {
+        .seat-layout-grid {
+            grid-template-columns: 1fr;
+        }
+        .left-panel, .right-panel {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    const showtimeId = @Model.ShowtimeId;
+    const movieId = @Model.MovieId;
+    let selectedSeats = [];
+    let promoDiscountPercent = 0;
+    let appliedPromoCode = "";
+
+    // Toggle seat selection
+    function toggleSeat(btn) {
+        if (btn.disabled || btn.classList.contains('occupied')) return;
+
+        const seatId = btn.getAttribute('data-seat-id');
+        const price = parseFloat(btn.getAttribute('data-price'));
+
+        const index = selectedSeats.findIndex(s => s.id === seatId);
+        if (index >= 0) {
+            // Unselect
+            selectedSeats.splice(index, 1);
+            btn.classList.remove('selected');
+        } else {
+            // Select
+            selectedSeats.push({ id: seatId, price: price });
+            btn.classList.add('selected');
+        }
+
+        updateSummary();
+    }
+
+    // Update order summary card
+    function updateSummary() {
+        const count = selectedSeats.length;
+        const countDisplay = document.getElementById('selectedSeatsCount');
+        const seatsDisplay = document.getElementById('selectedSeatsDisplay');
+        const subtotalDisplay = document.getElementById('subtotalDisplay');
+        const totalAmountDisplay = document.getElementById('totalAmountDisplay');
+        const btnCheckout = document.getElementById('btnCheckout');
+        const discountRow = document.getElementById('discountRow');
+        const discountDisplay = document.getElementById('discountDisplay');
+
+        countDisplay.innerText = count + ' ที่นั่ง';
+
+        if (count === 0) {
+            seatsDisplay.innerText = '-';
+            subtotalDisplay.innerText = '฿0';
+            totalAmountDisplay.innerText = '฿0';
+            discountRow.style.display = 'none';
+            btnCheckout.disabled = true;
+            btnCheckout.classList.add('disabled');
+            return;
+        }
+
+        // Sort seats alphabetically
+        selectedSeats.sort((a, b) => a.id.localeCompare(b.id));
+        seatsDisplay.innerText = selectedSeats.map(s => s.id).join(', ');
+
+        const subtotal = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+        subtotalDisplay.innerText = '฿' + subtotal.toLocaleString();
+
+        let discount = 0;
+        if (promoDiscountPercent > 0) {
+            discount = subtotal * promoDiscountPercent;
+            discountDisplay.innerText = '-฿' + Math.round(discount).toLocaleString();
+            discountRow.style.display = 'flex';
+        } else {
+            discountRow.style.display = 'none';
+        }
+
+        const total = Math.max(0, subtotal - discount);
+        totalAmountDisplay.innerText = '฿' + Math.round(total).toLocaleString();
+
+        btnCheckout.disabled = false;
+        btnCheckout.classList.remove('disabled');
+    }
+
+    // Apply promo code
+    function applyPromo() {
+        const input = document.getElementById('promoInput');
+        const msg = document.getElementById('promoMessage');
+        const code = input.value.trim().toUpperCase();
+
+        if (code === 'CINEMA50' || code === 'WELCOME' || code === 'VIP15') {
+            promoDiscountPercent = 0.15; // 15% discount
+            appliedPromoCode = code;
+            msg.className = 'promo-feedback promo-success';
+            msg.innerHTML = '<i class="bi bi-check-circle"></i> ใช้โค้ดส่วนลด 15% สำเร็จ!';
+        } else if (code === '') {
+            promoDiscountPercent = 0;
+            appliedPromoCode = '';
+            msg.innerHTML = '';
+        } else {
+            msg.className = 'promo-feedback promo-error';
+            msg.innerHTML = '<i class="bi bi-x-circle"></i> โค้ดไม่ถูกต้องหรือหมดอายุแล้ว';
+        }
+
+        updateSummary();
+    }
+
+    // Proceed to Payment page
+    function proceedToPayment() {
+        if (selectedSeats.length === 0) return;
+
+        const seatString = selectedSeats.map(s => s.id).join(',');
+        const subtotal = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+        const discount = promoDiscountPercent > 0 ? (subtotal * promoDiscountPercent) : 0;
+        const total = Math.round(subtotal - discount);
+
+        const url = `/Home/Payment?showtimeId=${showtimeId}&seats=${encodeURIComponent(seatString)}&total=${total}&promo=${encodeURIComponent(appliedPromoCode)}`;
+        window.location.href = url;
+    }
+
+    // ==========================================
+    // Real-Time Polling for Seat Availability
+    // ==========================================
+    function syncOccupiedSeats() {
+        fetch(`/Home/GetOccupiedSeats?showtimeId=${showtimeId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.occupiedSeats)) {
+                    const occupiedSet = new Set(data.occupiedSeats.map(s => s.toUpperCase()));
+
+                    // Update UI timestamp
+                    const now = new Date();
+                    document.getElementById('lastSyncTime').innerText = `(${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')})`;
+
+                    let conflictFound = false;
+
+                    // Inspect all seat buttons
+                    document.querySelectorAll('.seat-btn').forEach(btn => {
+                        const sId = btn.getAttribute('data-seat-id').toUpperCase();
+                        if (occupiedSet.has(sId)) {
+                            // If this seat was selected by the current user, alert and deselect
+                            if (btn.classList.contains('selected')) {
+                                btn.classList.remove('selected');
+                                const idx = selectedSeats.findIndex(s => s.id.toUpperCase() === sId);
+                                if (idx >= 0) selectedSeats.splice(idx, 1);
+                                conflictFound = true;
+                            }
+                            btn.classList.add('occupied');
+                            btn.disabled = true;
+                            btn.innerHTML = '<span class="seat-text">&times;</span>';
+                        }
+                    });
+
+                    if (conflictFound) {
+                        alert('⚠️ แจ้งเตือน: มีที่นั่งบางที่นั่งที่คุณเลือก เพิ่งถูกทำรายการจองโดยลูกค้ารายอื่น! ระบบได้ปรับปรุงรายการที่นั่งให้คุณโดยอัตโนมัติ');
+                        updateSummary();
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+
+    // Poll every 3 seconds for real-time updates
+    setInterval(syncOccupiedSeats, 3000);
+    // Initial sync
+    syncOccupiedSeats();
+</script>
+

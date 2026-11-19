@@ -1,0 +1,36 @@
+[
+  {
+    "RequestId": "REF-4001",
+    "CustomerName": "กิตติพงษ์ สุขใจ",
+    "MovieTitle": "Dune: Part Two",
+    "Amount": 260.0,
+    "Status": "อนุมัติแล้ว",
+    "BookingCode": "BK-89021",
+    "ShowtimeText": "24/02/2026 เวลา 19:00 น.",
+    "CancellationTimeText": "24/02/2026 เวลา 12:00 น. (ก่อนฉาย 7 ชั่วโมง)",
+    "RefundAmountText": "260.00 (คืนเต็มจำนวน)"
+  },
+  {
+    "RequestId": "REF-4002",
+    "CustomerName": "อริสรา พรหมศร",
+    "MovieTitle": "หลานม่า (Lahn Mah)",
+    "Amount": 160.0,
+    "Status": "รอดำเนินการ",
+    "BookingCode": "BK-89115",
+    "ShowtimeText": "24/02/2026 เวลา 21:00 น.",
+    "CancellationTimeText": "24/02/2026 เวลา 14:00 น. (ก่อนฉาย 7 ชั่วโมง)",
+    "RefundAmountText": "160.00 (คืนเต็มจำนวน)"
+  },
+  {
+    "RequestId": "REF-4003",
+    "CustomerName": "ปองพล บุญส่ง",
+    "MovieTitle": "Godzilla x Kong",
+    "Amount": 320.0,
+    "Status": "ปฏิเสธ",
+    "BookingCode": "BK-89088",
+    "ShowtimeText": "24/02/2026 เวลา 16:30 น.",
+    "CancellationTimeText": "24/02/2026 เวลา 15:45 น. (ก่อนฉาย 45 นาที)",
+    "RefundAmountText": "0.00 (ยกเลิกน้อยกว่า 5 ชม.)"
+  }
+]
+

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CinemaApp</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        :root {
+            --nav-bg: #09090e;
+            --nav-accent: #dfb76c;
+            --nav-accent-glow: rgba(223, 183, 108, 0.35);
+            --nav-text: #9a9aa8;
+            --nav-text-hover: #ffffff;
+            --body-bg: #0b0b12;
+            --card-bg: #12121a;
+            --gold: #dfb76c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Prompt', sans-serif;
+            background: var(--body-bg);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        body {
+            margin-bottom: 0;
+        }
+
+        /* ===== NAVBAR ===== */
+        .cinema-navbar {
+            background: var(--nav-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .cinema-navbar .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 64px;
+        }
+
+        /* Logo */
+        .cinema-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .cinema-logo:hover {
+            transform: scale(1.03);
+        }
+
+        .cinema-logo .logo-icon {
+            font-size: 20px;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cinema-logo .logo-text {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 1.5px;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center;
+            gap: 4px;
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .nav-links li {
+            list-style: none !important;
+            display: inline-flex !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .nav-links li a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--nav-text);
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.25s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .nav-links li a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-links li a.active {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .nav-links li a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 14px;
+            right: 14px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--nav-accent-glow);
+        }
+
+        /* Mobile Toggle */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            color: var(--nav-text);
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 30px 24px 60px;
+            min-height: calc(100vh - 64px - 60px);
+        }
+
+        /* Page Title */
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--nav-text);
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        /* Footer */
+        .cinema-footer {
+            background: var(--nav-bg);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 18px 24px;
+            text-align: center;
+            color: var(--nav-text);
+            font-size: 13px;
+            font-weight: 300;
+        }
+
+        .cinema-footer a {
+            color: var(--nav-accent);
+            text-decoration: none;
+        }
+
+        /* Mobile Responsive */
+        @@media (max-width: 900px) {
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none !important;
+                position: absolute;
+                top: 64px;
+                left: 0;
+                right: 0;
+                background: var(--nav-bg);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                flex-direction: column !important;
+                padding: 12px 16px;
+                gap: 4px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            }
+
+            .nav-links.open {
+                display: flex !important;
+            }
+
+            .nav-links li {
+                width: 100%;
+            }
+
+            .nav-links li a {
+                padding: 12px 16px;
+                border-radius: 10px;
+                width: 100%;
+            }
+
+            .nav-links li a.active::after {
+                display: none;
+            }
+
+            .cinema-navbar .nav-container {
+                position: relative;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="cinema-navbar">
+        <div class="nav-container">
+            <a class="cinema-logo" asp-controller="Home" asp-action="Index">
+                <div class="logo-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <span class="logo-text">ABSOLUTE CINEMA</span>
+            </a>
+
+            <button class="nav-toggle" onclick="toggleNav()" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a asp-controller="Home" asp-action="Index"
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                        หน้าแรก
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Home" asp-action="Promotions"
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Promotions" ? "active" : "")">
+                        โปรโมชัน
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Home" asp-action="NowShowing"
+                       class="@(new[] { "NowShowing", "MovieDetail", "SelectSeat", "Payment" }.Contains(ViewContext.RouteData.Values["action"]?.ToString()) ? "active" : "")">
+                        หนังกำลังฉาย
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Home" asp-action="ComingSoon"
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "ComingSoon" ? "active" : "")">
+                        โปรแกรมหน้า
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Home" asp-action="Special"
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Special" ? "active" : "")">
+                        รอบพิเศษ
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Staff" asp-action="Index"
+                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Staff" ? "active" : "")">
+                        <i class="fas fa-clipboard-check" style="color:#0ea5e9;"></i> พนักงาน
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Manager" asp-action="Index"
+                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Manager" ? "active" : "")">
+                        <i class="fas fa-briefcase" style="color:#f59e0b;"></i> ผู้จัดการ
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Operations" asp-action="Index"
+                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Operations" ? "active" : "")">
+                        <i class="fas fa-wrench" style="color:#10b981;"></i> เทคนิค
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Accountant" asp-action="Dashboard"
+                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Accountant" ? "active" : "")">
+                        <i class="fas fa-calculator" style="color:#e50914;"></i> บัญชี
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Seed" asp-action="Index"
+                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Seed" ? "active" : "")">
+                        <i class="fas fa-database"></i> จัดการข้อมูล
+                    </a>
+                </li>
+            </ul>
+
+            <div style="display:flex; align-items:center; gap:16px;">
+                @if (Context.Session.GetString("UserLoggedIn") == "true")
+                {
+                    <span style="color: #e0e0e0; font-size: 14px;">
+                        <i class="fas fa-user-circle" style="margin-right:4px; color:var(--gold);"></i>
+                        @Context.Session.GetString("UserName")
+                    </span>
+                    <a asp-controller="Account" asp-action="Logout"
+                       style="padding:6px 14px; background:rgba(229,9,20,0.15); border:1px solid rgba(229,9,20,0.3); color:#ff6b77; border-radius:6px; font-size:13px; text-decoration:none; font-family:'Prompt',sans-serif; transition:all 0.3s;">
+                        ออกจากระบบ
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login"
+                       style="color:#b0b0c0; font-size:13px; text-decoration:none; font-family:'Prompt',sans-serif; transition:all 0.3s;">
+                        เข้าสู่ระบบ
+                    </a>
+                    <a asp-controller="Account" asp-action="Register"
+                       style="padding:7px 18px; background:var(--gold); border:none; color:#120e06; border-radius:6px; font-size:13px; text-decoration:none; font-family:'Prompt',sans-serif; font-weight:600; transition:all 0.3s;">
+                        สมัครสมาชิก
+                    </a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        @RenderBody()
+    </div>
+
+    <!-- Footer -->
+    @if (ViewContext.RouteData.Values["action"]?.ToString() != "Index" && 
+         ViewContext.RouteData.Values["action"]?.ToString() != "NowShowing" && 
+         ViewContext.RouteData.Values["action"]?.ToString() != "Promotions" &&
+         ViewContext.RouteData.Values["action"]?.ToString() != "ComingSoon" &&
+         ViewContext.RouteData.Values["action"]?.ToString() != "Special" &&
+         ViewContext.RouteData.Values["action"]?.ToString() != "MovieDetail" &&
+         ViewContext.RouteData.Values["action"]?.ToString() != "SelectSeat" &&
+         ViewContext.RouteData.Values["action"]?.ToString() != "Payment")
+    {
+        <footer class="cinema-footer">
+            &copy; @DateTime.Now.Year ABSOLUTE CINEMA — Kawin_67091861_002
+        </footer>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function toggleNav() {
+            document.getElementById('navLinks').classList.toggle('open');
+        }
+
+        // Close mobile nav on link click
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('open');
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

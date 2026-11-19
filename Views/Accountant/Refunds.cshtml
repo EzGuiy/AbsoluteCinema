@@ -1,0 +1,539 @@
+@model Kawin_67091861_002.ViewModels.RefundRequestsViewModel
+@{
+    ViewData["Title"] = "คืนเงิน";
+    Layout = "_LayoutAccountant";
+    var selected = Model.SelectedRequest ?? Model.RefundTransactions.FirstOrDefault();
+}
+
+<div class="page-top-header">
+    <div>
+        <div class="header-pre-title">REFUND REQUESTS</div>
+        <h1 class="header-main-title">คืนเงิน</h1>
+    </div>
+    <div class="system-live-badge">
+        <span class="live-dot"></span>
+        <span>SYSTEM LIVE</span>
+    </div>
+</div>
+
+<!-- Policy Banner -->
+<div class="policy-notice-card">
+    <div class="policy-icon-box">
+        <i class="bi bi-shield-exclamation"></i>
+    </div>
+    <div class="policy-content">
+        <div class="policy-title">นโยบายสิทธิ์การคืนเงิน (Refund Policy)</div>
+        <div class="policy-desc">
+            <span class="highlight-red">ยกเลิกก่อนฉาย 5 ชั่วโมง — คืนเต็มจำนวน</span> 
+            <span class="note-gray">(หากขอยกเลิกน้อยกว่า 5 ชั่วโมงก่อนภาพยนตร์ฉาย ระบบจะขึ้นสถานะปฏิเสธอัตโนมัติ)</span>
+        </div>
+    </div>
+</div>
+
+<!-- 3 Stat Cards Row -->
+<div class="refund-stats-grid">
+    <!-- Card 1: คำขอคืนเงินวันนี้ -->
+    <div class="stat-box">
+        <div class="stat-top-row">
+            <div class="stat-labels">
+                <span class="stat-title-th">คำขอคืนเงินวันนี้</span>
+                <span class="stat-title-en">TODAY'S REFUND REQUESTS</span>
+            </div>
+            <div class="stat-icon-wrap">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </div>
+        </div>
+        <div class="stat-value">@Model.TodayRequestsCount รายการ</div>
+        <div class="stat-subtext muted">ดำเนินเสร็จสิ้นแล้ว @Model.CompletedCount รายการ</div>
+    </div>
+
+    <!-- Card 2: ยอดคืนเงินรวม -->
+    <div class="stat-box">
+        <div class="stat-top-row">
+            <div class="stat-labels">
+                <span class="stat-title-th">ยอดคืนเงินรวม</span>
+                <span class="stat-title-en">TOTAL REFUND AMOUNT</span>
+            </div>
+            <div class="stat-icon-wrap">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+        </div>
+        <div class="stat-value">฿@Model.TotalRefundAmount.ToString("N0")</div>
+        <div class="stat-subtext muted">@Model.RefundPercentOfRevenue</div>
+    </div>
+
+    <!-- Card 3: อัตราการยกเลิก -->
+    <div class="stat-box">
+        <div class="stat-top-row">
+            <div class="stat-labels">
+                <span class="stat-title-th">อัตราการยกเลิก</span>
+                <span class="stat-title-en">CANCELLATION RATE</span>
+            </div>
+            <div class="stat-icon-wrap">
+                <i class="bi bi-bar-chart-line-fill"></i>
+            </div>
+        </div>
+        <div class="stat-value">@Model.CancellationRate.ToString("0.0")%</div>
+        <div class="stat-subtext muted">@Model.CancellationRateSubtext</div>
+    </div>
+</div>
+
+<!-- Main 2-Panel Layout: Transactions (Left) vs Pending Review (Right) -->
+<div class="refund-main-grid">
+    <!-- Left Panel: REFUND TRANSACTIONS -->
+    <div class="card-panel">
+        <div class="card-pre-title">REFUND TRANSACTIONS</div>
+        <h3 class="card-title">รายการขอคืนเงินล่าสุด</h3>
+
+        <div class="table-responsive mt-3">
+            <table class="table-refund-custom">
+                <thead>
+                    <tr>
+                        <th style="width: 22%;">เลขที่คำขอ</th>
+                        <th style="width: 28%;">ลูกค้า</th>
+                        <th style="width: 26%;">ภาพยนตร์</th>
+                        <th style="width: 12%; text-align: right;">จำนวนเงิน</th>
+                        <th style="width: 12%; text-align: center;">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.RefundTransactions)
+                    {
+                        var isSelected = (selected != null && selected.RequestId == item.RequestId);
+                        <tr class="refund-row @(isSelected ? "selected-row" : "")" 
+                            onclick="window.location.href='@Url.Action("Refunds", new { id = item.RequestId })'">
+                            <td class="font-ref-id">@item.RequestId</td>
+                            <td class="text-white">@item.CustomerName</td>
+                            <td class="text-muted-movie">@item.MovieTitle</td>
+                            <td class="font-amount">฿@item.Amount.ToString("N0")</td>
+                            <td style="text-align: center;">
+                                @if (item.Status == "อนุมัติแล้ว")
+                                {
+                                    <span class="badge-status badge-approved">อนุมัติแล้ว</span>
+                                }
+                                else if (item.Status == "รอดำเนินการ")
+                                {
+                                    <span class="badge-status badge-pending">รอดำเนินการ</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-rejected">ปฏิเสธ</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Panel: PENDING REVIEW -->
+    <div class="card-panel review-card-panel">
+        <div class="card-pre-title">PENDING REVIEW</div>
+        <h3 class="card-title mb-4">รายละเอียดคำขอตรวจสอบ</h3>
+
+        @if (selected != null)
+        {
+            <div class="review-details-list">
+                <div class="review-field-group">
+                    <span class="field-label">รหัสคำขอ</span>
+                    <span class="field-value highlight-bold">@selected.RequestId</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">ชื่อลูกค้า</span>
+                    <span class="field-value">@selected.CustomerName</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">รหัสการจอง</span>
+                    <span class="field-value highlight-bold">@selected.BookingCode</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">ภาพยนตร์</span>
+                    <span class="field-value">@selected.MovieTitle</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">รอบเวลาฉาย</span>
+                    <span class="field-value">@selected.ShowtimeText</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">เวลายกเลิก</span>
+                    <span class="field-value">@selected.CancellationTimeText</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">จำนวนเงินที่คืน</span>
+                    <span class="field-value">@selected.RefundAmountText</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons Form -->
+            <div class="review-action-buttons">
+                @if (selected.Status == "รอดำเนินการ")
+                {
+                    <form method="post" asp-action="RejectRefundRequest" class="d-inline">
+                        <input type="hidden" name="id" value="@selected.RequestId" />
+                        <button type="submit" class="btn-review-reject">
+                            ปฏิเสธ
+                        </button>
+                    </form>
+
+                    <form method="post" asp-action="ApproveRefundRequest" class="d-inline">
+                        <input type="hidden" name="id" value="@selected.RequestId" />
+                        <button type="submit" class="btn-review-approve">
+                            อนุมัติการคืนเงิน
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="w-100 text-center py-2" style="background:#191922; border-radius:8px; border:1px solid #2a2a38;">
+                        <span class="small text-muted">สถานะคำขอนี้: </span>
+                        <strong class="@(selected.Status == "อนุมัติแล้ว" ? "text-success" : "text-danger")">
+                            @selected.Status
+                        </strong>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                เลือกรายการจากตารางทางซ้ายเพื่อดูรายละเอียด
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* Header Pre-title */
+    .header-pre-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #e50914;
+        letter-spacing: 1.5px;
+        margin-bottom: 2px;
+    }
+    .header-main-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* Policy Notice Card */
+    .policy-notice-card {
+        background: #141113;
+        border: 1px solid #4a191f;
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-top: 24px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .policy-icon-box {
+        color: #e50914;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .policy-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 3px;
+    }
+
+    .policy-desc {
+        font-size: 12.5px;
+        line-height: 1.4;
+    }
+
+    .highlight-red {
+        color: #e50914;
+        font-weight: 600;
+    }
+
+    .note-gray {
+        color: #7b7b8a;
+    }
+
+    /* 3 Stats Grid */
+    .refund-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .stat-box {
+        background: #15151a;
+        border: 1px solid #22222a;
+        border-radius: 12px;
+        padding: 22px 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .stat-top-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .stat-labels {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-title-th {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .stat-title-en {
+        font-size: 10px;
+        color: #666675;
+        letter-spacing: 0.8px;
+    }
+
+    .stat-icon-wrap {
+        color: #e50914;
+        font-size: 18px;
+    }
+
+    .stat-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 4px;
+        letter-spacing: -0.5px;
+    }
+
+    .stat-subtext {
+        font-size: 12px;
+    }
+
+    .stat-subtext.muted {
+        color: #666675;
+    }
+
+    /* Main Grid: Transactions vs Review */
+    .refund-main-grid {
+        display: grid;
+        grid-template-columns: 1.45fr 1fr;
+        gap: 24px;
+    }
+
+    .card-panel {
+        background: #121217;
+        border: 1px solid #1f1f28;
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .card-pre-title {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #e50914;
+        letter-spacing: 1.5px;
+        margin-bottom: 4px;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* Custom Refund Table */
+    .table-refund-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-refund-custom thead tr {
+        border-bottom: 1px solid #1f1f28;
+    }
+
+    .table-refund-custom th {
+        padding: 14px 16px;
+        font-size: 11px;
+        font-weight: 500;
+        color: #666675;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .refund-row {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .refund-row:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .refund-row.selected-row {
+        background: rgba(229, 9, 20, 0.05);
+        border-left: 2px solid #e50914;
+    }
+
+    .table-refund-custom td {
+        padding: 16px;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .font-ref-id {
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 12.5px;
+    }
+
+    .text-muted-movie {
+        color: #8e8e9f;
+        font-size: 12.5px;
+    }
+
+    .font-amount {
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 13px;
+        text-align: right;
+    }
+
+    /* Badges */
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        min-width: 78px;
+        text-align: center;
+    }
+
+    .badge-approved {
+        background: rgba(18, 183, 106, 0.12);
+        border: 1px solid #027a48;
+        color: #34d399;
+    }
+
+    .badge-pending {
+        background: rgba(202, 138, 4, 0.12);
+        border: 1px solid #b54708;
+        color: #fbbf24;
+    }
+
+    .badge-rejected {
+        background: rgba(229, 9, 20, 0.12);
+        border: 1px solid #b42318;
+        color: #f87171;
+    }
+
+    /* Right Review Panel */
+    .review-card-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .review-details-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        flex: 1;
+    }
+
+    .review-field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .field-label {
+        font-size: 11.5px;
+        color: #666675;
+    }
+
+    .field-value {
+        font-size: 13.5px;
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .field-value.highlight-bold {
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    /* Action Buttons */
+    .review-action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-review-reject {
+        flex: 1;
+        background: #17171e;
+        border: 1px solid #282834;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #c0c0d0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-review-reject:hover {
+        background: #20202a;
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-review-approve {
+        flex: 1.3;
+        background: #1c1316;
+        border: 1px solid #48191f;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-review-approve:hover {
+        background: #e50914;
+        border-color: #e50914;
+        color: #ffffff;
+        box-shadow: 0 0 12px rgba(229, 9, 20, 0.4);
+    }
+
+    @@media (max-width: 992px) {
+        .refund-stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .refund-main-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

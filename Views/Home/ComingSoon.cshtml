@@ -1,0 +1,447 @@
+@model List<Kawin_67091861_002.ViewModels.MovieItemViewModel>
+@{
+    ViewData["Title"] = "โปรแกรมเร็วๆ นี้ - ABSOLUTE CINEMA";
+}
+
+<style>
+    :root {
+        --cinema-gold: #c69c43;
+        --cinema-gold-light: #dfb76c;
+        --cinema-gold-dark: #8c6a23;
+        --cinema-card: #111116;
+        --cinema-border: rgba(255, 255, 255, 0.05);
+    }
+
+    .comingsoon-header-wrap {
+        margin-bottom: 36px;
+    }
+
+    .comingsoon-title-main {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--cinema-gold-light);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .comingsoon-subtitle-main {
+        font-size: 13.5px;
+        color: #7d7d8c;
+        font-weight: 300;
+    }
+
+    /* ===== COMING SOON GRID 3 COLUMNS ===== */
+    .comingsoon-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-bottom: 70px;
+    }
+
+    .comingsoon-card {
+        background: var(--cinema-card);
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid var(--cinema-border);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .comingsoon-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(198, 156, 67, 0.4);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Poster Box */
+    .cs-poster-wrap {
+        width: 100%;
+        aspect-ratio: 1 / 1.05;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Poster Types */
+    .poster-space {
+        background: linear-gradient(135deg, #1b263b 0%, #0d1b2a 40%, #415a77 70%, #e0a96d 100%);
+    }
+
+    .poster-mech {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    }
+
+    .poster-nebula {
+        background: radial-gradient(circle at 50% 50%, #8a2be2 0%, #4b0082 40%, #0b0b12 80%);
+    }
+
+    .poster-rick {
+        background: linear-gradient(135deg, #2b2b36 0%, #1a1a24 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .cs-poster-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(0, 0, 0, 0.65);
+        color: var(--cinema-gold-light);
+        border: 1px solid rgba(198, 156, 67, 0.4);
+        padding: 3px 9px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        z-index: 2;
+    }
+
+    .cs-movie-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cs-movie-genre {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        margin-bottom: 16px;
+        font-weight: 300;
+    }
+
+    /* Release Date Box */
+    .cs-date-box {
+        background: #161622;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 9px 14px;
+        font-size: 12.5px;
+        color: #d0d0dc;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cs-date-box i {
+        color: var(--cinema-gold-light);
+        font-size: 13px;
+    }
+
+    /* Stylized Poster Art Graphics */
+    .art-graphic-wrap {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .art-icon-big {
+        font-size: 46px;
+        margin-bottom: 10px;
+        filter: drop-shadow(0 4px 15px rgba(0,0,0,0.6));
+    }
+
+    .art-label-sub {
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+
+    .rick-meme-art {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e1e2d 0%, #151520 100%);
+    }
+
+    .rick-icon {
+        font-size: 48px;
+        margin-bottom: 8px;
+    }
+
+    .rick-watermark {
+        font-family: 'Brush Script MT', cursive, sans-serif;
+        font-size: 26px;
+        color: #dfb76c;
+        position: absolute;
+        top: 14px;
+        right: 18px;
+        opacity: 0.75;
+        transform: rotate(-10deg);
+    }
+
+    /* ===== LUXURY FOOTER ===== */
+    .cinema-luxury-footer {
+        background: #08080c;
+        border-top: 1px solid rgba(198, 156, 67, 0.15);
+        margin: 0 -24px -40px;
+        padding: 60px 0 30px;
+    }
+
+    .footer-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .footer-columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.6fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .footer-logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #dfb76c;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .footer-about-text {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.8;
+        font-weight: 300;
+        margin-bottom: 20px;
+    }
+
+    .footer-social-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .footer-social-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #888899;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .footer-social-btn:hover {
+        border-color: #dfb76c;
+        color: #dfb76c;
+    }
+
+    .footer-group-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #dfb76c;
+        margin-bottom: 16px;
+    }
+
+    .footer-links-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links-list li {
+        margin-bottom: 10px;
+    }
+
+    .footer-links-list a {
+        color: #7d7d8c;
+        font-size: 13px;
+        text-decoration: none;
+        transition: color 0.2s;
+        font-weight: 300;
+    }
+
+    .footer-links-list a:hover {
+        color: #dfb76c;
+    }
+
+    .footer-contact-info {
+        font-size: 12.5px;
+        color: #7d7d8c;
+        line-height: 1.9;
+        font-weight: 300;
+    }
+
+    .footer-bottom-row {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #555566;
+    }
+
+    .footer-luxury-tag {
+        color: #8c6a23;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 992px) {
+        .comingsoon-grid { grid-template-columns: repeat(2, 1fr); }
+        .footer-columns { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 600px) {
+        .comingsoon-grid { grid-template-columns: 1fr; }
+        .footer-columns { grid-template-columns: 1fr; }
+    }
+</style>
+
+<!-- Header -->
+<div class="comingsoon-header-wrap">
+    <h1 class="comingsoon-title-main">โปรแกรมเร็วๆ นี้</h1>
+    <div class="comingsoon-subtitle-main">เตรียมพบกับสุดยอดภาพยนตร์ระดับบล็อกบัสเตอร์ที่จะเข้าฉายในเร็วๆ นี้</div>
+</div>
+
+<!-- Movies Grid -->
+<div class="comingsoon-grid">
+    @foreach (var movie in Model)
+    {
+        <div class="comingsoon-card">
+            <div>
+                <div class="cs-poster-wrap">
+                    @if (movie.BadgeText != null)
+                    {
+                        <div class="cs-poster-badge">@movie.BadgeText</div>
+                    }
+
+                    @if (movie.PosterUrl == "space")
+                    {
+                        <div class="art-graphic-wrap poster-space">
+                            <div class="art-icon-big">🏛️</div>
+                            <div style="font-weight:700; color:#fff; font-size:15px; letter-spacing:1px;">WARHAMMER 40K</div>
+                            <div class="art-label-sub">LOST CIVILIZATION</div>
+                        </div>
+                    }
+                    else if (movie.PosterUrl == "mech")
+                    {
+                        <div class="art-graphic-wrap poster-mech">
+                            <div class="art-icon-big">🤖</div>
+                            <div style="font-weight:700; color:#4ade80; font-size:15px; letter-spacing:1px;">WARHAMMER 40K</div>
+                            <div class="art-label-sub">SOUL HUNTER MECH</div>
+                        </div>
+                    }
+                    else if (movie.PosterUrl == "nebula")
+                    {
+                        <div class="art-graphic-wrap poster-nebula">
+                            <div class="art-icon-big">🌌</div>
+                            <div style="font-weight:700; color:#f0abfc; font-size:15px; letter-spacing:1px;">NEBULA POETRY</div>
+                            <div class="art-label-sub">OF THE STARS</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Rick Astley / Vintage Musical Meme Card (ตามภาพต้นฉบับ 3 รูปด้านล่าง) -->
+                        <div class="rick-meme-art">
+                            <div class="rick-watermark">Never Gonna Give You Up</div>
+                            <div class="rick-icon">🕺🎙️</div>
+                            <div style="font-weight:600; color:#e0e0ec; font-size:14px; letter-spacing:0.5px;">Rick Astley Vibes</div>
+                            <div class="art-label-sub">SPECIAL EDITION</div>
+                        </div>
+                    }
+                </div>
+
+                <div class="cs-movie-title" title="@movie.Title">@movie.Title</div>
+                <div class="cs-movie-genre">@movie.Genre</div>
+            </div>
+
+            <div>
+                <div class="cs-date-box">
+                    <i class="far fa-calendar-alt"></i>
+                    <span>กำหนดฉาย: @movie.ReleaseDateText</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- LUXURY FOOTER -->
+<footer class="cinema-luxury-footer">
+    <div class="footer-inner">
+        <div class="footer-columns">
+            <div>
+                <div class="footer-logo-title">
+                    <i class="fas fa-crown"></i> ABSOLUTE CINEMA
+                </div>
+                <p class="footer-about-text">
+                    สัมผัสประสบการณ์การชมภาพยนตร์ระดับพรีเมียมอันน่าตื่นตา พร้อมบริการสุดหรูหรา สะดวกสบาย และเทคโนโลยีคุณภาพและเสียงที่ดีที่สุดในประเทศ
+                </p>
+                <div class="footer-social-row">
+                    <a href="#" class="footer-social-btn"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="footer-social-btn"><i class="fas fa-link"></i></a>
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-group-title">เมนูหลัก</div>
+                <ul class="footer-links-list">
+                    <li><a asp-controller="Home" asp-action="Index">หน้าแรก</a></li>
+                    <li><a asp-controller="Home" asp-action="Promotions">โปรโมชัน</a></li>
+                    <li><a asp-controller="Home" asp-action="NowShowing">หนังกำลังฉาย</a></li>
+                    <li><a asp-controller="Home" asp-action="ComingSoon">โปรแกรมหน้า</a></li>
+                    <li><a asp-controller="Home" asp-action="Special">รอบพิเศษ</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">บริการลูกค้า</div>
+                <ul class="footer-links-list">
+                    <li><a href="#">คำถามที่พบบ่อย</a></li>
+                    <li><a href="#">นโยบายความเป็นส่วนตัว</a></li>
+                    <li><a href="#">ข้อกำหนดการใช้งาน</a></li>
+                    <li><a href="#">ติดต่อเรา</a></li>
+                    <li><a href="#">แผนที่เว็บไซต์</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-group-title">ที่ตั้งและติดต่อ</div>
+                <div class="footer-contact-info">
+                    ชั้น 5 สยามพารากอน แขวงปทุมวัน เขตปทุมวัน<br>
+                    กรุงเทพมหานคร 10330<br><br>
+                    โทร : 02-123-4567<br>
+                    อีเมล : <a href="mailto:contact@cinemaxgold.com">contact@cinemaxgold.com</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom-row">
+            <div>&copy; @DateTime.Now.Year CINEMAX GOLD. All rights reserved.</div>
+            <div class="footer-luxury-tag">LUXURY CINEMA EXPERIENCE</div>
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,371 @@
+@model dynamic
+@{
+    ViewData["Title"] = "ดูข้อมูล Database";
+}
+
+<style>
+    .data-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .data-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .data-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #f5c518;
+    }
+
+    .data-header .btn-back {
+        color: #888;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s;
+    }
+
+    .data-header .btn-back:hover {
+        color: #f5c518;
+    }
+
+    .data-table-wrap {
+        background: #1a1a2e;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(255,255,255,0.05);
+        overflow-x: auto;
+    }
+
+    .data-table-wrap h2 {
+        font-size: 18px;
+        color: #f5c518;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .data-table-wrap h2 .count {
+        font-size: 13px;
+        color: #666;
+        font-weight: 400;
+    }
+
+    table.data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    table.data-table th {
+        text-align: left;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.04);
+        color: #aaa;
+        font-weight: 500;
+        white-space: nowrap;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    table.data-table td {
+        padding: 10px 14px;
+        color: #ddd;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    table.data-table tr:hover td {
+        background: rgba(245, 197, 24, 0.03);
+    }
+
+    .empty-msg {
+        color: #555;
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+    }
+</style>
+
+<div class="data-container">
+    <div class="data-header">
+        <div>
+            <h1>📋 ข้อมูลทั้งหมด</h1>
+            <div style="font-size:12.5px; color:#888; margin-top:4px;">
+                แหล่งที่มา: <span style="color:#dfb76c; font-weight:500;">@Model.Source</span>
+            </div>
+        </div>
+        <a asp-controller="Seed" asp-action="Index" class="btn-back">← กลับหน้าจัดการ</a>
+    </div>
+
+    <!-- Movies -->
+    <div class="data-table-wrap">
+        <h2>🎬 Movies <span class="count">(@Model.Movies.Count รายการ)</span></h2>
+        @if (Model.Movies.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ชื่อเรื่อง</th>
+                        <th>แนว</th>
+                        <th>นาที</th>
+                        <th>สถานะ</th>
+                        <th>ราคา</th>
+                        <th>Rating</th>
+                        <th>วันฉาย</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Model.Movies)
+                    {
+                        <tr>
+                            <td>@m.MovieId</td>
+                            <td title="@m.Title">@m.Title</td>
+                            <td>@(m.Genre ?? "-")</td>
+                            <td>@m.DurationMins</td>
+                            <td>@(m.Status ?? "-")</td>
+                            <td>@m.PriceMin - @m.PriceMax</td>
+                            <td>⭐ @m.Rating</td>
+                            <td>@(m.ReleaseDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มีข้อมูลหนัง</div>
+        }
+    </div>
+
+    <!-- Cinemas -->
+    <div class="data-table-wrap">
+        <h2>🎪 Cinemas <span class="count">(@Model.Cinemas.Count รายการ)</span></h2>
+        @if (Model.Cinemas.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ชื่อโรง</th>
+                        <th>สถานะ</th>
+                        <th>ที่นั่ง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.Cinemas)
+                    {
+                        <tr>
+                            <td>@c.CinemaId</td>
+                            <td>@c.CinemaName</td>
+                            <td>@(c.Status ?? "-")</td>
+                            <td>@c.TotalSeats</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มีข้อมูลโรงภาพยนตร์</div>
+        }
+    </div>
+
+    <!-- Showtimes -->
+    <div class="data-table-wrap">
+        <h2>🕐 Showtimes <span class="count">(@Model.Showtimes.Count รายการ)</span></h2>
+        @if (Model.Showtimes.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>หนัง</th>
+                        <th>โรง</th>
+                        <th>เวลาเริ่ม</th>
+                        <th>เวลาจบ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.Showtimes)
+                    {
+                        <tr>
+                            <td>@s.ShowtimeId</td>
+                            <td>@s.Movie</td>
+                            <td>@s.Cinema</td>
+                            <td>@s.Start</td>
+                            <td>@s.End</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มีรอบฉาย</div>
+        }
+    </div>
+
+    <!-- Users -->
+    <div class="data-table-wrap">
+        <h2>👤 Users <span class="count">(@Model.Users.Count รายการ)</span></h2>
+        @if (Model.Users.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>ชื่อ</th>
+                        <th>Role</th>
+                        <th>สร้างเมื่อ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model.Users)
+                    {
+                        <tr>
+                            <td>@u.UserId</td>
+                            <td>@u.Username</td>
+                            <td>@u.FullName</td>
+                            <td>@u.Role</td>
+                            <td>@(u.CreatedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มีผู้ใช้</div>
+        }
+    </div>
+
+    <!-- Roles -->
+    <div class="data-table-wrap">
+        <h2>🏷️ Roles <span class="count">(@Model.Roles.Count รายการ)</span></h2>
+        @if (Model.Roles.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ชื่อ Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Roles)
+                    {
+                        <tr>
+                            <td>@r.RoleId</td>
+                            <td>@r.RoleName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มี Roles</div>
+        }
+    </div>
+
+    <!-- Bookings (การจองตั๋ว & ที่นั่ง) -->
+    <div class="data-table-wrap">
+        <h2>🎟️ Bookings (ประวัติการจองและที่นั่ง) <span class="count">(@(Model.Bookings?.Count ?? 0) รายการ)</span></h2>
+        @if (Model.Bookings != null && Model.Bookings.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>ผู้จอง</th>
+                        <th>ภาพยนตร์</th>
+                        <th>โรงภาพยนตร์</th>
+                        <th>ที่นั่งที่จอง</th>
+                        <th>จำนวน</th>
+                        <th>ยอดเงิน (฿)</th>
+                        <th>สถานะ</th>
+                        <th>เวลาจอง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Bookings)
+                    {
+                        <tr>
+                            <td><strong>#@b.BookingId</strong></td>
+                            <td>@b.User</td>
+                            <td>@b.Movie</td>
+                            <td>@b.Cinema</td>
+                            <td style="color: #f5c518; font-weight: 700;">@b.Seats</td>
+                            <td>@b.Count ที่นั่ง</td>
+                            <td>฿@b.Amount.ToString("N0")</td>
+                            <td><span style="color: #34d399; font-weight: 600;">@b.Status</span></td>
+                            <td>@b.Date</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มีรายการจองตั๋วภาพยนตร์</div>
+        }
+    </div>
+
+    <!-- Payments (การชำระเงิน) -->
+    <div class="data-table-wrap">
+        <h2>💳 Payments (การชำระเงิน) <span class="count">(@(Model.Payments?.Count ?? 0) รายการ)</span></h2>
+        @if (Model.Payments != null && Model.Payments.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Booking ID</th>
+                        <th>เลขที่ใบกำกับภาษี</th>
+                        <th>ยอดชำระ (฿)</th>
+                        <th>วันที่ชำระเงิน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Payments)
+                    {
+                        <tr>
+                            <td>@p.PaymentId</td>
+                            <td>#@p.BookingId</td>
+                            <td style="font-family: monospace; color: #34d399;">@p.TaxInvoiceNo</td>
+                            <td>฿@p.Amount.ToString("N0")</td>
+                            <td>@p.Date</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มีประวัติการชำระเงิน</div>
+        }
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a asp-controller="Seed" asp-action="ExportJson"
+           style="color: #f5c518; text-decoration: none; font-size: 14px; margin-right: 20px;">
+            📥 ดาวน์โหลดเป็นไฟล์ JSON
+        </a>
+        <a asp-controller="Seed" asp-action="Index"
+           style="color: #888; text-decoration: none; font-size: 14px;">
+            ← กลับหน้าจัดการ
+        </a>
+    </div>
+</div>
+

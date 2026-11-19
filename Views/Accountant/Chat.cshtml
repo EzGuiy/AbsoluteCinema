@@ -1,0 +1,474 @@
+@model Kawin_67091861_002.ViewModels.OrganizationChatViewModel
+@{
+    ViewData["Title"] = "แชทในองค์กร";
+    Layout = "_LayoutAccountant";
+}
+
+<div class="page-top-header">
+    <div>
+        <div class="header-pre-title">ORGANIZATION CHAT</div>
+        <h1 class="header-main-title">แชทในองค์กร</h1>
+    </div>
+    <div class="system-live-badge">
+        <span class="live-dot"></span>
+        <span>SYSTEM LIVE</span>
+    </div>
+</div>
+
+<!-- 2-Column Chat Layout -->
+<div class="chat-container-grid">
+    <!-- Left Panel: Channels & Direct Messages -->
+    <div class="chat-sidebar-panel">
+        <!-- Channels Section -->
+        <div class="chat-section-group">
+            <div class="chat-section-heading">CHANNELS</div>
+            <div class="channel-items-list">
+                @foreach (var ch in Model.Channels)
+                {
+                    <a href="@Url.Action("Chat", new { channel = ch.Id })" 
+                       class="channel-item @(ch.IsActive ? "active" : "")">
+                        <span class="channel-name"># @ch.Name</span>
+                        @if (ch.UnreadCount > 0)
+                        {
+                            <span class="badge-unread">@ch.UnreadCount</span>
+                        }
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Direct Messages Section -->
+        <div class="chat-section-group mt-4">
+            <div class="chat-section-heading">DIRECT MESSAGES</div>
+            <div class="dm-items-list">
+                @foreach (var dm in Model.DirectMessages)
+                {
+                    <div class="dm-contact-item" onclick="selectContact('@dm.Name')">
+                        <div class="dm-avatar-dot"></div>
+                        <div class="dm-info">
+                            <span class="dm-name">@dm.Name</span>
+                            <span class="dm-role">@dm.Role</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Active Chat Viewport -->
+    <div class="chat-main-viewport">
+        <!-- Viewport Header -->
+        <div class="viewport-header">
+            <div class="viewport-title">
+                <span class="hash-tag">#</span> @Model.ActiveChannelName
+            </div>
+            <div class="viewport-actions">
+                <button type="button" class="btn-action-icon" title="ค้นหาในแชท" onclick="promptSearchChat()">
+                    <i class="bi bi-search"></i>
+                </button>
+                <button type="button" class="btn-action-icon" title="รายละเอียดห้องแชท" onclick="alert('ห้องแชททางการสำหรับประสานงานภายในองค์กร ABSOLUTE CINEMA')">
+                    <i class="bi bi-info-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pinned Announcement Banner -->
+        <div class="pinned-notice-banner">
+            <i class="bi bi-pin-angle-fill pin-icon"></i>
+            <div class="pinned-text">
+                <strong class="text-white">ปักหมุด :</strong> @Model.PinnedNotice
+            </div>
+        </div>
+
+        <!-- Messages Stream Area -->
+        <div class="messages-stream" id="messagesStream">
+            @foreach (var msg in Model.Messages)
+            {
+                <div class="chat-message-entry @(msg.IsMine ? "is-mine" : "")">
+                    <div class="msg-sender-row">
+                        <span class="msg-sender-name @(msg.IsMine ? "mine-name" : "")">
+                            @msg.SenderName
+                        </span>
+                        <span class="msg-timestamp">@msg.TimeText</span>
+                    </div>
+                    <div class="msg-bubble @(msg.IsMine ? "mine-bubble" : "")">
+                        @msg.MessageText
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Bottom Input Bar -->
+        <div class="chat-input-bar">
+            <form method="post" asp-action="SendChatMessage" class="chat-form" id="chatForm">
+                <input type="hidden" name="channelId" value="@Model.ActiveChannelId" />
+                <input type="text" name="message" id="messageInput"
+                       class="chat-text-input" 
+                       placeholder="พิมพ์ข้อความถึง@(Model.ActiveChannelName.Split(' ')[0])..." 
+                       autocomplete="off" required />
+                <button type="submit" class="btn-send-chat">
+                    <span>ส่ง</span>
+                    <i class="bi bi-send-fill ms-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Header Pre-title */
+    .header-pre-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #e50914;
+        letter-spacing: 1.5px;
+        margin-bottom: 2px;
+    }
+    .header-main-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* Container Grid */
+    .chat-container-grid {
+        display: grid;
+        grid-template-columns: 290px 1fr;
+        gap: 24px;
+        margin-top: 24px;
+        min-height: 640px;
+        height: calc(100vh - 180px);
+    }
+
+    /* Sidebar Panel */
+    .chat-sidebar-panel {
+        background: #111116;
+        border: 1px solid #1f1f28;
+        border-radius: 12px;
+        padding: 24px 16px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-section-heading {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #e50914;
+        letter-spacing: 1.5px;
+        margin-bottom: 12px;
+        padding-left: 10px;
+    }
+
+    .channel-items-list, .dm-items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .channel-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-radius: 8px;
+        color: #9494a8;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .channel-item:hover {
+        background: rgba(255, 255, 255, 0.03);
+        color: #ffffff;
+    }
+
+    .channel-item.active {
+        background: #1e1e26;
+        color: #ffffff;
+        border: 1px solid #2a2a36;
+    }
+
+    .badge-unread {
+        background: #e50914;
+        color: #ffffff;
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 1px 7px;
+        border-radius: 10px;
+    }
+
+    /* DM Items */
+    .dm-contact-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .dm-contact-item:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .dm-avatar-dot {
+        width: 8px;
+        height: 8px;
+        background: #12b76a;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #12b76a;
+        flex-shrink: 0;
+    }
+
+    .dm-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
+
+    .dm-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #ffffff;
+    }
+
+    .dm-role {
+        font-size: 10.5px;
+        color: #666675;
+    }
+
+    /* Main Viewport */
+    .chat-main-viewport {
+        background: #111116;
+        border: 1px solid #1f1f28;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .viewport-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #1f1f28;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .viewport-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .viewport-title .hash-tag {
+        color: #e50914;
+        font-size: 17px;
+    }
+
+    .viewport-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-action-icon {
+        background: none;
+        border: none;
+        color: #8e8e9f;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 6px;
+        transition: color 0.2s;
+    }
+
+    .btn-action-icon:hover {
+        color: #ffffff;
+    }
+
+    /* Pinned Notice Banner */
+    .pinned-notice-banner {
+        margin: 14px 20px 0;
+        padding: 10px 16px;
+        background: #161214;
+        border: 1px solid #4a191f;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .pin-icon {
+        color: #e50914;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .pinned-text {
+        font-size: 12.5px;
+        color: #ff9ca2;
+    }
+
+    /* Message Stream */
+    .messages-stream {
+        flex: 1;
+        padding: 20px 24px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .chat-message-entry {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        max-width: 80%;
+    }
+
+    .chat-message-entry.is-mine {
+        align-items: flex-start; /* Matches screenshot where Nicha's message is left aligned with red title */
+    }
+
+    .msg-sender-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .msg-sender-name {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .msg-sender-name.mine-name {
+        color: #e50914;
+    }
+
+    .msg-timestamp {
+        font-size: 11px;
+        color: #666675;
+    }
+
+    .msg-bubble {
+        background: #17171e;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        padding: 12px 18px;
+        font-size: 13.5px;
+        line-height: 1.5;
+        color: #d1d1dc;
+    }
+
+    /* Nicha's (mine) message bubble has subtle red border matching the screenshot */
+    .msg-bubble.mine-bubble {
+        background: #191417;
+        border: 1px solid #48191f;
+        color: #ffffff;
+    }
+
+    /* Bottom Input Bar */
+    .chat-input-bar {
+        padding: 16px 20px;
+        border-top: 1px solid #1f1f28;
+        background: #111116;
+    }
+
+    .chat-form {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chat-text-input {
+        flex: 1;
+        background: #17171e;
+        border: 1px solid #24242f;
+        border-radius: 8px;
+        padding: 11px 18px;
+        font-size: 13px;
+        color: #ffffff;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .chat-text-input:focus {
+        border-color: #e50914;
+        box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+    }
+
+    .chat-text-input::placeholder {
+        color: #555562;
+    }
+
+    .btn-send-chat {
+        background: #2a1418;
+        border: 1px solid #4a191f;
+        border-radius: 8px;
+        padding: 11px 20px;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-send-chat:hover {
+        background: #e50914;
+        border-color: #e50914;
+    }
+
+    @@media (max-width: 900px) {
+        .chat-container-grid {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        .chat-sidebar-panel {
+            display: none; /* Can be toggled on mobile */
+        }
+    }
+</style>
+
+@section Scripts {
+<script>
+    // Scroll chat to bottom automatically
+    const stream = document.getElementById('messagesStream');
+    if (stream) {
+        stream.scrollTop = stream.scrollHeight;
+    }
+
+    function selectContact(name) {
+        document.getElementById('messageInput').placeholder = "พิมพ์ข้อความถึง " + name + "...";
+        document.getElementById('messageInput').focus();
+    }
+
+    function promptSearchChat() {
+        const query = prompt("ค้นหาข้อความในห้องแชท:");
+        if (query) {
+            const bubbles = document.querySelectorAll('.msg-bubble');
+            let found = false;
+            bubbles.forEach(b => {
+                if (b.innerText.toLowerCase().includes(query.toLowerCase())) {
+                    b.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    b.style.boxShadow = '0 0 10px #e50914';
+                    setTimeout(() => b.style.boxShadow = '', 2500);
+                    found = true;
+                }
+            });
+            if (!found) alert("ไม่พบข้อความที่ตรงกับคำค้น");
+        }
+    }
+</script>
+}

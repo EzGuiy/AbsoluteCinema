@@ -1,0 +1,35 @@
+[
+  {
+    "Code": "INC-0842",
+    "Title": "เสียงกระตุกในโรง 2",
+    "SourceAndTime": "ระบบตรวจพบอัตโนมัติ • 10:42",
+    "Assignee": "อนุชา",
+    "Status": "เปิดอยู่",
+    "StatusColor": "red"
+  },
+  {
+    "Code": "INC-0841",
+    "Title": "อุณหภูมิห้อง Server สูง",
+    "SourceAndTime": "Sensor SRV-01 • 10:18",
+    "Assignee": "วรพล",
+    "Status": "กำลังตรวจสอบ",
+    "StatusColor": "yellow"
+  },
+  {
+    "Code": "INC-0839",
+    "Title": "เครื่องออกตั๋วช่อง 4 ออฟไลน์",
+    "SourceAndTime": "พนักงาน Box Office • 09:55",
+    "Assignee": "ศุภชัย",
+    "Status": "สำเร็จแล้ว",
+    "StatusColor": "teal"
+  },
+  {
+    "Code": "INC-0837",
+    "Title": "Projector Lamp ใกล้หมดอายุ",
+    "SourceAndTime": "โรง 4 • 08:30",
+    "Assignee": "กัมปนาท",
+    "Status": "รายงานแล้ว",
+    "StatusColor": "green"
+  }
+]
+

@@ -1,0 +1,178 @@
+@{
+    ViewData["Title"] = "เพิ่มผู้ใช้ใหม่";
+    Layout = "_LayoutAuth";
+    var roles = ViewBag.Roles as List<Kawin_67091861_002.Models.Role> ?? new List<Kawin_67091861_002.Models.Role>();
+}
+
+<section class="auth-hero">
+    <div class="gold-line-top"></div>
+    <div class="gold-line-bottom"></div>
+
+    <div class="auth-card" style="max-width: 560px;">
+        <div class="auth-card-header">
+            <span class="crown"><i class="fas fa-user-plus"></i></span>
+            <div class="brand">ABSOLUTE CINEMA</div>
+            <div class="subtitle">เพิ่มผู้ใช้งานใหม่</div>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="auth-error">
+                <i class="fas fa-exclamation-circle"></i>
+                @ViewBag.Error
+            </div>
+        }
+
+        @if (ViewBag.Success != null)
+        {
+            <div style="background: rgba(39, 174, 96, 0.12); border: 1px solid rgba(39, 174, 96, 0.3); border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; color: #6bff9e; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-check-circle"></i>
+                @ViewBag.Success
+            </div>
+        }
+
+        <form method="post" asp-controller="Account" asp-action="AddUser">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="firstName">ชื่อ</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="firstName" name="firstName" placeholder="กรอกชื่อ" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">นามสกุล</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="lastName" name="lastName" placeholder="กรอกนามสกุล" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">อีเมล (ใช้เป็น Username สำหรับ Login)</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" name="email" placeholder="example@email.com" required />
+                    <span class="input-icon">
+                        <i class="fas fa-envelope"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">เบอร์โทรศัพท์</label>
+                <div class="input-wrapper">
+                    <input type="tel" id="phone" name="phone" placeholder="08X-XXX-XXXX" />
+                    <span class="input-icon">
+                        <i class="fas fa-phone"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">ตำแหน่ง / บทบาท (จาก DB)</label>
+                <div class="input-wrapper">
+                    <select id="role" name="role" style="width: 100%; height: 48px; background: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0 16px; font-size: 14px; color: #f0f0f0; font-family: 'Prompt', sans-serif; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; transition: all 0.3s ease;">
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r.RoleName" style="background: #1a1a1a;">@r.RoleName</option>
+                        }
+                    </select>
+                    <span class="input-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="password">รหัสผ่าน</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" placeholder="อย่างน้อย 8 ตัวอักษร" required minlength="8" />
+                        <span class="input-icon" onclick="togglePassword('password', this)">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">ยืนยันรหัสผ่าน</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" required />
+                        <span class="input-icon" onclick="togglePassword('confirmPassword', this)">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="birthDate">วันเกิด</label>
+                <div class="input-wrapper">
+                    <input type="date" id="birthDate" name="birthDate" />
+                    <span class="input-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">ที่อยู่</label>
+                <div class="input-wrapper">
+                    <textarea id="address" name="address" placeholder="กรอกที่อยู่ (ไม่บังคับ)" rows="3" style="width: 100%; background: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 12px 16px; font-size: 14px; color: #f0f0f0; font-family: 'Prompt', sans-serif; outline: none; resize: vertical; transition: all 0.3s ease;"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-user-plus" style="margin-right: 8px;"></i>เพิ่มผู้ใช้งาน (บันทึกลง DB)
+            </button>
+        </form>
+
+        <div class="auth-switch">
+            <a asp-controller="Account" asp-action="UserList" style="margin-right: 16px;">
+                <i class="fas fa-list"></i> ดูรายชื่อผู้ใช้ทั้งหมด
+            </a>
+            |
+            <a asp-controller="Account" asp-action="Login" style="margin-left: 16px;">
+                กลับหน้าเข้าสู่ระบบ
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function togglePassword(inputId, iconEl) {
+            const input = document.getElementById(inputId);
+            const icon = iconEl.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-lock');
+                icon.classList.add('fa-lock-open');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-lock-open');
+                icon.classList.add('fa-lock');
+            }
+        }
+
+        // Focus highlight for textarea
+        document.querySelector('textarea')?.addEventListener('focus', function() {
+            this.style.borderColor = '#d4a843';
+            this.style.boxShadow = '0 0 0 2px rgba(212, 168, 67, 0.15)';
+        });
+        document.querySelector('textarea')?.addEventListener('blur', function() {
+            this.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            this.style.boxShadow = 'none';
+        });
+
+        // Focus highlight for select
+        document.querySelector('select')?.addEventListener('focus', function() {
+            this.style.borderColor = '#d4a843';
+            this.style.boxShadow = '0 0 0 2px rgba(212, 168, 67, 0.15)';
+        });
+        document.querySelector('select')?.addEventListener('blur', function() {
+            this.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            this.style.boxShadow = 'none';
+        });
+    </script>
+}

@@ -1,0 +1,641 @@
+@model List<Kawin_67091861_002.ViewModels.CinemaHallCardDto>
+@{
+    ViewData["Title"] = "ระบบตรวจเช็คโรงภาพยนตร์";
+    Layout = "_LayoutStaff";
+    string currentFilter = ViewBag.StatusFilter as string ?? "all";
+}
+
+<!-- Top Header Bar -->
+<div class="halls-top-bar">
+    <div>
+        <div class="halls-pre-title">CINEMA HALLS MONITOR</div>
+        <h1 class="halls-main-title">ระบบตรวจเช็คข้อมูลภายในโรงภาพยนตร์</h1>
+        <div class="halls-sub-title">
+            ตรวจสอบเวลาเริ่ม-จบของภาพยนตร์ ผังที่นั่งลูกค้า และเรียกช่างเทคนิคประจำโรง
+        </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="filter-pills-row">
+        <a href="@Url.Action("Halls", new { status = "all" })" 
+           class="hall-filter-btn @(currentFilter == "all" ? "active" : "")">
+            ทั้งหมด (@ViewBag.TotalHalls โรง)
+        </a>
+        <a href="@Url.Action("Halls", new { status = "showing" })" 
+           class="hall-filter-btn @(currentFilter == "showing" ? "active" : "")">
+            กำลังฉาย
+        </a>
+        <a href="@Url.Action("Halls", new { status = "ready" })" 
+           class="hall-filter-btn success @(currentFilter == "ready" ? "active" : "")">
+            พร้อมเข้าชม
+        </a>
+    </div>
+</div>
+
+<!-- All Cinema Halls Grid -->
+<div class="all-halls-grid mt-4">
+    @foreach (var hall in Model)
+    {
+        <div class="cinema-hall-card @(hall.IsCleaned ? "is-ready" : "need-cleaning")">
+            <!-- Card Header: Hall Name & Status Badge -->
+            <div class="ch-card-header">
+                <div>
+                    <div class="ch-hall-name">@hall.HallName</div>
+                    <span class="ch-hall-type">@hall.HallType</span>
+                </div>
+                <div>
+                    @if (hall.ShowingStatus == "พร้อมเข้าชม")
+                    {
+                        <span class="hall-badge badge-green">
+                            <i class="bi bi-check-circle-fill me-1"></i> พร้อมเข้าชม
+                        </span>
+                    }
+                    else if (hall.ShowingStatus.Contains("ใกล้จบ"))
+                    {
+                        <span class="hall-badge badge-amber">
+                            <i class="bi bi-hourglass-split me-1"></i> ใกล้จบ (รอตรวจ)
+                        </span>
+                    }
+                    else if (hall.ShowingStatus.Contains("กำลังทำความสะอาด"))
+                    {
+                        <span class="hall-badge badge-orange">
+                            <i class="bi bi-stars me-1"></i> กำลังทำความสะอาด
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="hall-badge badge-blue">
+                            <i class="bi bi-play-circle-fill me-1"></i> กำลังฉาย
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <!-- Current Movie Playing -->
+            <div class="ch-movie-box">
+                <div class="ch-movie-title">
+                    <i class="bi bi-film me-1 text-info"></i> @hall.CurrentMovieTitle
+                </div>
+
+                <!-- Start & End Time -->
+                <div class="ch-times-row">
+                    <div class="time-item start">
+                        <span class="time-lbl">เริ่มฉาย</span>
+                        <span class="time-val">@hall.StartTimeText น.</span>
+                    </div>
+                    <div class="time-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                    <div class="time-item end">
+                        <span class="time-lbl">จบฉาย</span>
+                        <span class="time-val">@hall.EndTimeText น.</span>
+                    </div>
+                    <div class="time-item countdown">
+                        @if (hall.RemainingMinutes > 0)
+                        {
+                            <span class="time-lbl">เวลาที่เหลือ</span>
+                            <span class="time-val highlight">อีก @hall.RemainingMinutes นาที</span>
+                        }
+                        else
+                        {
+                            <span class="time-lbl">สถานะรอบ</span>
+                            <span class="time-val text-success">ฉายจบแล้ว</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="ch-progress-bg">
+                    <div class="ch-progress-fill @(hall.RemainingMinutes <= 25 ? "warning" : "")" 
+                         style="width: @hall.ProgressPercent%;"></div>
+                </div>
+            </div>
+
+            <!-- Cleanliness & Inspection Bar -->
+            <div class="ch-cleanliness-bar">
+                <div class="clean-status-left">
+                    <i class="bi @(hall.IsCleaned ? "bi-patch-check-fill text-success" : "bi-exclamation-triangle-fill text-warning")"></i>
+                    <span>ความสะอาด: <strong>@hall.CleanlinessStatus</strong></span>
+                </div>
+                <div class="clean-status-right text-muted">
+                    ตรวจล่าสุด @hall.LastCleanedTime (@hall.CleanedBy)
+                </div>
+            </div>
+
+            <!-- Next Movie Preview -->
+            <div class="ch-next-preview">
+                <span class="text-muted">รอบถัดไป:</span>
+                <span class="text-white fw-bold">@hall.NextMovieTitle</span>
+                <span class="badge bg-dark text-info">@hall.NextShowtimeText</span>
+            </div>
+
+            <!-- 3 Key Action Buttons -->
+            <div class="ch-action-buttons">
+                <!-- 1. ดูผังที่นั่ง & ตั๋วลูกค้า -->
+                <a asp-action="HallDetail" asp-route-id="@hall.HallId" class="btn-hall-act btn-seats" title="กดเพื่อดูที่นั่งตามที่ลูกค้าจองในโรงนี้">
+                    <i class="bi bi-grid-3x3-gap-fill me-1"></i> ผังที่นั่ง & ตั๋วลูกค้า
+                    <span class="seats-count-badge">@hall.BookedSeatsCount/@hall.TotalSeats</span>
+                </a>
+
+                <!-- 2. ตรวจความสะอาด -->
+                <button type="button" class="btn-hall-act btn-clean" 
+                        onclick="openCleanModal(@hall.HallId, '@hall.HallName')"
+                        title="ตรวจความสะอาดและความพร้อมเมื่อหนังจบ">
+                    <i class="bi bi-stars me-1"></i> ตรวจความสะอาด
+                </button>
+
+                <!-- 3. เรียกช่างเทคนิค -->
+                <button type="button" class="btn-hall-act btn-tech" 
+                        onclick="openTechModal(@hall.HallId, '@hall.HallName')"
+                        title="เรียกช่างทดสอบระบบหรือแจ้งของพัง">
+                    <i class="bi bi-tools me-1"></i> เรียกช่าง
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal 1: ตรวจความสะอาดและความพร้อมโรง -->
+<div class="modal fade" id="cleanModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-staff-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white fs-6 fw-bold">
+                    <i class="bi bi-stars text-info me-2"></i> บันทึกตรวจความสะอาดและความพร้อมโรงภาพยนตร์
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-action="MarkCleaned">
+                <input type="hidden" name="HallId" id="cleanHallId" value="1" />
+                <div class="modal-body">
+                    <div class="alert alert-dark p-2 mb-3" style="background:#131c28; border:1px solid #1e2c3e;">
+                        <span class="text-muted small">โรงภาพยนตร์:</span> 
+                        <strong class="text-white fs-6 ms-1" id="cleanHallNameDisplay">โรง 1 - IMAX Laser</strong>
+                    </div>
+
+                    <div class="checklist-group">
+                        <label class="form-check custom-check-item">
+                            <input class="form-check-input" type="checkbox" name="TrashCleared" value="true" checked />
+                            <span class="form-check-label text-white">เก็บขยะและเศษป๊อปคอร์นตามทางเดินและที่นั่งเรียบร้อย</span>
+                        </label>
+
+                        <label class="form-check custom-check-item">
+                            <input class="form-check-input" type="checkbox" name="SeatsInspected" value="true" checked />
+                            <span class="form-check-label text-white">ตรวจเช็คสภาพเบาะที่นั่งและพนักพิงทุกแถว</span>
+                        </label>
+
+                        <label class="form-check custom-check-item">
+                            <input class="form-check-input" type="checkbox" name="FloorMopped" value="true" checked />
+                            <span class="form-check-label text-white">ถูทำความสะอาดพื้นและทางเดินเข้า-ออก</span>
+                        </label>
+
+                        <label class="form-check custom-check-item">
+                            <input class="form-check-input" type="checkbox" name="ScreenAndSoundTested" value="true" checked />
+                            <span class="form-check-label text-white">จอฉายและระบบเสียงเบื้องต้นพร้อมใช้งาน</span>
+                        </label>
+
+                        <label class="form-check custom-check-item">
+                            <input class="form-check-input" type="checkbox" name="AcAndLightingChecked" value="true" checked />
+                            <span class="form-check-label text-white">ระบบปรับอากาศเย็นสบาย และไฟนำทางติดสว่างปกติ</span>
+                        </label>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label text-muted small">ชื่อผู้ตรวจความสะอาด</label>
+                        <input type="text" name="StaffName" class="form-control staff-dark-input" value="สมศรี รักบริการ" required />
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label text-muted small">หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+                        <textarea name="Notes" class="form-control staff-dark-input" rows="2" placeholder="เช่น โรงสะอาดพร้อมรับผู้ชมรอบถัดไป"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4" style="background:#0284c7; border:none;">
+                        <i class="bi bi-check-lg me-1"></i> ยืนยันโรงพร้อมเข้าชม
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: เรียกช่างเทคนิค / แจ้งเหตุขัดข้อง -->
+<div class="modal fade" id="techModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-staff-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-white fs-6 fw-bold">
+                    <i class="bi bi-tools text-warning me-2"></i> เรียกช่างเทคนิค / แจ้งอุปกรณ์ขัดข้อง
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-action="CallTechnician">
+                <input type="hidden" name="HallId" id="techHallId" value="1" />
+                <input type="hidden" name="HallName" id="techHallNameInput" value="โรง 1" />
+                <div class="modal-body">
+                    <div class="alert alert-dark p-2 mb-3" style="background:#1b1915; border:1px solid #3d2f1c;">
+                        <span class="text-warning small">ส่งคำขอไปยัง: </span> 
+                        <strong class="text-white" id="techHallNameDisplay">โรง 1 - IMAX Laser</strong>
+                        <div class="small text-muted mt-1">ทีม Tech Operations จะได้รับแจ้งเตือนในระบบทันที</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">ประเภทปัญหา / สิ่งที่ต้องการให้ช่างทำ <span class="text-danger">*</span></label>
+                        <select name="IssueType" class="form-select staff-dark-input" required>
+                            <option value="ทดสอบระบบเสียง / ลำโพง">🔊 ทดสอบระบบเสียง / ลำโพงไม่ดัง / เสียงแตก</option>
+                            <option value="โปรเจกเตอร์ขัดข้อง / สีเพี้ยน">📽️ โปรเจกเตอร์มีปัญหา / ภาพไม่คม / หลอดไฟเตือน</option>
+                            <option value="ระบบปรับอากาศไม่เย็น">❄️ แอร์ไม่เย็น / เสียงแอร์ดังในโรง</option>
+                            <option value="เก้าอี้ชำรุด / ปรับเอนไม่ได้">💺 เก้าอี้เบาะชำรุด / ชิ้นส่วนพัง</option>
+                            <option value="ระบบไฟส่องสว่างขัดข้อง">💡 ไฟนำทางดับ / ไฟเพดานไม่หรี่</option>
+                            <option value="อุปกรณ์อื่นๆ พัง">⚠️ อื่นๆ (ระบุในรายละเอียด)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">รายละเอียดอาการที่พบ <span class="text-danger">*</span></label>
+                        <textarea name="Description" class="form-control staff-dark-input" rows="3" 
+                                  placeholder="เช่น ลำโพงเซอร์ราวด์ด้านขวามีเสียงซ่า หรือแอร์ด้านหลังไม่เย็น..." required></textarea>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">ระดับความเร่งด่วน</label>
+                            <select name="Urgency" class="form-select staff-dark-input">
+                                <option value="ด่วนที่สุด (ก่อนรอบถัดไป)">🚨 ด่วนที่สุด (ก่อนรอบถัดไป)</option>
+                                <option value="ปานกลาง">⚡ ปานกลาง</option>
+                                <option value="ทั่วไป">🕒 บำรุงรักษาทั่วไป</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">พนักงานผู้แจ้ง</label>
+                            <input type="text" name="ReportedBy" class="form-control staff-dark-input" value="สมศรี (Floor Staff)" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold" style="background:#f59e0b; border:none; color:#111;">
+                        <i class="bi bi-broadcast me-1"></i> ส่งคำขอเรียกช่างทันที
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Header */
+    .halls-top-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .halls-pre-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent-cyan);
+        letter-spacing: 1.5px;
+        margin-bottom: 2px;
+    }
+
+    .halls-main-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .halls-sub-title {
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    /* Filters */
+    .filter-pills-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .hall-filter-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .hall-filter-btn:hover {
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .hall-filter-btn.active {
+        background: rgba(14, 165, 233, 0.15);
+        border-color: #0ea5e9;
+        color: #38bdf8;
+    }
+
+    .hall-filter-btn.warning.active {
+        background: rgba(245, 158, 11, 0.15);
+        border-color: #f59e0b;
+        color: #fbbf24;
+    }
+
+    .hall-filter-btn.success.active {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: #10b981;
+        color: #34d399;
+    }
+
+    /* Halls Grid */
+    .all-halls-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .cinema-hall-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 14px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .cinema-hall-card:hover {
+        border-color: rgba(14, 165, 233, 0.4);
+    }
+
+    .cinema-hall-card.need-cleaning {
+        border-left: 4px solid #f59e0b;
+    }
+
+    .cinema-hall-card.is-ready {
+        border-left: 4px solid #10b981;
+    }
+
+    /* Header */
+    .ch-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 14px;
+    }
+
+    .ch-hall-name {
+        font-size: 17px;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    .ch-hall-type {
+        font-size: 11px;
+        color: #38bdf8;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .hall-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .hall-badge.badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .hall-badge.badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .hall-badge.badge-orange { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+    .hall-badge.badge-blue { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.4); }
+
+    /* Movie Box */
+    .ch-movie-box {
+        background: var(--bg-card-subtle);
+        border: 1px solid var(--border-card);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+    }
+
+    .ch-movie-title {
+        font-size: 14.5px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+
+    .ch-times-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .time-item {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .time-lbl {
+        font-size: 10.5px;
+        color: var(--text-muted);
+    }
+
+    .time-val {
+        font-size: 13px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .time-val.highlight {
+        color: #f59e0b;
+    }
+
+    .time-arrow {
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+
+    .ch-progress-bg {
+        width: 100%;
+        height: 6px;
+        background: #0f1620;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .ch-progress-fill {
+        height: 100%;
+        background: #0284c7;
+        border-radius: 4px;
+    }
+
+    .ch-progress-fill.warning {
+        background: #f59e0b;
+    }
+
+    /* Cleanliness Bar */
+    .ch-cleanliness-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .clean-status-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #e2e8f0;
+    }
+
+    /* Next Preview */
+    .ch-next-preview {
+        font-size: 11.5px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Action Buttons */
+    .ch-action-buttons {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr;
+        gap: 8px;
+    }
+
+    .btn-hall-act {
+        border-radius: 8px;
+        padding: 9px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .btn-seats {
+        background: rgba(14, 165, 233, 0.12);
+        border-color: rgba(14, 165, 233, 0.35);
+        color: #38bdf8;
+    }
+
+    .btn-seats:hover {
+        background: #0284c7;
+        color: #ffffff;
+    }
+
+    .seats-count-badge {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 1px 6px;
+        border-radius: 8px;
+        font-size: 10.5px;
+        margin-left: 6px;
+    }
+
+    .btn-clean {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.35);
+        color: #34d399;
+    }
+
+    .btn-clean:hover {
+        background: #10b981;
+        color: #064e3b;
+    }
+
+    .btn-tech {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.35);
+        color: #fbbf24;
+    }
+
+    .btn-tech:hover {
+        background: #f59e0b;
+        color: #1a1005;
+    }
+
+    /* Modals */
+    .custom-staff-modal {
+        background: #111824;
+        border: 1px solid #1f2d40;
+        border-radius: 12px;
+    }
+
+    .staff-dark-input {
+        background: #0b1018;
+        border: 1px solid #1f2d40;
+        color: #ffffff;
+        font-size: 13px;
+    }
+
+    .staff-dark-input:focus {
+        background: #0b1018;
+        border-color: #0ea5e9;
+        color: #ffffff;
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25);
+    }
+
+    .checklist-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .custom-check-item {
+        background: #0e141e;
+        border: 1px solid #1b2636;
+        border-radius: 8px;
+        padding: 10px 12px 10px 32px;
+        margin: 0;
+    }
+
+    @@media (max-width: 992px) {
+        .all-halls-grid { grid-template-columns: 1fr; }
+        .ch-action-buttons { grid-template-columns: 1fr; }
+    }
+</style>
+
+<script>
+    function openCleanModal(hallId, hallName) {
+        document.getElementById('cleanHallId').value = hallId;
+        document.getElementById('cleanHallNameDisplay').innerText = hallName;
+        new bootstrap.Modal(document.getElementById('cleanModal')).show();
+    }
+
+    function openTechModal(hallId, hallName) {
+        document.getElementById('techHallId').value = hallId;
+        document.getElementById('techHallNameInput').value = hallName;
+        document.getElementById('techHallNameDisplay').innerText = hallName;
+        new bootstrap.Modal(document.getElementById('techModal')).show();
+    }
+</script>
+

@@ -1,0 +1,337 @@
+{
+  "Cinemas": [
+    {
+      "CinemaId": 1,
+      "CinemaName": "IMAX Hall 1",
+      "Status": "Ready",
+      "TotalSeats": 200
+    },
+    {
+      "CinemaId": 2,
+      "CinemaName": "Dolby Atmos Hall 2",
+      "Status": "Ready",
+      "TotalSeats": 180
+    },
+    {
+      "CinemaId": 3,
+      "CinemaName": "Standard Hall 3",
+      "Status": "Ready",
+      "TotalSeats": 150
+    },
+    {
+      "CinemaId": 4,
+      "CinemaName": "VIP Hall 4",
+      "Status": "Ready",
+      "TotalSeats": 80
+    }
+  ],
+  "Movies": [
+    {
+      "MovieId": 1,
+      "Title": "ซุส",
+      "DurationMins": 135,
+      "Status": "Showing",
+      "Genre": "แอ็คชั่น / ตลก",
+      "Description": "พบกับมหากาพย์ภาพยนตร์แอ็คชั่นฟอร์มยักษ์แห่งปี การต่อสู้เพื่อกอบกู้เอกราชครั้งสุดท้ายที่จะตัดสินชะตากรรมของคนทั้งชาติ ชมระบบเสียง Dolby Atmos ดีที่สุดวันนี้",
+      "PriceMin": 240,
+      "PriceMax": 380,
+      "Rating": 9.5,
+      "AgeRating": "ความรุนแรงระดับ 18+",
+      "SpecialTag": "IMAX SPECIAL",
+      "IsHero": true,
+      "ReleaseDate": "2026-10-15"
+    },
+    {
+      "MovieId": 2,
+      "Title": "โหน่งเท่ง",
+      "DurationMins": 110,
+      "Status": "Showing",
+      "Genre": "ตลกฮาหน้า",
+      "Description": "เรื่องราวความฮาสุดป่วนที่จะทำให้คุณหัวเราะจนกรามค้าง การรวมตัวของสุดยอดดาวตลก",
+      "PriceMin": 200,
+      "PriceMax": 320,
+      "Rating": 10.0,
+      "IsPopular": true,
+      "ReleaseDate": "2026-10-20"
+    },
+    {
+      "MovieId": 3,
+      "Title": "มหัศจรรย์สิงห์",
+      "DurationMins": 130,
+      "Status": "Showing",
+      "Genre": "แอ็คชั่น / ผจญภัย",
+      "Description": "การผจญภัยอันยิ่งใหญ่ในดินแดนลี้ลับ พลังแห่งสิงห์ผู้พิทักษ์ที่ตื่นขึ้นมาเพื่อปกป้องโลก",
+      "PriceMin": 220,
+      "PriceMax": 350,
+      "Rating": 8.0,
+      "IsPopular": true,
+      "ReleaseDate": "2026-10-25"
+    },
+    {
+      "MovieId": 4,
+      "Title": "สายลับ ดิบ ตาย",
+      "DurationMins": 125,
+      "Status": "Showing",
+      "Genre": "ระทึกขวัญ / ดราม่า",
+      "Description": "ภารกิจสายลับสุดระห่ำ ความลับระดับชาติที่ไม่อาจเปิดเผย และการหักหลังที่ไม่มีใครคาดคิด",
+      "PriceMin": 240,
+      "PriceMax": 360,
+      "Rating": 10.0,
+      "IsPopular": true,
+      "ReleaseDate": "2026-11-01"
+    },
+    {
+      "MovieId": 5,
+      "Title": "บทเพลงสุดโหด",
+      "DurationMins": 118,
+      "Status": "Showing",
+      "Genre": "ดราม่า / ดนตรี",
+      "Description": "เรื่องราวของนักเปียโนผู้ทุ่มเทชีวิตเพื่อสร้างบทเพลงที่สมบูรณ์แบบ ท่ามกลางเปลวไฟและความเจ็บปวด",
+      "PriceMin": 200,
+      "PriceMax": 340,
+      "Rating": 8.0,
+      "IsPopular": true,
+      "ReleaseDate": "2026-10-28"
+    },
+    {
+      "MovieId": 6,
+      "Title": "สมรภูมิผู้ชีพ",
+      "DurationMins": 135,
+      "Status": "Showing",
+      "Genre": "แอ็คชั่น / สงคราม",
+      "Description": "มหากาพย์สงครามที่ยิ่งใหญ่ การเสียสละของเหล่าทหารกล้าในสมรภูมิสุดท้าย",
+      "PriceMin": 240,
+      "PriceMax": 380,
+      "Rating": 10.0,
+      "SeatsRemaining": 12,
+      "Showtimes": [
+        "11:30",
+        "14:15",
+        "17:00",
+        "19:45"
+      ],
+      "ReleaseDate": "2026-10-18"
+    },
+    {
+      "MovieId": 7,
+      "Title": "ดั่งวาสนา",
+      "DurationMins": 115,
+      "Status": "Showing",
+      "Genre": "โรแมนติก / ดราม่า",
+      "Description": "พรหมลิขิตที่นำพาสองหัวใจมาพบกัน ทว่าเส้นทางแห่งความรักไม่ได้โรยด้วยกลีบกุหลาบ",
+      "PriceMin": 180,
+      "PriceMax": 320,
+      "Rating": 8.0,
+      "SeatsRemaining": 45,
+      "Showtimes": [
+        "12:00",
+        "15:10",
+        "18:20",
+        "21:30"
+      ],
+      "ReleaseDate": "2026-11-02"
+    },
+    {
+      "MovieId": 8,
+      "Title": "เขาหลอนโรงเรียนเก่า",
+      "DurationMins": 108,
+      "Status": "Showing",
+      "Genre": "สยองขวัญ",
+      "Description": "ความลับสุดสะพรึงในรั้วโรงเรียนเก่าที่ถูกปิดตาย วิญญาณที่ยังคงวนเวียนรอคอยการกลับมา",
+      "PriceMin": 200,
+      "PriceMax": 350,
+      "Rating": 8.0,
+      "SeatsRemaining": 8,
+      "Showtimes": [
+        "13:45",
+        "16:15",
+        "19:00",
+        "22:00"
+      ],
+      "ReleaseDate": "2026-10-31"
+    },
+    {
+      "MovieId": 9,
+      "Title": "มหานครไซไฟ 2099",
+      "DurationMins": 150,
+      "Status": "Showing",
+      "Genre": "ไซไฟ / แอ็คชั่น",
+      "Description": "ในปี 2099 มหานครแห่งเทคโนโลยีล้ำยุค เมื่อปัญญาประดิษฐ์เริ่มควบคุมมนุษยชาติ",
+      "PriceMin": 250,
+      "PriceMax": 400,
+      "Rating": 10.0,
+      "SeatsRemaining": 28,
+      "Showtimes": [
+        "10:30",
+        "13:20",
+        "16:45",
+        "19:50",
+        "22:15"
+      ],
+      "ReleaseDate": "2026-11-05"
+    },
+    {
+      "MovieId": 10,
+      "Title": "มนต์รักนักฆ่า",
+      "DurationMins": 128,
+      "Status": "Showing",
+      "Genre": "แอ็คชั่น / โรแมนติก",
+      "Description": "เมื่อนักฆ่ามือพระกาฬต้องตกหลุมรักเป้าหมายสังหาร การตัดสินใจครั้งสำคัญที่เดิมพันด้วยชีวิต",
+      "PriceMin": 220,
+      "PriceMax": 360,
+      "Rating": 8.0,
+      "SeatsRemaining": 35,
+      "Showtimes": [
+        "11:00",
+        "13:45",
+        "16:30",
+        "19:15"
+      ],
+      "ReleaseDate": "2026-11-04"
+    },
+    {
+      "MovieId": 11,
+      "Title": "ลวง ลับ ดับ ตาย",
+      "DurationMins": 112,
+      "Status": "Showing",
+      "Genre": "ระทึกขวัญ / ดราม่า",
+      "Description": "การสืบคดีปริศนาที่ซับซ้อนซ่อนเงื่อน ทุกหลักฐานนำไปสู่ความจริงที่ไม่อาจยอมรับได้",
+      "PriceMin": 180,
+      "PriceMax": 350,
+      "Rating": 10.0,
+      "SeatsRemaining": 20,
+      "Showtimes": [
+        "12:30",
+        "15:00",
+        "17:45",
+        "20:30"
+      ],
+      "ReleaseDate": "2026-11-06"
+    },
+    {
+      "MovieId": 12,
+      "Title": "สิงห์เหนือศิษย์เสือดำ",
+      "DurationMins": 140,
+      "Status": "Showing",
+      "Genre": "แอ็คชั่น",
+      "Description": "การประลองยุทธ์ครั้งยิ่งใหญ่ระหว่างสองสำนักในตำนาน ศักดิ์ศรีและการแก้แค้น",
+      "PriceMin": 200,
+      "PriceMax": 350,
+      "Rating": 8.0,
+      "SeatsRemaining": 42,
+      "Showtimes": [
+        "10:45",
+        "13:30",
+        "16:15",
+        "19:00"
+      ],
+      "ReleaseDate": "2026-11-03"
+    },
+    {
+      "MovieId": 13,
+      "Title": "ตำนานเทพพิทักษ์",
+      "DurationMins": 145,
+      "Status": "Showing",
+      "Genre": "แฟนตาซี / แอ็คชั่น",
+      "Description": "มหากาพย์เทพเจ้าและการปกป้องสรวงสวรรค์ พลังอำนาจโบราณที่ฟื้นคืนชีพ",
+      "PriceMin": 260,
+      "PriceMax": 420,
+      "Rating": 10.0,
+      "SeatsRemaining": 18,
+      "Showtimes": [
+        "11:15",
+        "14:00",
+        "16:45",
+        "20:00"
+      ],
+      "ReleaseDate": "2026-11-07"
+    }
+  ],
+  "ComingSoonMovies": [
+    {
+      "MovieId": 101,
+      "Title": "Warhammer 40K: อารยธรรมสาบสูญ",
+      "Genre": "แอ็คชั่น / ไซไฟ",
+      "ReleaseDateText": "25 ธ.ค. 2569",
+      "PosterType": "space"
+    },
+    {
+      "MovieId": 102,
+      "Title": "Warhammer 40K: จักรกลล่าวิญญาณ",
+      "Genre": "ระทึกขวัญ / แอ็คชั่น",
+      "ReleaseDateText": "1 ม.ค. 2569",
+      "PosterType": "mech"
+    },
+    {
+      "MovieId": 103,
+      "Title": "บทกวีแห่งดวงดาว",
+      "Genre": "ดราม่า / โรแมนติก",
+      "ReleaseDateText": "10 ม.ค. 2569",
+      "BadgeText": "เร็วๆ นี้",
+      "PosterType": "nebula"
+    },
+    {
+      "MovieId": 104,
+      "Title": "วิญญาณหลอนบ้านสวน",
+      "Genre": "สยองขวัญ",
+      "ReleaseDateText": "20 ม.ค. 2569",
+      "PosterType": "rick"
+    },
+    {
+      "MovieId": 105,
+      "Title": "ปาร์ตี้หลุดจักรวาล",
+      "Genre": "ตลก / คอมเมดี้",
+      "ReleaseDateText": "5 ก.พ. 2569",
+      "PosterType": "rick"
+    },
+    {
+      "MovieId": 106,
+      "Title": "วีรบุรุษมังกรแดง",
+      "Genre": "แอ็คชั่น / ย้อนยุค",
+      "ReleaseDateText": "18 ก.พ. 2569",
+      "PosterType": "rick"
+    }
+  ],
+  "SpecialScreenings": [
+    {
+      "MovieId": 201,
+      "Title": "ก็อดซิลล่า: วันสิ้นโลก สัตว์ประหลาดถล่ม",
+      "BadgeText": "IMAX 3D EXTRA",
+      "ShowtimeText": "ศุกร์ 25 ก.ย. • 20:00 น.",
+      "PriceText": "450 / ที่นั่ง",
+      "SeatsBadgeText": "เหลือ 6 ที่นั่งสุดท้าย",
+      "IsLowSeats": true,
+      "PosterType": "monster"
+    },
+    {
+      "MovieId": 202,
+      "Title": "ระห่ำซิ่งทะลุสายลม",
+      "BadgeText": "4DX EXTREME",
+      "ShowtimeText": "เสาร์ 28 ก.ย. • 19:30 น.",
+      "PriceText": "350 / ที่นั่ง",
+      "SeatsBadgeText": "เหลือ 14 ที่นั่ง",
+      "IsLowSeats": false,
+      "PosterType": "stamp"
+    },
+    {
+      "MovieId": 203,
+      "Title": "ล่าปริศนาขุมทรัพย์พระนคร",
+      "BadgeText": "SCREENX 270°",
+      "ShowtimeText": "อาทิตย์ 29 ก.ย. • 18:00 น.",
+      "PriceText": "1,500 / คู่",
+      "SeatsBadgeText": "เหลือ 2 คู่สุดท้าย",
+      "IsLowSeats": true,
+      "PosterType": "stamp"
+    },
+    {
+      "MovieId": 204,
+      "Title": "มรดกบาปโรงละครผี",
+      "BadgeText": "MIDNIGHT PREMIERE",
+      "ShowtimeText": "ศุกร์ 30 ก.ย. • 23:59 น.",
+      "PriceText": "520 / ที่นั่ง",
+      "SeatsBadgeText": "เหลือ 12 ที่นั่ง",
+      "IsLowSeats": false,
+      "PosterType": "stamp"
+    }
+  ]
+}
