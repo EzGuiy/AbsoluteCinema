@@ -1,0 +1,788 @@
+@model Kawin_67091861_002.ViewModels.IncidentsPageViewModel
+@{
+    ViewData["Title"] = "การจัดการเหตุขัดข้อง";
+    Layout = "_LayoutOperations";
+    var sel = Model.SelectedIncident;
+}
+
+<!-- Flash Notification -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show custom-toast-ops mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span>@TempData["Success"]</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Page Header Bar -->
+<div class="incidents-header-bar">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="incidents-main-title">การจัดการเหตุขัดข้อง</h1>
+            <span class="live-status-pill">
+                <span class="pulse-dot"></span> LIVE
+            </span>
+        </div>
+        <p class="incidents-subtitle">
+            ติดตาม ตรวจสอบ และบันทึกการแก้ไขปัญหาภายในโรงภาพยนตร์ทั้งหมด
+        </p>
+    </div>
+
+    <!-- Right Header Action: New Incident -->
+    <button type="button" class="btn-new-incident" data-bs-toggle="modal" data-bs-target="#createIncidentModal">
+        <i class="bi bi-plus-circle me-1"></i> แจ้งเหตุขัดข้องใหม่
+    </button>
+</div>
+
+<!-- Main 2-Column Split: Table & Detail Panel -->
+<div class="incidents-grid-wrapper mt-4">
+    <!-- Left Panel: All Incidents Table -->
+    <div class="incidents-table-panel">
+        <div class="panel-inner-header">
+            <h2 class="panel-card-title">รายการเหตุขัดข้องทั้งหมด</h2>
+
+            <!-- Filter Pills -->
+            <div class="incidents-filter-group">
+                <a asp-action="Incidents" asp-route-filter="all" 
+                   class="filter-chip @(Model.ActiveFilter == "all" ? "active" : "")">
+                    <span class="chip-dot default"></span> ทั้งหมด @Model.TotalCount
+                </a>
+                <a asp-action="Incidents" asp-route-filter="urgent" 
+                   class="filter-chip @(Model.ActiveFilter == "urgent" ? "active" : "")">
+                    <span class="chip-dot red"></span> เร่งด่วน @Model.UrgentCount
+                </a>
+                <a asp-action="Incidents" asp-route-filter="investigating" 
+                   class="filter-chip @(Model.ActiveFilter == "investigating" ? "active" : "")">
+                    <span class="chip-dot amber"></span> กำลังตรวจสอบ @Model.InvestigatingCount
+                </a>
+                <a asp-action="Incidents" asp-route-filter="resolved" 
+                   class="filter-chip @(Model.ActiveFilter == "resolved" ? "active" : "")">
+                    <span class="chip-dot green"></span> แก้ไขแล้ว @Model.ResolvedCount
+                </a>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-responsive mt-3">
+            <table class="table incidents-custom-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 13%;">รหัส</th>
+                        <th style="width: 38%;">รายละเอียดและแหล่งที่มา</th>
+                        <th style="width: 17%;">ผู้รับผิดชอบ</th>
+                        <th style="width: 18%;">สถานะ</th>
+                        <th style="width: 14%; text-align: right;">เวลาแจ้ง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Incidents.Any())
+                    {
+                        @foreach (var item in Model.Incidents)
+                        {
+                            bool isCurrent = sel != null && sel.Code.Equals(item.Code, StringComparison.OrdinalIgnoreCase);
+                            string codeColorClass = item.Status switch
+                            {
+                                "เร่งด่วน" => "code-red",
+                                "กำลังตรวจสอบ" => "code-amber",
+                                "วางแผนแล้ว" => "code-teal",
+                                "แก้ไขแล้ว" => "code-green",
+                                _ => "code-teal"
+                            };
+
+                            <tr class="incident-row @(isCurrent ? "is-selected" : "")"
+                                onclick="window.location.href='@Url.Action("Incidents", new { filter = Model.ActiveFilter, selectedCode = item.Code })'">
+                                <td class="fw-bold @codeColorClass">
+                                    @item.Code
+                                </td>
+                                <td>
+                                    <div class="inc-title-text">@item.Title</div>
+                                    <div class="inc-source-subtext">@item.SourceAndTime</div>
+                                </td>
+                                <td class="text-white-75">
+                                    @item.Assignee
+                                </td>
+                                <td>
+                                    @if (item.Status == "เร่งด่วน" || item.Status == "เปิดอยู่")
+                                    {
+                                        <span class="status-pill-dot red">
+                                            <span class="dot"></span> เร่งด่วน
+                                        </span>
+                                    }
+                                    else if (item.Status == "กำลังตรวจสอบ")
+                                    {
+                                        <span class="status-pill-dot amber">
+                                            <span class="dot"></span> กำลังตรวจสอบ
+                                        </span>
+                                    }
+                                    else if (item.Status == "วางแผนแล้ว")
+                                    {
+                                        <span class="status-pill-dot teal">
+                                            <span class="dot"></span> วางแผนแล้ว
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill-dot green">
+                                            <span class="dot"></span> แก้ไขแล้ว
+                                        </span>
+                                    }
+                                </td>
+                                <td style="text-align: right;" class="text-muted small">
+                                    @item.TimeAgoText
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                                ไม่พบรายการเหตุขัดข้องในหมวดหมู่นี้
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Panel: Incident Detail Inspector -->
+    <div class="incident-detail-panel">
+        @if (sel != null)
+        {
+            <!-- Top Code & Priority Tag -->
+            <div class="detail-top-badge">
+                <span class="badge-inc-code @(sel.Status == "เร่งด่วน" ? "red" : (sel.Status == "กำลังตรวจสอบ" ? "amber" : "teal"))">
+                    @sel.Code (@sel.UrgencyLevel)
+                </span>
+            </div>
+
+            <!-- Incident Title -->
+            <h3 class="detail-main-title">@sel.Title</h3>
+            <p class="detail-source-sub">
+                เปิดเมื่อ @sel.OpenTime • โดย@sel.Detector
+            </p>
+
+            <!-- Section: Activity Log Timeline -->
+            <div class="detail-activity-section">
+                <h4 class="activity-section-title">
+                    <i class="bi bi-clock-history me-1 text-emerald"></i> บันทึกกิจกรรมการทำงาน
+                </h4>
+
+                <div class="activity-timeline mt-3">
+                    @if (sel.ActivityLogs != null && sel.ActivityLogs.Any())
+                    {
+                        @foreach (var log in sel.ActivityLogs)
+                        {
+                            <div class="timeline-entry">
+                                <div class="timeline-dot-col">
+                                    <span class="timeline-dot @log.Color"></span>
+                                    <span class="timeline-line"></span>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="tl-title">@log.Title</div>
+                                    <div class="tl-desc">@log.TimeText • @log.Description</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted small py-3">ยังไม่มีบันทึกกิจกรรมย่อยเพิ่มเติม</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons at bottom of Inspector -->
+            <div class="detail-action-buttons mt-4">
+                <!-- 1. บันทึกผลการตรวจสอบ -->
+                <button type="button" class="btn-action-inspect" data-bs-toggle="modal" data-bs-target="#updateResultModal">
+                    บันทึกผลการตรวจสอบ
+                </button>
+
+                <!-- 2. ส่งต่อเรื่องให้ผู้จัดการ -->
+                <form asp-action="EscalateToManager" method="post" class="mt-2">
+                    <input type="hidden" name="code" value="@sel.Code" />
+                    <button type="submit" class="btn-action-escalate"
+                            onclick="return confirm('ยืนยันส่งต่อเหตุขัดข้อง @sel.Code ไปยังผู้จัดการสาขา?')">
+                        ส่งต่อเรื่องให้ผู้จัดการ
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="empty-selection-placeholder">
+                <i class="bi bi-shield-check fs-1 text-emerald mb-3"></i>
+                <h4 class="text-white">ไม่มีเหตุขัดข้องที่เลือก</h4>
+                <p class="text-muted small">คลิกเลือกรายการจากตารางด้านซ้ายเพื่อดูรายละเอียดและบันทึกผลการแก้ไข</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- Modal 1: แจ้งเหตุขัดข้องใหม่ -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="createIncidentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content ops-modal-box">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-plus-circle text-emerald me-2"></i> แจ้งเหตุขัดข้องใหม่
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CreateIncident" method="post">
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">หัวข้อเหตุขัดข้อง / ปัญหาที่พบ</label>
+                        <input type="text" name="Title" class="form-control ops-input" 
+                               placeholder="เช่น เสียงกระตุกในโรง 2, เครื่องฉายเปิดไม่ติด" required />
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small">ตำแหน่ง / โรงภาพยนตร์</label>
+                            <select name="CinemaHall" class="form-select ops-input">
+                                <option value="โรง 1 (IMAX)">โรง 1 (IMAX)</option>
+                                <option value="โรง 2 (Dolby Atmos)" selected>โรง 2 (Dolby Atmos)</option>
+                                <option value="โรง 3 (Digital 4K)">โรง 3 (Digital 4K)</option>
+                                <option value="โรง 4 (Standard)">โรง 4 (Standard)</option>
+                                <option value="โรง 5 (VIP Lounge)">โรง 5 (VIP Lounge)</option>
+                                <option value="ห้อง Server SRV-01">ห้อง Server SRV-01</option>
+                                <option value="เคาน์เตอร์ Box Office">เคาน์เตอร์ Box Office</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small">ระดับความเร่งด่วน</label>
+                            <select name="Urgency" class="form-select ops-input">
+                                <option value="เร่งด่วน" selected>เร่งด่วน (มีผลต่อรอบฉาย)</option>
+                                <option value="ปานกลาง">ปานกลาง (กำลังตรวจสอบ)</option>
+                                <option value="เฝ้าระวัง">เฝ้าระวัง (วางแผนล่วงหน้า)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small">ผู้รับผิดชอบ / ช่างประจำเวร</label>
+                            <input type="text" name="Assignee" class="form-control ops-input" value="อนุชา" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small">แหล่งที่มา / ผู้ตรวจพบ</label>
+                            <input type="text" name="Detector" class="form-control ops-input" value="ระบบตรวจจับอัตโนมัติ" />
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label text-muted small">รายละเอียดการทำงานเบื้องต้น</label>
+                        <textarea name="Description" class="form-control ops-input" rows="3"
+                                  placeholder="ระบุอาการ สาเหตุที่สงสัย หรืออุปกรณ์ที่ต้องนำเข้าตรวจสอบ..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-emerald btn-sm px-4 fw-bold">สร้างรายการแจ้งเหตุ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- Modal 2: บันทึกผลการตรวจสอบ -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="updateResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content ops-modal-box">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-pencil-square text-emerald me-2"></i> บันทึกผลการตรวจสอบ @(sel?.Code)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="UpdateIncidentResult" method="post">
+                <input type="hidden" name="Code" value="@(sel?.Code)" />
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">อัปเดตสถานะการแก้ไข</label>
+                        <select name="NewStatus" class="form-select ops-input">
+                            <option value="กำลังตรวจสอบ" selected>กำลังตรวจสอบ (อยู่ระหว่างแก้ไข)</option>
+                            <option value="แก้ไขแล้ว">แก้ไขแล้ว (ปัญหาหมดไป/ทำงานปกติ)</option>
+                            <option value="วางแผนแล้ว">วางแผนแล้ว (รอเปลี่ยนอุปกรณ์รอบปิดโรง)</option>
+                            <option value="เร่งด่วน">เร่งด่วน (ยังพบอาการผิดปกติ)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">หัวข้อผลการตรวจสอบ</label>
+                        <input type="text" name="ActivityTitle" class="form-control ops-input" 
+                               placeholder="เช่น เปลี่ยนการ์ดเสียงสำรองเรียบร้อย, Reset ค่า Processor" required />
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label text-muted small">รายละเอียดผลการตรวจสอบ / ขั้นตอนที่ทำ</label>
+                        <textarea name="ActivityDescription" class="form-control ops-input" rows="3"
+                                  placeholder="ระบุข้อเท็จจริง ค่าที่วัดได้ หรือการทดสอบเสียงซ้ำ..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-emerald btn-sm px-4 fw-bold">บันทึกผลการตรวจสอบ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Header Bar */
+    .incidents-header-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .incidents-main-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+        letter-spacing: -0.3px;
+    }
+
+    .incidents-subtitle {
+        color: #64748b;
+        font-size: 13.5px;
+        margin: 0;
+    }
+
+    .live-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #10b981;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .pulse-dot {
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #10b981;
+    }
+
+    .btn-new-incident {
+        background: #10b981;
+        color: #032015;
+        border: none;
+        font-weight: 700;
+        font-size: 13.5px;
+        padding: 9px 18px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-new-incident:hover {
+        background: #34d399;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    /* 2-Column Grid */
+    .incidents-grid-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 390px;
+        gap: 22px;
+        align-items: start;
+    }
+
+    /* Left Table Panel */
+    .incidents-table-panel {
+        background: #0f1613;
+        border: 1px solid #192721;
+        border-radius: 14px;
+        padding: 22px 24px;
+    }
+
+    .panel-inner-header {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .panel-card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* Filter Chips */
+    .incidents-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: #141f1a;
+        border: 1px solid #1e3129;
+        color: #94a3b8;
+        font-size: 12.5px;
+        font-weight: 500;
+        border-radius: 20px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .filter-chip:hover {
+        color: #ffffff;
+        background: #192822;
+        border-color: #274035;
+    }
+
+    .filter-chip.active {
+        color: #ffffff;
+        background: #1a2f26;
+        border-color: #10b981;
+    }
+
+    .chip-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+    .chip-dot.default { background: #64748b; }
+    .chip-dot.red { background: #ef4444; box-shadow: 0 0 5px #ef4444; }
+    .chip-dot.amber { background: #f59e0b; box-shadow: 0 0 5px #f59e0b; }
+    .chip-dot.green { background: #10b981; box-shadow: 0 0 5px #10b981; }
+
+    /* Custom Table */
+    .incidents-custom-table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0 4px;
+    }
+
+    .incidents-custom-table thead th {
+        background: transparent;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 600;
+        border: none;
+        padding: 10px 14px;
+    }
+
+    .incident-row {
+        cursor: pointer;
+        background: #121c17;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+    }
+
+    .incident-row td {
+        padding: 14px 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        background: transparent;
+    }
+
+    .incident-row td:first-child {
+        border-left: 1px solid rgba(255, 255, 255, 0.03);
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }
+
+    .incident-row td:last-child {
+        border-right: 1px solid rgba(255, 255, 255, 0.03);
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    .incident-row:hover {
+        background: #17241e;
+    }
+
+    .incident-row.is-selected {
+        background: #172a22 !important;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .incident-row.is-selected td:first-child {
+        border-left: 3px solid #10b981;
+    }
+
+    /* Code Colors */
+    .code-red { color: #f87171; }
+    .code-amber { color: #fbbf24; }
+    .code-teal { color: #2dd4bf; }
+    .code-green { color: #34d399; }
+
+    .inc-title-text {
+        font-weight: 600;
+        color: #ffffff;
+        font-size: 13.5px;
+        line-height: 1.3;
+    }
+
+    .inc-source-subtext {
+        font-size: 11.5px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* Status Pills */
+    .status-pill-dot {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        font-weight: 500;
+    }
+
+    .status-pill-dot .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-pill-dot.red { color: #f87171; }
+    .status-pill-dot.red .dot { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+
+    .status-pill-dot.amber { color: #fbbf24; }
+    .status-pill-dot.amber .dot { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+
+    .status-pill-dot.teal { color: #2dd4bf; }
+    .status-pill-dot.teal .dot { background: #14b8a6; box-shadow: 0 0 6px #14b8a6; }
+
+    .status-pill-dot.green { color: #34d399; }
+    .status-pill-dot.green .dot { background: #10b981; box-shadow: 0 0 6px #10b981; }
+
+    /* Right Detail Inspector Panel */
+    .incident-detail-panel {
+        background: #0f1613;
+        border: 1px solid #192721;
+        border-radius: 14px;
+        padding: 24px;
+        position: sticky;
+        top: 20px;
+    }
+
+    .badge-inc-code {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        margin-bottom: 8px;
+    }
+
+    .badge-inc-code.red {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-inc-code.amber {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-inc-code.teal {
+        background: rgba(20, 184, 166, 0.15);
+        color: #2dd4bf;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+    }
+
+    .detail-main-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 4px 0;
+    }
+
+    .detail-source-sub {
+        font-size: 12px;
+        color: #64748b;
+        margin-bottom: 22px;
+    }
+
+    .activity-section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .text-emerald { color: #10b981; }
+
+    /* Timeline Design */
+    .activity-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .timeline-entry {
+        display: flex;
+        gap: 14px;
+        position: relative;
+    }
+
+    .timeline-dot-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 14px;
+        flex-shrink: 0;
+    }
+
+    .timeline-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        margin-top: 5px;
+    }
+
+    .timeline-dot.red { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+    .timeline-dot.yellow { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+    .timeline-dot.teal { background: #06b6d4; box-shadow: 0 0 6px #06b6d4; }
+    .timeline-dot.green { background: #10b981; box-shadow: 0 0 6px #10b981; }
+
+    .timeline-line {
+        width: 1.5px;
+        flex: 1;
+        background: #1c2c25;
+        min-height: 28px;
+        margin: 4px 0;
+    }
+
+    .timeline-entry:last-child .timeline-line {
+        display: none;
+    }
+
+    .timeline-content {
+        padding-bottom: 18px;
+    }
+
+    .tl-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+        line-height: 1.25;
+    }
+
+    .tl-desc {
+        font-size: 11.5px;
+        color: #64748b;
+        margin-top: 2px;
+        line-height: 1.35;
+    }
+
+    /* Buttons */
+    .btn-action-inspect {
+        width: 100%;
+        background: #10b981;
+        color: #032015;
+        border: none;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 12px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-action-inspect:hover {
+        background: #34d399;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-action-escalate {
+        width: 100%;
+        background: transparent;
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        font-size: 13.5px;
+        font-weight: 600;
+        padding: 10px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-action-escalate:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: #ef4444;
+        color: #fca5a5;
+    }
+
+    /* Custom Modal */
+    .ops-modal-box {
+        background: #0f1714;
+        border: 1px solid #1c2e26;
+        border-radius: 14px;
+    }
+
+    .ops-input {
+        background: #14201b;
+        border: 1px solid #20352c;
+        color: #ffffff;
+        border-radius: 8px;
+    }
+
+    .ops-input:focus {
+        background: #16241e;
+        border-color: #10b981;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
+    }
+
+    .btn-emerald {
+        background: #10b981;
+        color: #042417;
+    }
+
+    .btn-emerald:hover {
+        background: #34d399;
+    }
+
+    .custom-toast-ops {
+        background: #0d281e;
+        border: 1px solid #10b981;
+        color: #ffffff;
+        border-radius: 10px;
+    }
+
+    @@media (max-width: 1024px) {
+        .incidents-grid-wrapper {
+            grid-template-columns: 1fr;
+        }
+        .incident-detail-panel {
+            position: static;
+        }
+    }
+</style>

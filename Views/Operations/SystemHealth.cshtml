@@ -1,0 +1,400 @@
+@model Kawin_67091861_002.ViewModels.SystemHealthPageViewModel
+@{
+    ViewData["Title"] = "สุขภาพระบบเทคโนโลยี";
+    Layout = "_LayoutOperations";
+}
+
+<!-- Page Header Bar -->
+<div class="health-header-bar">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="health-main-title">สุขภาพระบบเทคโนโลยี</h1>
+            <span class="live-status-pill">
+                <span class="pulse-dot"></span> LIVE
+            </span>
+        </div>
+        <p class="health-subtitle">
+            ติดตามการทำงาน อุณหภูมิ และความเสถียรของเครื่องเซิร์ฟเวอร์และอุปกรณ์โรงภาพยนตร์
+        </p>
+    </div>
+</div>
+
+<!-- 4 Top KPI Cards Grid -->
+<div class="health-kpi-grid mt-4">
+    <!-- Card 1: สถานะเซิร์ฟเวอร์รวม -->
+    <div class="kpi-health-card">
+        <div class="kpi-top-row">
+            <span class="kpi-label">สถานะเซิร์ฟเวอร์รวม</span>
+            <div class="kpi-icon-box green">
+                <i class="bi bi-shield-check"></i>
+            </div>
+        </div>
+        <div class="kpi-stat-value">@Model.OverallServerStatus</div>
+        <div class="kpi-stat-sub green">@Model.OverallServerSubtext</div>
+    </div>
+
+    <!-- Card 2: ความร้อนเฉลี่ยคลังข้อมูล -->
+    <div class="kpi-health-card">
+        <div class="kpi-top-row">
+            <span class="kpi-label">ความร้อนเฉลี่ยคลังข้อมูล</span>
+            <div class="kpi-icon-box teal">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+        </div>
+        <div class="kpi-stat-value">@Model.AvgStorageHeat</div>
+        <div class="kpi-stat-sub teal">@Model.AvgStorageHeatSubtext</div>
+    </div>
+
+    <!-- Card 3: ปริมาณข้อมูลรวมวันนี้ -->
+    <div class="kpi-health-card">
+        <div class="kpi-top-row">
+            <span class="kpi-label">ปริมาณข้อมูลรวมวันนี้</span>
+            <div class="kpi-icon-box blue">
+                <i class="bi bi-hdd-network"></i>
+            </div>
+        </div>
+        <div class="kpi-stat-value">@Model.TotalDataToday</div>
+        <div class="kpi-stat-sub blue">@Model.TotalDataSubtext</div>
+    </div>
+
+    <!-- Card 4: การแจ้งเตือนสเตตัส -->
+    <div class="kpi-health-card">
+        <div class="kpi-top-row">
+            <span class="kpi-label">การแจ้งเตือนสเตตัส</span>
+            <div class="kpi-icon-box red">
+                <i class="bi bi-exclamation-circle"></i>
+            </div>
+        </div>
+        <div class="kpi-stat-value">@Model.AlertsCount</div>
+        <div class="kpi-stat-sub red">@Model.AlertsSubtext</div>
+    </div>
+</div>
+
+<!-- Subsystems Section Title -->
+<div class="subsystems-section-header mt-5">
+    <h2 class="subsystems-title">สถานะระบบย่อย (Real-time Subsystem Metrics)</h2>
+</div>
+
+<!-- 6 Subsystems Cards Grid (2 rows x 3 columns) -->
+<div class="subsystems-cards-grid mt-3">
+    @foreach (var sub in Model.Subsystems)
+    {
+        <div class="subsystem-card">
+            <!-- Header: System Name & Status Badge -->
+            <div class="sub-header-row">
+                <h3 class="sub-name">@sub.Name</h3>
+                @if (sub.BadgeColor == "amber")
+                {
+                    <span class="sub-status-badge amber">
+                        <span class="dot"></span> @sub.StatusBadge
+                    </span>
+                }
+                else
+                {
+                    <span class="sub-status-badge green">
+                        <span class="dot"></span> @sub.StatusBadge
+                    </span>
+                }
+            </div>
+
+            <!-- Big Metric Value -->
+            <div class="sub-value-row">
+                <span class="sub-value-text">@sub.Value</span>
+
+                <!-- Real-time Sparkline SVG -->
+                <div class="sub-sparkline-wrap">
+                    <svg viewBox="0 0 200 45" class="sparkline-svg">
+                        <defs>
+                            <linearGradient id="glow-@sub.GetHashCode()" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="@sub.LineColor" stop-opacity="0.25"></stop>
+                                <stop offset="100%" stop-color="@sub.LineColor" stop-opacity="0.0"></stop>
+                            </linearGradient>
+                        </defs>
+                        <!-- Sparkline Polyline -->
+                        <polyline fill="none" 
+                                  stroke="@sub.LineColor" 
+                                  stroke-width="2.5" 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round"
+                                  points="@sub.SparklinePoints" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Footer: Subtext & Last Updated -->
+            <div class="sub-footer-row">
+                <span class="sub-footer-text">@sub.Subtext</span>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    /* Health Page Header */
+    .health-header-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+
+    .health-main-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+        letter-spacing: -0.3px;
+    }
+
+    .health-subtitle {
+        color: #64748b;
+        font-size: 13.5px;
+        margin: 0;
+    }
+
+    .live-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #10b981;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .pulse-dot {
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #10b981;
+    }
+
+    /* 4 Top KPI Cards */
+    .health-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .kpi-health-card {
+        background: #0f1613;
+        border: 1px solid #192721;
+        border-radius: 14px;
+        padding: 20px 22px;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .kpi-health-card:hover {
+        transform: translateY(-2px);
+        border-color: #274035;
+    }
+
+    .kpi-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .kpi-label {
+        font-size: 12.5px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .kpi-icon-box {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .kpi-icon-box.green {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .kpi-icon-box.teal {
+        background: rgba(20, 184, 166, 0.15);
+        color: #14b8a6;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+    }
+
+    .kpi-icon-box.blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .kpi-icon-box.red {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .kpi-stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.1;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+    }
+
+    .kpi-stat-sub {
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .kpi-stat-sub.green { color: #10b981; }
+    .kpi-stat-sub.teal { color: #14b8a6; }
+    .kpi-stat-sub.blue { color: #60a5fa; }
+    .kpi-stat-sub.red { color: #f87171; }
+
+    /* Subsystem Section */
+    .subsystems-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .subsystems-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    /* 6 Cards Grid (3 columns x 2 rows) */
+    .subsystems-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .subsystem-card {
+        background: #0f1613;
+        border: 1px solid #192721;
+        border-radius: 14px;
+        padding: 22px 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 180px;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .subsystem-card:hover {
+        transform: translateY(-2px);
+        border-color: #284438;
+    }
+
+    .sub-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .sub-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .sub-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 12px;
+    }
+
+    .sub-status-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .sub-status-badge.green {
+        background: rgba(16, 185, 129, 0.12);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .sub-status-badge.green .dot {
+        background: #10b981;
+        box-shadow: 0 0 6px #10b981;
+    }
+
+    .sub-status-badge.amber {
+        background: rgba(245, 158, 11, 0.12);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .sub-status-badge.amber .dot {
+        background: #f59e0b;
+        box-shadow: 0 0 6px #f59e0b;
+    }
+
+    /* Metric Value & Sparkline Row */
+    .sub-value-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+
+    .sub-value-text {
+        font-size: 28px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.3px;
+        white-space: nowrap;
+    }
+
+    .sub-sparkline-wrap {
+        width: 140px;
+        height: 38px;
+        flex-shrink: 0;
+    }
+
+    .sparkline-svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    /* Footer Row */
+    .sub-footer-row {
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .sub-footer-text {
+        font-size: 11.5px;
+        color: #64748b;
+        line-height: 1.3;
+    }
+
+    @@media (max-width: 1200px) {
+        .health-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        .subsystems-cards-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 768px) {
+        .health-kpi-grid { grid-template-columns: 1fr; }
+        .subsystems-cards-grid { grid-template-columns: 1fr; }
+    }
+</style>

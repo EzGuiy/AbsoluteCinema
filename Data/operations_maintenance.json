@@ -1,0 +1,52 @@
+[
+  {
+    "Id": 1,
+    "Title": "เปลี่ยนหลอดไฟโปรเจกเตอร์ โรง 4",
+    "Category": "ตามแผน",
+    "CategoryColor": "blue",
+    "Assignee": "อนุชา • ช่างเทคนิค",
+    "ScheduleText": "วันนี้ • 13:00 น.",
+    "Status": "กำลังดำเนินงาน",
+    "StatusDotColor": "amber"
+  },
+  {
+    "Id": 2,
+    "Title": "เปลี่ยนแผ่นกรองอากาศ แอร์โรง 3",
+    "Category": "ตามแผน",
+    "CategoryColor": "blue",
+    "Assignee": "วรพล • ช่างแอร์",
+    "ScheduleText": "วันนี้ • 15:30 น.",
+    "Status": "รอดำเนินการ",
+    "StatusDotColor": "grey"
+  },
+  {
+    "Id": 3,
+    "Title": "แก้ไขระบบสำรองฐานข้อมูลประจำสัปดาห์",
+    "Category": "แก้ไขทันที",
+    "CategoryColor": "amber",
+    "Assignee": "ศุภชัย • ช่างระบบ",
+    "ScheduleText": "วันนี้ • 17:00 น.",
+    "Status": "เสร็จสิ้น",
+    "StatusDotColor": "green"
+  },
+  {
+    "Id": 4,
+    "Title": "ซ่อมระบบฉายโรง 2 เครื่องฉายขัดข้อง",
+    "Category": "ฉุกเฉิน",
+    "CategoryColor": "red",
+    "Assignee": "ทีมวิศวกรภายนอก",
+    "ScheduleText": "พรุ่งนี้ • 09:00 น.",
+    "Status": "ระงับชั่วคราว",
+    "StatusDotColor": "red"
+  },
+  {
+    "Id": 5,
+    "Title": "ตรวจวัดประสิทธิภาพสายดินตู้เมนสวิตช์",
+    "Category": "ตามแผน",
+    "CategoryColor": "blue",
+    "Assignee": "วรพล • ช่างไฟ",
+    "ScheduleText": "17 ก.ย. • 10:00 น.",
+    "Status": "วางแผนแล้ว",
+    "StatusDotColor": "teal"
+  }
+]

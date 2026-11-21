@@ -1,0 +1,558 @@
+@model Kawin_67091861_002.ViewModels.ManagerMoviesViewModel
+@{
+    Layout = "_LayoutManager";
+    ViewData["Title"] = "คลังและจัดการภาพยนตร์";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+        margin: 0;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        color: #8c8c9e;
+        margin-top: 4px;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-input-box {
+        position: relative;
+        min-width: 240px;
+    }
+
+    .search-input-box input {
+        width: 100%;
+        background: #141419;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        padding: 8px 12px 8px 36px;
+        font-size: 13px;
+        color: #fff;
+    }
+
+    .search-input-box input:focus {
+        outline: none;
+        border-color: #f59e0b;
+    }
+
+    .search-input-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #656575;
+        font-size: 13px;
+    }
+
+    .icon-circle-btn {
+        width: 38px;
+        height: 38px;
+        background: #141419;
+        border: 1px solid #23232c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9292a0;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-gold {
+        background: #f59e0b;
+        color: #000000;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-gold:hover {
+        background: #fbbf24;
+        color: #000000;
+    }
+
+    /* Filter Bar */
+    .filter-action-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        gap: 16px;
+    }
+
+    .filter-tabs {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tab-item {
+        padding: 7px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #8c8c9e;
+        background: transparent;
+        border: 1px solid transparent;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .tab-item:hover {
+        color: #ffffff;
+    }
+
+    .tab-item.active {
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    /* Two Columns Layout */
+    .movies-layout-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* Movie Grid Cards */
+    .movie-card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .movie-card-item {
+        background: #141419;
+        border: 1px solid #22222b;
+        border-radius: 12px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+    }
+
+    .movie-card-item:hover {
+        border-color: #383848;
+        transform: translateY(-2px);
+    }
+
+    .movie-card-item.selected {
+        border-color: #f59e0b;
+        box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
+    }
+
+    .movie-poster-box {
+        width: 100%;
+        height: 140px;
+        background: #1c1c24;
+        border-radius: 8px;
+        position: relative;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 1px solid #282834;
+    }
+
+    .status-badge-corner {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+    .badge-green { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+    .badge-yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-cyan { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+    .movie-title-text {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .movie-genre-text {
+        font-size: 11.5px;
+        color: #7e7e90;
+        margin-bottom: 12px;
+    }
+
+    .movie-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #8c8c9e;
+        border-top: 1px solid #1c1c24;
+        padding-top: 10px;
+    }
+
+    .rating-pill-tag {
+        background: #1f1f28;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 10px;
+        color: #e2e2ec;
+        border: 1px solid #2e2e3c;
+    }
+
+    /* Right Detail Panel */
+    .movie-detail-panel {
+        background: #141419;
+        border: 1px solid #22222b;
+        border-radius: 12px;
+        padding: 20px;
+        position: sticky;
+        top: 24px;
+    }
+
+    .detail-panel-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #f59e0b;
+        margin-bottom: 18px;
+    }
+
+    .detail-preview-box {
+        width: 100%;
+        height: 180px;
+        background: #181822;
+        border: 1px solid #282836;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #727284;
+        margin-bottom: 20px;
+    }
+
+    .detail-preview-box i {
+        font-size: 32px;
+        color: #8a8a9e;
+    }
+
+    .detail-preview-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #c5c5d2;
+    }
+
+    .detail-field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .detail-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-label {
+        font-size: 11px;
+        color: #6d6d7e;
+        font-weight: 500;
+    }
+
+    .detail-val-strong {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .detail-val-subtle {
+        font-size: 12.5px;
+        color: #a4a4b4;
+    }
+
+    .detail-actions-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-detail-edit {
+        flex: 1;
+        background: #1e1e26;
+        border: 1px solid #2e2e3c;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-detail-edit:hover {
+        background: #252530;
+        border-color: #404050;
+    }
+
+    .btn-detail-suspend {
+        flex: 1;
+        background: #3e1619;
+        border: 1px solid #5a1f24;
+        color: #f87171;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-detail-suspend:hover {
+        background: #4f1c20;
+        color: #ffa3a3;
+    }
+</style>
+
+<!-- Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">คลังและจัดการภาพยนตร์</h1>
+        <div class="page-subtitle">อัปโหลด แก้ไขข้อมูล และบริหารสถานะการจัดฉายภาพยนตร์ทั้งหมด</div>
+    </div>
+    <div class="header-actions">
+        <div class="search-input-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="ค้นหารายการ..." />
+        </div>
+        <div class="icon-circle-btn">
+            <i class="bi bi-bell"></i>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #4ade80; border-radius: 10px;">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Filter Tabs & Add Button -->
+<div class="filter-action-row">
+    <div class="filter-tabs">
+        <a asp-controller="Manager" asp-action="Movies" asp-route-filter="all" class="tab-item @(Model.ActiveFilter == "all" ? "active" : "")">ทั้งหมด</a>
+        <a asp-controller="Manager" asp-action="Movies" asp-route-filter="showing" class="tab-item @(Model.ActiveFilter == "showing" ? "active" : "")">กำลังฉาย</a>
+        <a asp-controller="Manager" asp-action="Movies" asp-route-filter="coming" class="tab-item @(Model.ActiveFilter == "coming" ? "active" : "")">โปรแกรมหน้า</a>
+    </div>
+    <button class="btn-gold" data-bs-toggle="modal" data-bs-target="#addMovieModal">
+        <i class="bi bi-plus-lg"></i>
+        <span>เพิ่มภาพยนตร์ใหม่</span>
+    </button>
+</div>
+
+<!-- Layout: Movie Cards Grid (Left) + Detail (Right) -->
+<div class="movies-layout-grid">
+    <!-- Movie Cards -->
+    <div class="movie-card-grid">
+        @foreach (var movie in Model.Movies)
+        {
+            bool isSelected = Model.SelectedMovie != null && Model.SelectedMovie.MovieId == movie.MovieId;
+            string badgeClass = movie.StatusColor switch
+            {
+                "green" => "badge-green",
+                "yellow" => "badge-yellow",
+                "cyan" => "badge-cyan",
+                "red" => "badge-red",
+                _ => "badge-green"
+            };
+
+            <a asp-controller="Manager" asp-action="Movies" asp-route-filter="@Model.ActiveFilter" asp-route-selectedId="@movie.MovieId" 
+               class="movie-card-item @(isSelected ? "selected" : "")">
+                <div class="movie-poster-box">
+                    <span class="status-badge-corner @badgeClass">@movie.StatusBadge</span>
+                    <i class="bi bi-film" style="font-size: 28px; color: #454556;"></i>
+                </div>
+                <div class="movie-title-text" title="@movie.Title">@movie.Title</div>
+                <div class="movie-genre-text">@movie.Genre</div>
+                <div class="movie-card-footer">
+                    <span>@movie.ReleaseDateText</span>
+                    <span class="rating-pill-tag">@movie.AgeRating</span>
+                </div>
+            </a>
+        }
+    </div>
+
+    <!-- Detail Panel -->
+    @if (Model.SelectedMovie != null)
+    {
+        var sel = Model.SelectedMovie;
+        <div class="movie-detail-panel">
+            <div class="detail-panel-title">ข้อมูลภาพยนตร์ที่เลือก</div>
+
+            <div class="detail-preview-box">
+                <i class="bi bi-film"></i>
+                <div class="detail-preview-name">@sel.Title</div>
+            </div>
+
+            <div class="detail-field-group">
+                <div class="detail-field">
+                    <div class="detail-label">ชื่อเรื่องภาษาไทย</div>
+                    <div class="detail-val-strong">@sel.ThaiTitle</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">ผู้กำกับ / นักแสดง</div>
+                    <div class="detail-val-subtle">@sel.DirectorAndCast</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">โรงภาพยนตร์ที่กำลังจัดฉาย</div>
+                    <div class="detail-val-subtle" style="color: #fbbf24;">@sel.ShowingHalls</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">สถิติวันนี้</div>
+                    <div class="detail-val-subtle" style="color: #4ade80; font-weight: 600;">@sel.TicketSalesAvg</div>
+                </div>
+            </div>
+
+            <div class="detail-actions-row">
+                <button class="btn-detail-edit" data-bs-toggle="modal" data-bs-target="#editMovieModal">แก้ไขข้อมูล</button>
+                <form asp-controller="Manager" asp-action="SetMovieStatus" method="post" style="flex: 1;">
+                    <input type="hidden" name="id" value="@sel.MovieId" />
+                    <input type="hidden" name="status" value="@(sel.StatusBadge == "ปิดรอบแล้ว" ? "กำลังฉาย" : "ปิดรอบแล้ว")" />
+                    <button type="submit" class="btn-detail-suspend w-100">
+                        @(sel.StatusBadge == "ปิดรอบแล้ว" ? "เปิดรอบฉาย" : "ระงับรอบ")
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal เพิ่มภาพยนตร์ใหม่ -->
+<div class="modal fade" id="addMovieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #18181f; border: 1px solid #2a2a38; border-radius: 12px; color: #fff;">
+            <div class="modal-header" style="border-bottom: 1px solid #2a2a38; padding: 18px 24px;">
+                <h5 class="modal-title" style="font-weight: 700; font-size: 16px;">
+                    <i class="bi bi-film me-2" style="color: #f59e0b;"></i>เพิ่มภาพยนตร์ใหม่เข้าสู่ระบบ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Manager" asp-action="AddManagerMovie" method="post">
+                <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ชื่อภาพยนตร์ (ภาษาอังกฤษ)</label>
+                        <input type="text" name="Title" class="form-control" placeholder="เช่น Gladiator II" required style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                    </div>
+                    <div>
+                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ชื่อเรื่องภาษาไทย</label>
+                        <input type="text" name="ThaiTitle" class="form-control" placeholder="เช่น แกลดิเอเตอร์ 2" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">หมวดหมู่ภาพยนตร์</label>
+                            <input type="text" name="Genre" value="Action / Sci-Fi" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                        </div>
+                        <div class="col-6">
+                            <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ความยาว (นาที)</label>
+                            <input type="number" name="DurationMins" value="120" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ราคาเริ่มต้น (฿)</label>
+                            <input type="number" name="PriceMin" value="220" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                        </div>
+                        <div class="col-6">
+                            <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ราคาสูงสุด (฿)</label>
+                            <input type="number" name="PriceMax" value="350" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #2a2a38; padding: 16px 24px;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 13px;">ยกเลิก</button>
+                    <button type="submit" class="btn-gold">บันทึกภาพยนตร์</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal แก้ไขข้อมูล -->
+<div class="modal fade" id="editMovieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #18181f; border: 1px solid #2a2a38; border-radius: 12px; color: #fff;">
+            <div class="modal-header" style="border-bottom: 1px solid #2a2a38; padding: 18px 24px;">
+                <h5 class="modal-title" style="font-weight: 700; font-size: 16px;">
+                    <i class="bi bi-pencil-square me-2" style="color: #f59e0b;"></i>แก้ไขข้อมูล: @Model.SelectedMovie?.Title
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Manager" asp-action="SetMovieStatus" method="post">
+                <input type="hidden" name="id" value="@Model.SelectedMovie?.MovieId" />
+                <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">สถานะการจัดฉาย</label>
+                        <select name="status" class="form-select" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;">
+                            <option value="กำลังฉาย" selected>กำลังฉาย (Now Showing)</option>
+                            <option value="พร้อมฉาย">พร้อมฉาย (Ready)</option>
+                            <option value="โปรแกรมหน้า">โปรแกรมหน้า (Coming Soon)</option>
+                            <option value="ปิดรอบแล้ว">ปิดรอบแล้ว (Ended)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #2a2a38; padding: 16px 24px;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 13px;">ปิด</button>
+                    <button type="submit" class="btn-gold">บันทึกการแก้ไข</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

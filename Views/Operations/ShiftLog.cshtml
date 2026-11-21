@@ -1,0 +1,394 @@
+@model Kawin_67091861_002.ViewModels.ShiftLogPageViewModel
+@{
+    ViewData["Title"] = "บันทึกการส่งต่องานเปลี่ยนเวร";
+    Layout = "_LayoutOperations";
+}
+
+<!-- Flash Notification -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show custom-toast-ops mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span>@TempData["Success"]</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Page Header Bar -->
+<div class="shift-header-bar">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="shift-main-title">บันทึกการส่งต่องานเปลี่ยนเวร</h1>
+            <span class="live-status-pill">
+                <span class="pulse-dot"></span> LIVE
+            </span>
+        </div>
+        <p class="shift-subtitle">
+            บันทึกข้อมูล ปัญหาค้างคา และงานที่รอดำเนินการก่อนเปลี่ยนเวรช่างเทคนิคถัดไป เพื่อให้การส่งมอบระบบเป็นระบบ
+        </p>
+    </div>
+
+    <!-- Right Header Action -->
+    <button type="button" class="btn-new-shift" data-bs-toggle="modal" data-bs-target="#createShiftModal">
+        <i class="bi bi-plus-circle me-1"></i> บันทึกการส่งเวรใหม่
+    </button>
+</div>
+
+<!-- Current Shift Banner (Green Box) -->
+<div class="current-shift-banner mt-4">
+    <div class="shift-banner-left">
+        <div class="shift-banner-icon">
+            <i class="bi bi-clipboard2-check"></i>
+        </div>
+        <div class="shift-banner-texts">
+            <div class="shift-banner-title">@Model.CurrentShiftTitle</div>
+            <div class="shift-banner-desc">@Model.CurrentShiftSubtext</div>
+        </div>
+    </div>
+    <div class="shift-banner-right">
+        <span class="shift-duration-badge">@Model.CurrentShiftDuration</span>
+    </div>
+</div>
+
+<!-- Section: Handover Logs -->
+<div class="shift-logs-panel mt-4">
+    <div class="shift-panel-header">
+        <h2 class="panel-card-title">ประวัติและบันทึกการส่งเวร (Handover Logs)</h2>
+    </div>
+
+    <div class="shift-entries-list mt-3">
+        @if (Model.Logs.Any())
+        {
+            @foreach (var log in Model.Logs)
+            {
+                <div class="shift-entry-card">
+                    <div class="sec-top-row">
+                        <div class="sec-title-group">
+                            <span class="sec-dot @log.DotColor"></span>
+                            <span class="sec-title">@log.Title</span>
+                            <span class="sec-members">ผู้ส่งเวร: @log.SenderName</span>
+                            <span class="sec-members">ผู้รับเวร: @log.ReceiverName</span>
+                            @if (!string.IsNullOrEmpty(log.StatusBadge))
+                            {
+                                <span class="sec-badge red">@log.StatusBadge</span>
+                            }
+                        </div>
+                        <span class="sec-time text-muted small">@log.TimeText</span>
+                    </div>
+
+                    <div class="sec-content-note mt-2">
+                        @log.Note
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-journal-check fs-2 d-block mb-2 text-secondary"></i>
+                ยังไม่มีบันทึกการส่งเวร
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal: บันทึกการส่งเวรใหม่ -->
+<div class="modal fade" id="createShiftModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content ops-modal-box">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-plus-circle text-emerald me-2"></i> บันทึกการส่งมอบเวรใหม่
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CreateShiftLog" method="post">
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">รอบการเปลี่ยนเวร</label>
+                        <select name="ShiftTitle" class="form-select ops-input">
+                            <option value="ส่งมอบเวรบ่าย -> ดึก" selected>ส่งมอบเวรบ่าย -> ดึก (23:30 น.)</option>
+                            <option value="ส่งมอบเวรเช้า -> บ่าย">ส่งมอบเวรเช้า -> บ่าย (16:30 น.)</option>
+                            <option value="ส่งมอบเวรดึก -> เช้า">ส่งมอบเวรดึก -> เช้า (08:00 น.)</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small">ผู้ส่งเวร (ช่างกะปัจจุบัน)</label>
+                            <input type="text" name="SenderName" class="form-control ops-input" value="กิตติพงษ์ มีสุข" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small">ผู้รับเวร (ช่างกะถัดไป)</label>
+                            <input type="text" name="ReceiverName" class="form-control ops-input" value="อนุชา ทนทาน" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">บันทึกสรุปสถานการณ์ ปัญหาค้างคา หรืองานที่ต้องส่งต่อ</label>
+                        <textarea name="Note" class="form-control ops-input" rows="4" 
+                                  placeholder="ระบุความพร้อมของเครื่องฉาย แอร์ ระบบเสียง และเคสที่ต้องดำเนินการต่อ..." required></textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="HasUrgentPending" value="true" id="urgentCheck">
+                        <label class="form-check-label text-white small" for="urgentCheck">
+                            มีงานด่วนค้างคาที่ต้องตรวจสอบทันที (ติดป้ายเตือนสีแดง)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-emerald btn-sm px-4 fw-bold">บันทึกส่งมอบเวร</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .shift-header-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .shift-main-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+        letter-spacing: -0.3px;
+    }
+
+    .shift-subtitle {
+        color: #64748b;
+        font-size: 13.5px;
+        margin: 0;
+    }
+
+    .live-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #10b981;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .pulse-dot {
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #10b981;
+    }
+
+    .btn-new-shift {
+        background: #10b981;
+        color: #032015;
+        border: none;
+        font-weight: 700;
+        font-size: 13.5px;
+        padding: 9px 18px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-new-shift:hover {
+        background: #34d399;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Current Shift Banner */
+    .current-shift-banner {
+        background: #0f1c16;
+        border: 1px solid #1c3d2e;
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .shift-banner-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .shift-banner-icon {
+        width: 36px;
+        height: 36px;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .shift-banner-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .shift-banner-desc {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    .shift-duration-badge {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+
+    /* Shift Logs Panel */
+    .shift-logs-panel {
+        background: #0f1613;
+        border: 1px solid #192721;
+        border-radius: 14px;
+        padding: 22px 24px;
+    }
+
+    .panel-card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .shift-entries-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .shift-entry-card {
+        background: #121c17;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 16px 18px;
+        transition: all 0.15s ease;
+    }
+
+    .shift-entry-card:hover {
+        background: #16241e;
+        border-color: #24382d;
+    }
+
+    .sec-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .sec-title-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .sec-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .sec-dot.yellow { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+    .sec-dot.green { background: #10b981; box-shadow: 0 0 6px #10b981; }
+
+    .sec-title {
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 14px;
+    }
+
+    .sec-members {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .sec-badge.red {
+        font-size: 10.5px;
+        font-weight: 600;
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        padding: 1px 7px;
+        border-radius: 4px;
+    }
+
+    .sec-content-note {
+        font-size: 12.5px;
+        color: #8fa0b5;
+        line-height: 1.5;
+        background: rgba(0, 0, 0, 0.15);
+        padding: 10px 14px;
+        border-radius: 6px;
+    }
+
+    .ops-modal-box {
+        background: #0f1714;
+        border: 1px solid #1c2e26;
+        border-radius: 14px;
+    }
+
+    .ops-input {
+        background: #14201b;
+        border: 1px solid #20352c;
+        color: #ffffff;
+        border-radius: 8px;
+    }
+
+    .ops-input:focus {
+        background: #16241e;
+        border-color: #10b981;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
+    }
+
+    .btn-emerald {
+        background: #10b981;
+        color: #042417;
+    }
+
+    .btn-emerald:hover {
+        background: #34d399;
+    }
+
+    .custom-toast-ops {
+        background: #0d281e;
+        border: 1px solid #10b981;
+        color: #ffffff;
+        border-radius: 10px;
+    }
+
+    @@media (max-width: 768px) {
+        .current-shift-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+    }
+</style>

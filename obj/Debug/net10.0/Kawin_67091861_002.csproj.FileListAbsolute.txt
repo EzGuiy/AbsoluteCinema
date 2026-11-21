@@ -193,3 +193,10 @@ C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\invoices.json
 C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\refunds.json
 C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\operations_incidents.json
 C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\hall_inspections.json
+C:\Users\KawinGuy\Kawin_67091861_002\obj\Debug\net10.0\Kawin_67091861_002.sourcelink.json
+C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\operations_hardware.json
+C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\operations_maintenance.json
+C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\operations_shiftlogs.json
+C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\manager_promotions.json
+C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\manager_showtimes.json
+C:\Users\KawinGuy\Kawin_67091861_002\bin\Debug\net10.0\Data\manager_staff.json

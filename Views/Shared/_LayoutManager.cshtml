@@ -246,9 +246,15 @@
         </div>
 
         <!-- Nav Menu -->
+        @{
+            string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+            int unreadMgrChat = ViewBag.UnreadManagerChatCount != null 
+                ? (int)ViewBag.UnreadManagerChatCount 
+                : (Context.Session.GetString("ManagerChat_Seen_admin") == "true" && Context.Session.GetString("ManagerChat_Seen_technician") == "true" ? 0 : 8);
+        }
         <ul class="nav-list-manager">
             <li>
-                <a asp-controller="Manager" asp-action="Index" class="mgr-nav-link active">
+                <a asp-controller="Manager" asp-action="Index" class="mgr-nav-link @(currentAction == "Index" ? "active" : "")">
                     <div class="mgr-nav-left">
                         <i class="bi bi-grid-fill"></i>
                         <span>ภาพรวม</span>
@@ -256,7 +262,7 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Manager" asp-action="Showtimes" class="mgr-nav-link">
+                <a asp-controller="Manager" asp-action="Showtimes" class="mgr-nav-link @(currentAction == "Showtimes" ? "active" : "")">
                     <div class="mgr-nav-left">
                         <i class="bi bi-calendar3"></i>
                         <span>จัดการรอบหนัง</span>
@@ -264,7 +270,7 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Manager" asp-action="Movies" class="mgr-nav-link">
+                <a asp-controller="Manager" asp-action="Movies" class="mgr-nav-link @(currentAction == "Movies" ? "active" : "")">
                     <div class="mgr-nav-left">
                         <i class="bi bi-film"></i>
                         <span>จัดการภาพยนตร์</span>
@@ -272,7 +278,7 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Manager" asp-action="Promotions" class="mgr-nav-link">
+                <a asp-controller="Manager" asp-action="Promotions" class="mgr-nav-link @(currentAction == "Promotions" ? "active" : "")">
                     <div class="mgr-nav-left">
                         <i class="bi bi-tag-fill"></i>
                         <span>โปรโมชั่น</span>
@@ -280,7 +286,7 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Manager" asp-action="Reports" class="mgr-nav-link">
+                <a asp-controller="Manager" asp-action="Reports" class="mgr-nav-link @(currentAction == "Reports" ? "active" : "")">
                     <div class="mgr-nav-left">
                         <i class="bi bi-bar-chart-line-fill"></i>
                         <span>รายงานยอดขาย</span>
@@ -288,7 +294,7 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Manager" asp-action="Staff" class="mgr-nav-link">
+                <a asp-controller="Manager" asp-action="Staff" class="mgr-nav-link @(currentAction == "Staff" ? "active" : "")">
                     <div class="mgr-nav-left">
                         <i class="bi bi-people-fill"></i>
                         <span>พนักงานและสิทธิ์</span>
@@ -296,12 +302,15 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Manager" asp-action="Chat" class="mgr-nav-link">
+                <a asp-controller="Manager" asp-action="Chat" class="mgr-nav-link @(currentAction == "Chat" ? "active" : "")">
                     <div class="mgr-nav-left">
                         <i class="bi bi-chat-dots-fill"></i>
                         <span>แชทภายใน</span>
                     </div>
-                    <span class="badge-mgr-red">8</span>
+                    @if (unreadMgrChat > 0)
+                    {
+                        <span class="badge-mgr-red">@unreadMgrChat</span>
+                    }
                 </a>
             </li>
 

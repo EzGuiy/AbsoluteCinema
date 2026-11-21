@@ -164,74 +164,31 @@
                         </div>
 
                         <div class="qr-canvas-wrapper">
-                            <!-- High Quality SVG QR Code Simulation with Center Absolute Cinema Crown Emblem -->
-                            <div class="styled-qr-box">
-                                <svg class="qr-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                                    <!-- QR Finder Patterns -->
-                                    <rect width="200" height="200" fill="#ffffff" rx="10" />
-                                    <!-- Top Left Finder -->
-                                    <rect x="15" y="15" width="46" height="46" fill="#000000" rx="4" />
-                                    <rect x="23" y="23" width="30" height="30" fill="#ffffff" rx="2" />
-                                    <rect x="30" y="30" width="16" height="16" fill="#000000" rx="2" />
-                                    <!-- Top Right Finder -->
-                                    <rect x="139" y="15" width="46" height="46" fill="#000000" rx="4" />
-                                    <rect x="147" y="23" width="30" height="30" fill="#ffffff" rx="2" />
-                                    <rect x="154" y="30" width="16" height="16" fill="#000000" rx="2" />
-                                    <!-- Bottom Left Finder -->
-                                    <rect x="15" y="139" width="46" height="46" fill="#000000" rx="4" />
-                                    <rect x="23" y="147" width="30" height="30" fill="#ffffff" rx="2" />
-                                    <rect x="30" y="154" width="16" height="16" fill="#000000" rx="2" />
-                                    <!-- QR Data Matrix Dots Simulation -->
-                                    <rect x="70" y="18" width="8" height="8" fill="#000000" />
-                                    <rect x="85" y="18" width="8" height="8" fill="#000000" />
-                                    <rect x="100" y="18" width="8" height="8" fill="#000000" />
-                                    <rect x="115" y="18" width="8" height="8" fill="#000000" />
-                                    <rect x="70" y="35" width="8" height="8" fill="#000000" />
-                                    <rect x="90" y="35" width="8" height="8" fill="#000000" />
-                                    <rect x="115" y="35" width="8" height="8" fill="#000000" />
-                                    <rect x="70" y="52" width="8" height="8" fill="#000000" />
-                                    <rect x="85" y="52" width="8" height="8" fill="#000000" />
-                                    <rect x="105" y="52" width="8" height="8" fill="#000000" />
-                                    <rect x="18" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="35" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="52" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="70" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="85" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="105" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="125" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="145" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="165" y="70" width="8" height="8" fill="#000000" />
-                                    <rect x="25" y="90" width="8" height="8" fill="#000000" />
-                                    <rect x="45" y="90" width="8" height="8" fill="#000000" />
-                                    <rect x="145" y="90" width="8" height="8" fill="#000000" />
-                                    <rect x="170" y="90" width="8" height="8" fill="#000000" />
-                                    <rect x="18" y="110" width="8" height="8" fill="#000000" />
-                                    <rect x="50" y="110" width="8" height="8" fill="#000000" />
-                                    <rect x="135" y="110" width="8" height="8" fill="#000000" />
-                                    <rect x="160" y="110" width="8" height="8" fill="#000000" />
-                                    <rect x="70" y="125" width="8" height="8" fill="#000000" />
-                                    <rect x="90" y="125" width="8" height="8" fill="#000000" />
-                                    <rect x="110" y="125" width="8" height="8" fill="#000000" />
-                                    <rect x="145" y="125" width="8" height="8" fill="#000000" />
-                                    <rect x="70" y="145" width="8" height="8" fill="#000000" />
-                                    <rect x="100" y="145" width="8" height="8" fill="#000000" />
-                                    <rect x="125" y="145" width="8" height="8" fill="#000000" />
-                                    <rect x="155" y="145" width="8" height="8" fill="#000000" />
-                                    <rect x="175" y="145" width="8" height="8" fill="#000000" />
-                                    <rect x="70" y="165" width="8" height="8" fill="#000000" />
-                                    <rect x="90" y="165" width="8" height="8" fill="#000000" />
-                                    <rect x="115" y="165" width="8" height="8" fill="#000000" />
-                                    <rect x="140" y="165" width="8" height="8" fill="#000000" />
-                                    <rect x="170" y="165" width="8" height="8" fill="#000000" />
-                                    <!-- Center Logo Emblem -->
-                                    <circle cx="100" cy="100" r="22" fill="#111119" stroke="#dfb76c" stroke-width="3" />
-                                    <text x="100" y="107" font-size="20" text-anchor="middle" fill="#dfb76c">&#9818;</text>
-                                </svg>
+                            <!-- Real Scannable PromptPay QR Code to 0933632239 with exact amount -->
+                            <div style="background:#ffffff; padding:14px; border-radius:12px; display:inline-block; margin: 10px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+                                <img id="realPromptPayQr"
+                                     src="@Model.PromptPayQrUrl"
+                                     alt="PromptPay QR Code เบอร์ 0933632239 ยอดเงิน ฿@Model.TotalAmount"
+                                     style="width:230px; height:230px; object-fit:contain; display:block;"
+                                     onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=@System.Net.WebUtility.UrlEncode(Model.PromptPayPayload)';" />
                             </div>
+
                             <div class="qr-scan-guide">
-                                <span class="guide-lead">สแกน QR CODE ด้วยแอปธนาคารใดก็ได้</span>
-                                <span class="biller-info">ชื่อบัญชี: บจก. แอบโซลูท ซินีม่า (ประเทศไทย)</span>
-                                <span class="amount-tag">ยอดชำระ: ฿@Model.TotalAmount.ToString("N0")</span>
+                                <span class="guide-lead"><i class="bi bi-phone-fill text-warning me-1"></i> สแกนจ่ายด้วยแอปธนาคารใดก็ได้ทันที</span>
+                                <div style="background: rgba(223, 183, 108, 0.1); border: 1px solid rgba(223, 183, 108, 0.3); border-radius: 8px; padding: 10px 14px; margin: 10px 0; text-align: left;">
+                                    <div style="font-size: 13px; color: #dfb76c; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>เบอร์พร้อมเพย์: @Model.PromptPayPhoneFormatted</span>
+                                        <button type="button" onclick="navigator.clipboard.writeText('@Model.PromptPayPhone'); alert('คัดลอกเบอร์พร้อมเพย์ 0933632239 แล้ว');" 
+                                                style="background: #dfb76c; color: #000; border: none; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                            คัดลอกเบอร์
+                                        </button>
+                                    </div>
+                                    <div style="font-size: 12px; color: #a4a4b4; margin-top: 3px;">ชื่อบัญชี: บจก. แอบโซลูท ซินีม่า (ประเทศไทย)</div>
+                                    <div style="font-size: 13px; color: #4ade80; font-weight: 700; margin-top: 4px;">
+                                        ยอดชำระจริง: ฿@Model.TotalAmount.ToString("N0") บาท 
+                                    </div>
+                                </div>
+                                <span style="font-size: 11.5px; color: #8c8c9e;">*เปิดแอปพลิเคชันธนาคารของคุณ และเลือกเมนู 'สแกน QR' เพื่อสแกนภาพด้านบน</span>
                             </div>
                         </div>
                     </div>
@@ -241,21 +198,22 @@
                 <div id="creditTab" class="tab-pane">
                     <div class="credit-card-form">
                         <div class="form-group">
-                            <label>หมายเลขบัตรเครดิต / เดบิต</label>
-                            <input type="text" class="card-input" placeholder="XXXX - XXXX - XXXX - XXXX" maxlength="19" />
+                            <label>หมายเลขบัตรเครดิต / เดบิต (ใส่เลขอะไรก็ได้)</label>
+                            <input type="text" id="creditCardNum" class="card-input" placeholder="ใส่เลขอะไรก็ได้ เช่น 4111 2222 3333 4444" value="4111222233334444" />
+                            <small style="color: #4ade80; font-size: 11px; margin-top: 4px; display: block;">* สามารถกรอกเลขบัตรอะไรก็ได้ ระบบเปิดรับชำระได้จริงทันที</small>
                         </div>
                         <div class="form-group">
                             <label>ชื่อบนบัตร</label>
-                            <input type="text" class="card-input" placeholder="SURNAME FIRSTNAME" />
+                            <input type="text" id="creditCardHolder" class="card-input" placeholder="SURNAME FIRSTNAME" value="ABSOLUTE CARDHOLDER" />
                         </div>
                         <div class="form-row-2">
                             <div class="form-group">
                                 <label>วันหมดอายุ (MM/YY)</label>
-                                <input type="text" class="card-input" placeholder="MM/YY" maxlength="5" />
+                                <input type="text" id="creditCardExp" class="card-input" placeholder="12/28" value="12/28" />
                             </div>
                             <div class="form-group">
                                 <label>รหัส CVV</label>
-                                <input type="password" class="card-input" placeholder="XXX" maxlength="3" />
+                                <input type="text" id="creditCardCvv" class="card-input" placeholder="123" value="123" />
                             </div>
                         </div>
                     </div>
@@ -379,14 +337,17 @@
 
         <!-- Action Buttons inside Modal -->
         <div class="ticket-actions">
+            <a href="@Url.Action("Tickets", "Account")" class="btn-ticket-print" style="background:#dfb76c; color:#000; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700;">
+                <i class="bi bi-ticket-perforated-fill"></i> ไปที่หน้าตั๋วหนังของฉัน
+            </a>
             <button type="button" class="btn-ticket-print" onclick="window.print()">
-                <i class="bi bi-printer"></i> พิมพ์ / บันทึกตั๋ว
+                <i class="bi bi-printer"></i> พิมพ์ตั๋ว
             </button>
             <a href="@Url.Action("ViewDatabase", "Seed")" class="btn-ticket-db" target="_blank">
                 <i class="bi bi-database-check"></i> ดูใน Database
             </a>
             <a href="@Url.Action("Index", "Home")" class="btn-ticket-home">
-                <i class="bi bi-house"></i> กลับสู่หน้าหลัก
+                <i class="bi bi-house"></i> หน้าหลัก
             </a>
         </div>
     </div>

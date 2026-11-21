@@ -1,0 +1,62 @@
+[
+  {
+    "Id": 1,
+    "Title": "อังคารคู่สุดคุ้ม ฿299",
+    "Description": "ส่วนลดสำหรับตั๋ว 2 ใบวันอังคาร",
+    "DiscountType": "ส่วนลดราคาตั๋ว",
+    "DurationText": "1 ม.ค. - 30 ก.ย. 69",
+    "UsageCountText": "1,245 ครั้ง",
+    "Status": "กำลังใช้งาน",
+    "StatusColor": "green"
+  },
+  {
+    "Id": 2,
+    "Title": "Student Popcorn Set ฿120",
+    "Description": "แสดงบัตรนักเรียนรับเซ็ตซื้อคู่สุดคุ้ม",
+    "DiscountType": "แพ็กเกจอาหาร-เครื่องดื่ม",
+    "DurationText": "ถาวร (เฉพาะวันจันทร์-ศุกร์)",
+    "UsageCountText": "890 ครั้ง",
+    "Status": "กำลังใช้งาน",
+    "StatusColor": "green"
+  },
+  {
+    "Id": 3,
+    "Title": "Combo IMAX Bonus",
+    "Description": "ซื้อตั๋ว IMAX ฟรีน้ำดื่มขนาดกลาง",
+    "DiscountType": "ของแถมส่งเสริมการขาย",
+    "DurationText": "15 ส.ค. - 15 ต.ค. 69",
+    "UsageCountText": "340 ครั้ง",
+    "Status": "กำลังใช้งาน",
+    "StatusColor": "green"
+  },
+  {
+    "Id": 4,
+    "Title": "บัตรสมาชิกเกียรติยศลด 10%",
+    "Description": "ส่วนลดบัตร M Gen VIP",
+    "DiscountType": "สิทธิ์สมาชิกพิเศษ",
+    "DurationText": "ถาวร",
+    "UsageCountText": "4,120 ครั้ง",
+    "Status": "กำลังใช้งาน",
+    "StatusColor": "green"
+  },
+  {
+    "Id": 5,
+    "Title": "Early Bird Blockbuster",
+    "Description": "จอง Dune ล่วงหน้าแถมโปสเตอร์พิเศษ",
+    "DiscountType": "ของที่ระลึกพิเศษ",
+    "DurationText": "15 ก.พ. - 28 ก.พ. 69",
+    "UsageCountText": "200 ครั้ง (เต็มโควตา)",
+    "Status": "หมดอายุแล้ว",
+    "StatusColor": "grey"
+  },
+  {
+    "Id": 6,
+    "Title": "MIDNIGHT SCREAM DISCOUNT",
+    "Description": "รอบฉายเที่ยงคืนลดเหลือ ฿50",
+    "DiscountType": "ส่วนลดตามรอบเวลา",
+    "DurationText": "1 ต.ค. - 31 ธ.ค. 69",
+    "UsageCountText": "0 ครั้ง",
+    "Status": "ฉบับร่าง",
+    "StatusColor": "amber"
+  }
+]

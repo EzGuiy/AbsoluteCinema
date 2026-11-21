@@ -281,6 +281,24 @@
                     <span class="badge-cyan-pill">8 โรง</span>
                 </a>
             </li>
+            @{
+                int unreadStaffChat = ViewBag.UnreadStaffChatCount != null 
+                    ? (int)ViewBag.UnreadStaffChatCount 
+                    : (Context.Session.GetString("StaffChat_Seen_staff") == "true" ? 0 : 2);
+            }
+            <li>
+                <a asp-controller="Staff" asp-action="Chat" 
+                   class="staff-nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Chat" ? "active" : "")">
+                    <div class="staff-nav-left">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span>แชทภายใน</span>
+                    </div>
+                    @if (unreadStaffChat > 0)
+                    {
+                        <span class="badge-cyan-pill" style="background:#e50914;">@unreadStaffChat</span>
+                    }
+                </a>
+            </li>
 
             <!-- Switch Role Links -->
             <li style="margin-top:auto; padding-top:14px; border-top: 1px solid var(--border-subtle);">

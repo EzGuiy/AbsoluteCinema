@@ -528,10 +528,19 @@ public class HomeController : Controller
         int mId = movieId ?? (showtimeId / 100);
         if (mId <= 0) mId = 1;
 
+        // บังคับเข้าสู่ระบบก่อนเข้าไปจองที่นั่ง
+        if (HttpContext.Session.GetString("UserLoggedIn") != "true")
+        {
+            string returnUrl = Url.Action("SelectSeat", "Home", new { showtimeId = showtimeId, movieId = mId }) ?? "/";
+            TempData["AuthNotice"] = "กรุณาเข้าสู่ระบบสมาชิกก่อนดำเนินการเลือกที่นั่งชมภาพยนตร์";
+            return RedirectToAction("Login", "Account", new { returnUrl = returnUrl });
+        }
+
         var vm = new SeatSelectionViewModel
         {
             ShowtimeId = showtimeId,
-            MovieId = mId
+            MovieId = mId,
+            VipRows = new List<string> { "G", "H" } // VIP อยู่แถวด้านหลัง
         };
 
         // โหลดข้อมูลหนัง
@@ -700,8 +709,19 @@ public class HomeController : Controller
         var tempDetail = new MovieDetailViewModel();
         LoadMovieDetailFromJson(mId, tempDetail);
 
-        decimal pricePerSeat = 1400;
-        decimal subtotal = pricePerSeat * seatList.Count;
+        decimal subtotal = 0;
+        foreach (var s in seatList)
+        {
+            if (s.StartsWith("G") || s.StartsWith("H"))
+            {
+                subtotal += 1800; // ที่นั่ง VIP แถวด้านหลัง
+            }
+            else
+            {
+                subtotal += 1400; // ที่นั่ง Standard แถวด้านหน้า
+            }
+        }
+        decimal pricePerSeat = seatList.Count > 0 ? Math.Round(subtotal / seatList.Count, 0) : 1400;
         decimal discount = 0;
         if (!string.IsNullOrEmpty(promo) && promo.ToUpper() == "CINEMA50")
         {
@@ -709,6 +729,11 @@ public class HomeController : Controller
         }
 
         decimal finalTotal = total ?? (subtotal - discount);
+
+        // ระบบชำระเงินจริง: พร้อมเพย์เข้าเบอร์ 0933632239 และจำนวนเงินตรงกับยอดจริง
+        string ppPhone = Kawin_67091861_002.Helpers.PromptPayHelper.TARGET_PHONE;
+        string ppPayload = Kawin_67091861_002.Helpers.PromptPayHelper.GeneratePromptPayPayload(ppPhone, finalTotal);
+        string ppQrUrl = $"https://promptpay.io/{ppPhone}/{finalTotal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)}.png";
 
         var vm = new PaymentViewModel
         {
@@ -728,7 +753,11 @@ public class HomeController : Controller
             DiscountAmount = discount,
             TotalAmount = finalTotal,
             AppliedPromoCode = promo ?? "",
-            BookingReferenceCode = "AC-" + DateTime.Now.ToString("yyMMdd") + "-" + new Random().Next(1000, 9999)
+            BookingReferenceCode = "AC-" + DateTime.Now.ToString("yyMMdd") + "-" + new Random().Next(1000, 9999),
+            PromptPayPhone = ppPhone,
+            PromptPayPhoneFormatted = Kawin_67091861_002.Helpers.PromptPayHelper.TARGET_PHONE_DISPLAY,
+            PromptPayPayload = ppPayload,
+            PromptPayQrUrl = ppQrUrl
         };
 
         return View(vm);
@@ -768,24 +797,27 @@ public class HomeController : Controller
         string invoiceNo = "INV-" + DateTime.Now.ToString("yyMMdd") + "-" + new Random().Next(10000, 99999);
         bool savedToDb = false;
 
+        int resolvedUserId = 1;
+        var sessionUidStr = HttpContext.Session.GetString("UserId");
+        if (!string.IsNullOrEmpty(sessionUidStr) && int.TryParse(sessionUidStr, out int parsedUid))
+        {
+            resolvedUserId = parsedUid;
+        }
+
         // 1. บันทึกลง MySQL ถ้าเชื่อมต่อได้
         try
         {
             if (_db.Database.CanConnect())
             {
                 // ค้นหาหรือใช้ User Id ในระบบ
-                int userId = 1;
-                var sessionUser = HttpContext.Session.GetString("UserId");
-                if (!string.IsNullOrEmpty(sessionUser) && int.TryParse(sessionUser, out int sUid))
-                {
-                    userId = sUid;
-                }
-                else
+                int userId = resolvedUserId;
+                if (userId == 1)
                 {
                     var firstUser = _db.Users.FirstOrDefault();
                     if (firstUser != null)
                     {
                         userId = firstUser.UserId;
+                        resolvedUserId = userId;
                     }
                     else
                     {
@@ -801,6 +833,7 @@ public class HomeController : Controller
                         _db.Users.Add(guest);
                         _db.SaveChanges();
                         userId = guest.UserId;
+                        resolvedUserId = userId;
                     }
                 }
 
@@ -873,6 +906,7 @@ public class HomeController : Controller
         SaveBookingToFile(new
         {
             BookingId = bookingId > 0 ? bookingId : new Random().Next(1000, 9999),
+            UserId = resolvedUserId,
             ReferenceCode = refCode,
             TaxInvoiceNo = invoiceNo,
             ShowtimeId = dto.ShowtimeId,

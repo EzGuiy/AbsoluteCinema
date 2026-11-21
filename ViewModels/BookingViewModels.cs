@@ -87,7 +87,7 @@ public class SeatSelectionViewModel
     public int ColumnsCount { get; set; } = 14;
 
     public List<string> OccupiedSeats { get; set; } = new();
-    public List<string> VipRows { get; set; } = new() { "A", "B" };
+    public List<string> VipRows { get; set; } = new() { "G", "H" };
 }
 
 // ==========================================
@@ -114,6 +114,12 @@ public class PaymentViewModel
     public decimal TotalAmount { get; set; }
     public string AppliedPromoCode { get; set; } = "";
     public string BookingReferenceCode { get; set; } = "";
+
+    // PromptPay properties
+    public string PromptPayPhone { get; set; } = "0933632239";
+    public string PromptPayPhoneFormatted { get; set; } = "093-363-2239";
+    public string PromptPayPayload { get; set; } = "";
+    public string PromptPayQrUrl { get; set; } = "";
 }
 
 // ==========================================

@@ -1,0 +1,403 @@
+@model Kawin_67091861_002.ViewModels.ManagerReportsViewModel
+@{
+    Layout = "_LayoutManager";
+    ViewData["Title"] = "รายงานยอดขายและสถิติ";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+        margin: 0;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        color: #8c8c9e;
+        margin-top: 4px;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-input-box {
+        position: relative;
+        min-width: 240px;
+    }
+
+    .search-input-box input {
+        width: 100%;
+        background: #141419;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        padding: 8px 12px 8px 36px;
+        font-size: 13px;
+        color: #fff;
+    }
+
+    .search-input-box input:focus {
+        outline: none;
+        border-color: #f59e0b;
+    }
+
+    .search-input-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #656575;
+        font-size: 13px;
+    }
+
+    .icon-circle-btn {
+        width: 38px;
+        height: 38px;
+        background: #141419;
+        border: 1px solid #23232c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9292a0;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-export {
+        background: #1b1b22;
+        color: #e2e8f0;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: 1px solid #282836;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-export:hover {
+        background: #242430;
+        color: #fff;
+        border-color: #3b3b4e;
+    }
+
+    /* 4 Stat Cards */
+    .stats-four-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card-box {
+        background: #141419;
+        border: 1px solid #22222b;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .stat-card-title {
+        font-size: 12.5px;
+        color: #727284;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .stat-card-val {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+        line-height: 1.2;
+    }
+
+    .stat-card-sub {
+        font-size: 11.5px;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    /* Weekly Chart */
+    .weekly-chart-card {
+        background: #141419;
+        border: 1px solid #22222b;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .chart-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .chart-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .chart-bars-wrap {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 180px;
+        padding: 0 10px;
+        gap: 16px;
+    }
+
+    .bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .bar-amount-label {
+        font-size: 11px;
+        color: #8c8c9e;
+        font-weight: 600;
+    }
+
+    .bar-stick-bg {
+        width: 100%;
+        max-width: 44px;
+        height: 120px;
+        background: #1a1a22;
+        border-radius: 6px;
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+    }
+
+    .bar-stick-fill {
+        width: 100%;
+        border-radius: 6px;
+        background: #2a2a38;
+        transition: height 0.4s ease;
+    }
+
+    .bar-stick-fill.highlight {
+        background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .bar-day-label {
+        font-size: 12px;
+        color: #727284;
+        font-weight: 500;
+    }
+
+    /* Dual Bottom Tables */
+    .dual-tables-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .table-panel-box {
+        background: #141419;
+        border: 1px solid #22222b;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .panel-header-title {
+        padding: 18px 24px;
+        border-bottom: 1px solid #22222b;
+        font-size: 14.5px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .table-custom-mgr {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom-mgr th {
+        padding: 12px 20px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #656575;
+        border-bottom: 1px solid #22222b;
+        text-align: left;
+    }
+
+    .table-custom-mgr td {
+        padding: 14px 20px;
+        font-size: 13px;
+        color: #d1d1dc;
+        border-bottom: 1px solid #1c1c24;
+        vertical-align: middle;
+    }
+
+    .table-custom-mgr tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-custom-mgr tr:hover td {
+        background: #171720;
+    }
+
+    .hall-item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #1c1c24;
+    }
+
+    .hall-item-row:last-child {
+        border-bottom: none;
+    }
+
+    .hall-item-row:hover {
+        background: #171720;
+    }
+</style>
+
+<!-- Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">รายงานยอดขายและสถิติ</h1>
+        <div class="page-subtitle">วิเคราะห์รายรับ ตั๋วภาพยนตร์ และสินค้า Concession ประจำสาขา</div>
+    </div>
+    <div class="header-actions">
+        <div class="search-input-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="ค้นหารายการ..." />
+        </div>
+        <div class="icon-circle-btn">
+            <i class="bi bi-bell"></i>
+        </div>
+        <button class="btn-export" onclick="alert('ดาวน์โหลดรายงานสรุปยอดขายประจำวันเรียบร้อยแล้ว (PDF/Excel)')">
+            <i class="bi bi-download"></i>
+            <span>ส่งออกรายงาน (Excel/PDF)</span>
+        </button>
+    </div>
+</div>
+
+<!-- 4 Key Stat Cards -->
+<div class="stats-four-grid">
+    <div class="stat-card-box">
+        <div class="stat-card-title">ยอดขายรวมวันนี้</div>
+        <div class="stat-card-val">@Model.TotalRevenueToday</div>
+        <div class="stat-card-sub" style="color: #4ade80;"><i class="bi bi-graph-up-arrow me-1"></i>@Model.TotalRevenueSub</div>
+    </div>
+    <div class="stat-card-box">
+        <div class="stat-card-title">บัตรชมภาพยนตร์</div>
+        <div class="stat-card-val">@Model.TicketRevenue</div>
+        <div class="stat-card-sub" style="color: #94a3b8;">@Model.TicketRevenueSub</div>
+    </div>
+    <div class="stat-card-box">
+        <div class="stat-card-title">ป๊อปคอร์นและเครื่องดื่ม</div>
+        <div class="stat-card-val">@Model.ConcessionRevenue</div>
+        <div class="stat-card-sub" style="color: #fbbf24;">@Model.ConcessionSub</div>
+    </div>
+    <div class="stat-card-box">
+        <div class="stat-card-title">ยอดเฉลี่ยต่อรอบฉาย</div>
+        <div class="stat-card-val">@Model.AvgRevenuePerShow</div>
+        <div class="stat-card-sub" style="color: #4ade80;"><i class="bi bi-graph-up-arrow me-1"></i>@Model.AvgRevenueSub</div>
+    </div>
+</div>
+
+<!-- Weekly Sales Trend Chart -->
+<div class="weekly-chart-card">
+    <div class="chart-title-bar">
+        <div class="chart-title">แนวโน้มยอดขายสัปดาห์นี้ (จันทร์ - อาทิตย์)</div>
+        <span style="font-size: 12px; color: #727284;">อัปเดตแบบเรียลไทม์ตามระบบขายตั๋ว</span>
+    </div>
+    <div class="chart-bars-wrap">
+        @foreach (var bar in Model.WeeklySales)
+        {
+            bool isPeak = bar.BarHeightPercent == 100;
+            <div class="bar-col">
+                <div class="bar-amount-label">@bar.SalesText</div>
+                <div class="bar-stick-bg">
+                    <div class="bar-stick-fill @(isPeak ? "highlight" : "")" style="height: @(bar.BarHeightPercent)%;"></div>
+                </div>
+                <div class="bar-day-label" style="@(isPeak ? "color: #fbbf24; font-weight: 700;" : "")">@bar.DayName</div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Dual Bottom Section -->
+<div class="dual-tables-grid">
+    <!-- Top 5 Movie Sales Breakdown -->
+    <div class="table-panel-box">
+        <div class="panel-header-title">ยอดจำหน่ายตามภาพยนตร์ (Top 5 Movies)</div>
+        <table class="table-custom-mgr">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">#</th>
+                    <th style="width: 40%;">ภาพยนตร์</th>
+                    <th style="width: 20%;">ยอดขาย</th>
+                    <th style="width: 15%;">สัดส่วน %</th>
+                    <th style="width: 15%;">การเติบโต</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.MovieSales)
+                {
+                    <tr>
+                        <td style="color: #656575; font-weight: 600;">@m.Rank</td>
+                        <td style="font-weight: 600; color: #ffffff;">@m.Title</td>
+                        <td>@m.RevenueText</td>
+                        <td style="color: #fbbf24; font-weight: 600;">@m.SharePercentText</td>
+                        <td style="color: @(m.ChangeColor == "green" ? "#4ade80" : "#f87171"); font-weight: 600;">
+                            @m.ChangeText
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Cinema Hall Breakdown -->
+    <div class="table-panel-box">
+        <div class="panel-header-title">ประสิทธิภาพโรงภาพยนตร์ (Cinema Hall Breakdown)</div>
+        <div style="display: flex; flex-direction: column;">
+            @foreach (var h in Model.HallSales)
+            {
+                <div class="hall-item-row">
+                    <div>
+                        <div style="font-weight: 600; color: #ffffff; font-size: 13.5px;">@h.HallTitle</div>
+                        <div style="font-size: 11.5px; color: #4ade80; margin-top: 2px;">@h.OccupancyPercent</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 700; color: #fbbf24; font-size: 14px;">@h.RevenueText</div>
+                        <div style="font-size: 11px; color: #656575;">ยอดขายสะสมวันนี้</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

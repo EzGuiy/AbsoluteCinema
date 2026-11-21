@@ -1,0 +1,68 @@
+[
+  {
+    "Id": 1,
+    "NameAndModel": "Laser Projector 4K - Sony",
+    "Category": "ระบบฉายภาพ",
+    "CinemaHall": "โรง 1",
+    "Status": "ปกติ",
+    "StatusColor": "green",
+    "InstalledDate": "12 ม.ค. 2567",
+    "NextMaintenanceDate": "12 ต.ค. 2569",
+    "IsUrgentMaintenance": false
+  },
+  {
+    "Id": 2,
+    "NameAndModel": "Digital Projector - Barco HD",
+    "Category": "ระบบฉายภาพ",
+    "CinemaHall": "โรง 2",
+    "Status": "ต้องซ่อมบำรุง",
+    "StatusColor": "amber",
+    "InstalledDate": "05 มี.ค. 2565",
+    "NextMaintenanceDate": "วันนี้",
+    "IsUrgentMaintenance": true
+  },
+  {
+    "Id": 3,
+    "NameAndModel": "Dolby Atmos Processor CP850",
+    "Category": "ระบบเสียง",
+    "CinemaHall": "โรง 1",
+    "Status": "ปกติ",
+    "StatusColor": "green",
+    "InstalledDate": "20 มิ.ย. 2567",
+    "NextMaintenanceDate": "20 ธ.ค. 2569",
+    "IsUrgentMaintenance": false
+  },
+  {
+    "Id": 4,
+    "NameAndModel": "7.1 Surround Amplifier Core-8",
+    "Category": "ระบบเสียง",
+    "CinemaHall": "โรง 3",
+    "Status": "ออฟไลน์",
+    "StatusColor": "red",
+    "InstalledDate": "15 ก.พ. 2566",
+    "NextMaintenanceDate": "ระงับชั่วคราว",
+    "IsUrgentMaintenance": false
+  },
+  {
+    "Id": 5,
+    "NameAndModel": "Server Media Block SMB-100",
+    "Category": "เซิร์ฟเวอร์",
+    "CinemaHall": "ห้องเซิร์ฟเวอร์หลัก",
+    "Status": "ปกติ",
+    "StatusColor": "green",
+    "InstalledDate": "10 พ.ย. 2567",
+    "NextMaintenanceDate": "10 พ.ย. 2569",
+    "IsUrgentMaintenance": false
+  },
+  {
+    "Id": 6,
+    "NameAndModel": "เครื่องปรับอากาศอัจฉริยะ Carrier V",
+    "Category": "ระบบปรับอากาศ",
+    "CinemaHall": "โรง 4",
+    "Status": "ปกติ",
+    "StatusColor": "green",
+    "InstalledDate": "22 ต.ค. 2566",
+    "NextMaintenanceDate": "15 ต.ค. 2569",
+    "IsUrgentMaintenance": false
+  }
+]

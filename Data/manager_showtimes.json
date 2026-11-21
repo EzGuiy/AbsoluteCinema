@@ -1,0 +1,75 @@
+[
+  {
+    "HallNumber": 1,
+    "HallName": "โรง 1",
+    "HallType": "IMAX Laser",
+    "Slots": [
+      { "ShowtimeId": 101, "TimeText": "11:00", "MovieTitle": "Dune: Part Two", "BookedSeats": 180, "TotalSeats": 220, "DotColor": "green" },
+      { "ShowtimeId": 102, "TimeText": "14:30", "MovieTitle": "Dune: Part Two", "BookedSeats": 210, "TotalSeats": 220, "DotColor": "red" },
+      { "ShowtimeId": 103, "TimeText": "18:00", "MovieTitle": "Inside Out 2", "BookedSeats": 150, "TotalSeats": 220, "DotColor": "blue" }
+    ]
+  },
+  {
+    "HallNumber": 2,
+    "HallName": "โรง 2",
+    "HallType": "4DX Extreme",
+    "Slots": [
+      { "ShowtimeId": 201, "TimeText": "12:00", "MovieTitle": "Furiosa", "BookedSeats": 110, "TotalSeats": 140, "DotColor": "blue" },
+      { "ShowtimeId": 202, "TimeText": "15:45", "MovieTitle": "Furiosa", "BookedSeats": 135, "TotalSeats": 140, "DotColor": "red" },
+      { "ShowtimeId": 203, "TimeText": "19:30", "MovieTitle": "Bad Boys", "BookedSeats": 90, "TotalSeats": 140, "DotColor": "green" }
+    ]
+  },
+  {
+    "HallNumber": 3,
+    "HallName": "โรง 3",
+    "HallType": "Standard Digital",
+    "Slots": [
+      { "ShowtimeId": 301, "TimeText": "10:30", "MovieTitle": "หลานม่า", "BookedSeats": 135, "TotalSeats": 150, "DotColor": "red" },
+      { "ShowtimeId": 302, "TimeText": "13:45", "MovieTitle": "หลานม่า", "BookedSeats": 148, "TotalSeats": 150, "DotColor": "red" },
+      { "ShowtimeId": 303, "TimeText": "17:00", "MovieTitle": "หลานม่า", "BookedSeats": 140, "TotalSeats": 150, "DotColor": "red" }
+    ]
+  },
+  {
+    "HallNumber": 4,
+    "HallName": "โรง 4",
+    "HallType": "Standard Digital",
+    "Slots": [
+      { "ShowtimeId": 401, "TimeText": "11:30", "MovieTitle": "Inside Out 2", "BookedSeats": 95, "TotalSeats": 150, "DotColor": "blue" },
+      { "ShowtimeId": 402, "TimeText": "15:00", "MovieTitle": "A Quiet Place", "BookedSeats": 54, "TotalSeats": 150, "DotColor": "green" }
+    ]
+  },
+  {
+    "HallNumber": 5,
+    "HallName": "โรง 5",
+    "HallType": "Standard Digital",
+    "Slots": [
+      { "ShowtimeId": 501, "TimeText": "13:00", "MovieTitle": "Furiosa", "BookedSeats": 78, "TotalSeats": 150, "DotColor": "blue" },
+      { "ShowtimeId": 502, "TimeText": "16:30", "MovieTitle": "Dune: Part Two", "BookedSeats": 110, "TotalSeats": 150, "DotColor": "blue" }
+    ]
+  },
+  {
+    "HallNumber": 6,
+    "HallName": "โรง 6",
+    "HallType": "Standard Digital",
+    "Slots": [
+      { "ShowtimeId": 601, "TimeText": "12:15", "MovieTitle": "Bad Boys", "BookedSeats": 110, "TotalSeats": 150, "DotColor": "blue" },
+      { "ShowtimeId": 602, "TimeText": "18:45", "MovieTitle": "A Quiet Place", "BookedSeats": 140, "TotalSeats": 150, "DotColor": "red" }
+    ]
+  },
+  {
+    "HallNumber": 7,
+    "HallName": "โรง 7",
+    "HallType": "Standard Digital",
+    "Slots": [
+      { "ShowtimeId": 701, "TimeText": "14:00", "MovieTitle": "Inside Out 2", "BookedSeats": 85, "TotalSeats": 150, "DotColor": "blue" }
+    ]
+  },
+  {
+    "HallNumber": 8,
+    "HallName": "โรง 8",
+    "HallType": "Standard Digital",
+    "Slots": [
+      { "ShowtimeId": 801, "TimeText": "16:15", "MovieTitle": "Bad Boys", "BookedSeats": 92, "TotalSeats": 150, "DotColor": "blue" }
+    ]
+  }
+]

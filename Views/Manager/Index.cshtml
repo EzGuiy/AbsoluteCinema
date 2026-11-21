@@ -91,7 +91,7 @@
         <div class="mgr-card-panel">
             <div class="panel-header-split">
                 <h2 class="panel-title-text">รอบฉายที่กำลังมาถึง</h2>
-                <a href="@Url.Action("Index")" class="panel-link-gold">จัดการรอบทั้งหมด +</a>
+                <a href="@Url.Action("Showtimes")" class="panel-link-gold">จัดการรอบทั้งหมด +</a>
             </div>
 
             <div class="table-responsive mt-3">
@@ -135,7 +135,7 @@
         <div class="mgr-card-panel mt-4">
             <div class="panel-header-split mb-3">
                 <h2 class="panel-title-text">จัดการสถานะภาพยนตร์</h2>
-                <a href="@Url.Action("Index")" class="panel-link-gold">ดูประวัติทั้งหมด <i class="bi bi-arrow-right"></i></a>
+                <a href="@Url.Action("Movies")" class="panel-link-gold">ดูประวัติทั้งหมด <i class="bi bi-arrow-right"></i></a>
             </div>
 
             <div class="movie-status-cards-row">
@@ -190,7 +190,7 @@
         <div class="mgr-card-panel">
             <div class="panel-header-split mb-3">
                 <h3 class="panel-section-title">โปรโมชั่น</h3>
-                <a href="@Url.Action("Index")" class="panel-link-gold">+ เพิ่ม</a>
+                <a href="@Url.Action("Promotions")" class="panel-link-gold">+ เพิ่ม</a>
             </div>
 
             <!-- Gold Gradient Banner Card -->
@@ -208,13 +208,13 @@
         <div class="mgr-card-panel mt-4">
             <div class="panel-header-split mb-3">
                 <h3 class="panel-section-title">แชททีมงาน</h3>
-                <a href="@Url.Action("Index")" class="panel-link-gold">เปิดห้องแชท <i class="bi bi-arrow-right"></i></a>
+                <a href="@Url.Action("Chat")" class="panel-link-gold">เปิดห้องแชท <i class="bi bi-arrow-right"></i></a>
             </div>
 
             <div class="team-chat-notifications-list">
                 @foreach (var chat in Model.ChatNotifications)
                 {
-                    <div class="chat-notif-row" onclick="alert('เปิดห้องแชท @chat.DepartmentName')">
+                    <div class="chat-notif-row" onclick="location.href='@Url.Action("Chat")'">
                         <div class="chat-dept-avatar @chat.AvatarColor">
                             <i class="bi bi-person-fill"></i>
                         </div>

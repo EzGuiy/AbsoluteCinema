@@ -192,6 +192,106 @@ public class StaffController : Controller
     }
 
     // =========================================================================
+    // 7. ระบบแชตของพนักงาน (Floor Staff Internal Chat)
+    // =========================================================================
+    public IActionResult Chat(string channel = "staff")
+    {
+        HttpContext.Session.SetString("StaffChat_Seen_" + channel, "true");
+
+        var vm = new ManagerChatViewModel();
+        vm.ActiveRoomId = channel;
+
+        int staffBadge = HttpContext.Session.GetString("StaffChat_Seen_staff") == "true" ? 0 : 2;
+        int adminBadge = HttpContext.Session.GetString("StaffChat_Seen_admin") == "true" ? 0 : 1;
+        int techBadge = HttpContext.Session.GetString("StaffChat_Seen_technician") == "true" ? 0 : 1;
+        int acctBadge = HttpContext.Session.GetString("StaffChat_Seen_accounting") == "true" ? 0 : 0;
+
+        vm.Rooms = new List<ManagerChatRoomDto>
+        {
+            new() { Id = "staff", Name = "พนักงานบริการ (Floor Staff)", LastMessageText = "แจ้งพบลืมร่มไว้บริเวณโรงฉาย 5 ค่ะ...", UnreadCount = staffBadge, ColorType = "brown", IsActive = channel == "staff", MembersInfo = "สมาชิกทั้งหมด 12 คน • ออนไลน์ 8 คน" },
+            new() { Id = "admin", Name = "ผู้จัดการ & แอดมินสาขา", LastMessageText = "ขอรอบฉายเพิ่มเรื่องหลานม่า โรง 4...", UnreadCount = adminBadge, ColorType = "gold", IsActive = channel == "admin", MembersInfo = "สมาชิกทั้งหมด 6 คน • ออนไลน์ 3 คน" },
+            new() { Id = "technician", Name = "ช่างเทคนิคประจำสาขา", LastMessageText = "ระบบเสียงโรง 2 ปรับปรุงและทดสอบผ่านแล้ว...", UnreadCount = techBadge, ColorType = "green", IsActive = channel == "technician", MembersInfo = "สมาชิกทั้งหมด 5 คน • ออนไลน์ 4 คน" },
+            new() { Id = "accounting", Name = "ฝ่ายบัญชี & การเงิน", LastMessageText = "สรุปยอดเงินส่วนแบ่งรอบฉายและตั๋ว...", UnreadCount = acctBadge, ColorType = "blue", IsActive = channel == "accounting", MembersInfo = "สมาชิกทั้งหมด 4 คน • ออนไลน์ 2 คน" }
+        };
+
+        vm.ActiveRoom = vm.Rooms.FirstOrDefault(r => r.Id == channel) ?? vm.Rooms.First();
+
+        // ดึงข้อความจาก Data/chat_messages.json
+        string chatPath = Path.Combine(_env.ContentRootPath, "Data", "chat_messages.json");
+        if (System.IO.File.Exists(chatPath))
+        {
+            try
+            {
+                var json = System.IO.File.ReadAllText(chatPath);
+                var allMsgs = JsonSerializer.Deserialize<List<ManagerChatMessageDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                vm.Messages = allMsgs.Where(m => m.ChannelId.Equals(channel, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.CreatedAt).ToList();
+            }
+            catch { }
+        }
+
+        vm.TotalUnreadCount = staffBadge + adminBadge + techBadge + acctBadge;
+        ViewBag.UnreadStaffChatCount = vm.TotalUnreadCount;
+
+        return View(vm);
+    }
+
+    [HttpPost]
+    public IActionResult SendStaffChatMessage(string channel, string message)
+    {
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            string targetChannel = string.IsNullOrWhiteSpace(channel) ? "staff" : channel;
+            string chatPath = Path.Combine(_env.ContentRootPath, "Data", "chat_messages.json");
+            try
+            {
+                List<ManagerChatMessageDto> allMsgs = new();
+                if (System.IO.File.Exists(chatPath))
+                {
+                    var json = System.IO.File.ReadAllText(chatPath);
+                    allMsgs = JsonSerializer.Deserialize<List<ManagerChatMessageDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                }
+
+                int nextId = allMsgs.Any() ? allMsgs.Max(m => m.Id) + 1 : 1;
+                string sender = HttpContext.Session.GetString("UserName") ?? "พนักงานบริการ (ตัวคุณ)";
+
+                var newMsg = new ManagerChatMessageDto
+                {
+                    Id = nextId,
+                    ChannelId = targetChannel,
+                    SenderName = sender,
+                    TimeText = DateTime.Now.ToString("HH:mm น."),
+                    MessageText = message.Trim(),
+                    IsMine = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                allMsgs.Add(newMsg);
+                System.IO.File.WriteAllText(chatPath, JsonSerializer.Serialize(allMsgs, new JsonSerializerOptions { WriteIndented = true }));
+
+                // บันทึกลง MySQL Table Chats ด้วย
+                try
+                {
+                    if (_db.Database.CanConnect())
+                    {
+                        var dbChat = new Chat
+                        {
+                            SenderId = 1,
+                            Message = message.Trim(),
+                            SentAt = DateTime.Now
+                        };
+                        _db.Chats.Add(dbChat);
+                        _db.SaveChanges();
+                    }
+                }
+                catch { }
+            }
+            catch { }
+        }
+
+        return RedirectToAction("Chat", new { channel = channel });
+    }
+
+    // =========================================================================
     // Helper Methods
     // =========================================================================
     private List<CinemaHallCardDto> GetHallsFromFile()
@@ -337,7 +437,7 @@ public class StaffController : Controller
 
         foreach (var r in rows)
         {
-            string tier = (r == "A" || r == "B") ? "VIP" : ((r == "C" || r == "D" || r == "E") ? "Premium" : "Normal");
+            string tier = (r == "G" || r == "H") ? "VIP" : ((r == "D" || r == "E" || r == "F") ? "Premium" : "Normal");
             decimal price = tier == "VIP" ? 380 : (tier == "Premium" ? 320 : 260);
 
             for (int n = 1; n <= seatsPerRow; n++)

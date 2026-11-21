@@ -1,0 +1,449 @@
+@model Kawin_67091861_002.ViewModels.ManagerShowtimesViewModel
+@{
+    Layout = "_LayoutManager";
+    ViewData["Title"] = "จัดการรอบฉายภาพยนตร์";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+        margin: 0;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        color: #8c8c9e;
+        margin-top: 4px;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-input-box {
+        position: relative;
+        min-width: 240px;
+    }
+
+    .search-input-box input {
+        width: 100%;
+        background: #141419;
+        border: 1px solid #23232c;
+        border-radius: 8px;
+        padding: 8px 12px 8px 36px;
+        font-size: 13px;
+        color: #fff;
+    }
+
+    .search-input-box input:focus {
+        outline: none;
+        border-color: #f59e0b;
+    }
+
+    .search-input-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #656575;
+        font-size: 13px;
+    }
+
+    .icon-circle-btn {
+        width: 38px;
+        height: 38px;
+        background: #141419;
+        border: 1px solid #23232c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9292a0;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .icon-circle-btn:hover {
+        color: #fff;
+        border-color: #383848;
+    }
+
+    .btn-gold {
+        background: #f59e0b;
+        color: #000000;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-gold:hover {
+        background: #fbbf24;
+        color: #000000;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .pill-filter {
+        background: #15151b;
+        border: 1px solid #242430;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13px;
+        color: #d1d1dc;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pill-filter select {
+        background: transparent;
+        border: none;
+        color: #d1d1dc;
+        font-size: 13px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    /* Schedule Matrix */
+    .schedule-matrix-card {
+        background: #141419;
+        border: 1px solid #22222b;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .matrix-header {
+        display: grid;
+        grid-template-columns: 140px 180px 1fr;
+        padding: 14px 24px;
+        border-bottom: 1px solid #22222b;
+        font-size: 12px;
+        font-weight: 600;
+        color: #656575;
+        letter-spacing: 0.3px;
+    }
+
+    .matrix-row {
+        display: grid;
+        grid-template-columns: 140px 180px 1fr;
+        padding: 18px 24px;
+        border-bottom: 1px solid #1c1c24;
+        align-items: center;
+        transition: background 0.2s;
+    }
+
+    .matrix-row:last-child {
+        border-bottom: none;
+    }
+
+    .matrix-row:hover {
+        background: #171720;
+    }
+
+    .hall-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .hall-type {
+        font-size: 13px;
+        color: #7e7e90;
+    }
+
+    .slots-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .slot-card {
+        background: #1b1b22;
+        border: 1px solid #282834;
+        border-radius: 8px;
+        padding: 9px 14px;
+        min-width: 128px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .slot-card:hover {
+        transform: translateY(-2px);
+        border-color: #3e3e50;
+    }
+
+    .slot-time {
+        font-size: 14px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .slot-movie {
+        font-size: 12px;
+        color: #9292a0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+    }
+
+    .slot-seats {
+        font-size: 11px;
+        color: #6d6d7e;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+    }
+
+    .dot-indicator {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .dot-green { background: #22c55e; }
+    .dot-red { background: #ef4444; }
+    .dot-blue { background: #3b82f6; }
+
+    .btn-add-slot {
+        width: 44px;
+        height: 60px;
+        border: 1px dashed #303040;
+        border-radius: 8px;
+        background: transparent;
+        color: #555566;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 18px;
+    }
+
+    .btn-add-slot:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.05);
+    }
+
+    /* Modal */
+    .modal-content-dark {
+        background: #18181f;
+        border: 1px solid #2a2a38;
+        border-radius: 12px;
+        color: #fff;
+    }
+
+    .modal-header-dark {
+        border-bottom: 1px solid #2a2a38;
+        padding: 18px 24px;
+    }
+
+    .modal-footer-dark {
+        border-top: 1px solid #2a2a38;
+        padding: 16px 24px;
+    }
+
+    .form-label-dark {
+        font-size: 12.5px;
+        color: #9292a0;
+        margin-bottom: 6px;
+        font-weight: 500;
+    }
+
+    .form-control-dark {
+        background: #111116;
+        border: 1px solid #282836;
+        color: #fff;
+        border-radius: 8px;
+        padding: 9px 14px;
+        font-size: 13.5px;
+    }
+
+    .form-control-dark:focus {
+        background: #111116;
+        border-color: #f59e0b;
+        color: #fff;
+        box-shadow: none;
+    }
+</style>
+
+<!-- Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">จัดการรอบฉายภาพยนตร์</h1>
+        <div class="page-subtitle">ตารางการฉายและบริหารโรงภาพยนตร์ 8 โรงประจำวันนี้</div>
+    </div>
+    <div class="header-actions">
+        <div class="search-input-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="ค้นหารายการ..." />
+        </div>
+        <div class="icon-circle-btn">
+            <i class="bi bi-bell"></i>
+        </div>
+        <button class="btn-gold" data-bs-toggle="modal" data-bs-target="#createShowtimeModal">
+            <i class="bi bi-plus-lg"></i>
+            <span>สร้างรอบฉายใหม่</span>
+        </button>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #4ade80; border-radius: 10px;">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="pill-filter">
+        <i class="bi bi-calendar3" style="color: #f59e0b;"></i>
+        <span>@Model.DateDisplay</span>
+    </div>
+    <div class="pill-filter">
+        <span>ประเภทโรง:</span>
+        <select onchange="location.href='?filter=' + encodeURIComponent(this.value)">
+            <option value="ทั้งหมด (IMAX, 4DX, Standard)" selected>ทั้งหมด (IMAX, 4DX, Standard)</option>
+            <option value="IMAX Laser">เฉพาะ IMAX Laser</option>
+            <option value="4DX Extreme">เฉพาะ 4DX Extreme</option>
+            <option value="Standard Digital">เฉพาะ Standard Digital</option>
+        </select>
+    </div>
+</div>
+
+<!-- Timetable Grid Matrix -->
+<div class="schedule-matrix-card">
+    <div class="matrix-header">
+        <div>โรงภาพยนตร์</div>
+        <div>ประเภท / ระบบ</div>
+        <div>ตารางเวลารอบฉายวันนี้ (10:00 - 22:00)</div>
+    </div>
+
+    @foreach (var hall in Model.Halls)
+    {
+        <div class="matrix-row">
+            <div class="hall-name">@hall.HallName</div>
+            <div class="hall-type">@hall.HallType</div>
+            <div class="slots-container">
+                @foreach (var slot in hall.Slots)
+                {
+                    <div class="slot-card">
+                        <div class="slot-time">@slot.TimeText</div>
+                        <div class="slot-movie" title="@slot.MovieTitle">@slot.MovieTitle</div>
+                        <div class="slot-seats">
+                            <span class="dot-indicator dot-@slot.DotColor"></span>
+                            <span>@slot.BookedSeats/@slot.TotalSeats</span>
+                        </div>
+                    </div>
+                }
+                <button class="btn-add-slot" title="เพิ่มรอบฉายใน @hall.HallName" onclick="openAddModal(@hall.HallNumber, '@hall.HallName')">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal สร้างรอบฉายใหม่ -->
+<div class="modal fade" id="createShowtimeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-dark">
+            <div class="modal-header modal-header-dark">
+                <h5 class="modal-title" style="font-weight: 700; font-size: 16px;">
+                    <i class="bi bi-calendar-plus me-2" style="color: #f59e0b;"></i>สร้างรอบฉายภาพยนตร์ใหม่
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Manager" asp-action="CreateShowtime" method="post">
+                <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <label class="form-label-dark">เลือกโรงภาพยนตร์</label>
+                        <select name="HallNumber" id="modalHallSelect" class="form-select form-control-dark">
+                            <option value="1">โรง 1 (IMAX Laser)</option>
+                            <option value="2">โรง 2 (4DX Extreme)</option>
+                            <option value="3">โรง 3 (Standard Digital)</option>
+                            <option value="4">โรง 4 (Standard Digital)</option>
+                            <option value="5">โรง 5 (Standard Digital)</option>
+                            <option value="6">โรง 6 (Standard Digital)</option>
+                            <option value="7">โรง 7 (Standard Digital)</option>
+                            <option value="8">โรง 8 (Standard Digital)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label-dark">ภาพยนตร์ที่จัดฉาย</label>
+                        <select name="MovieTitle" class="form-select form-control-dark">
+                            <option value="Dune: Part Two">Dune: Part Two</option>
+                            <option value="Inside Out 2">Inside Out 2</option>
+                            <option value="หลานม่า">หลานม่า</option>
+                            <option value="A Quiet Place: Day One">A Quiet Place: Day One</option>
+                            <option value="Furiosa">Furiosa</option>
+                            <option value="Bad Boys: Ride or Die">Bad Boys: Ride or Die</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label-dark">เวลาเริ่มฉาย (hh:mm)</label>
+                            <input type="time" name="TimeText" value="20:00" class="form-control form-control-dark" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-dark">ความจุที่นั่งทั้งหมด</label>
+                            <input type="number" name="TotalSeats" value="150" class="form-control form-control-dark" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-dark">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 13px;">ยกเลิก</button>
+                    <button type="submit" class="btn-gold">บันทึกรอบฉาย</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAddModal(hallNum, hallName) {
+        var select = document.getElementById('modalHallSelect');
+        if (select) {
+            select.value = hallNum;
+        }
+        var modal = new bootstrap.Modal(document.getElementById('createShowtimeModal'));
+        modal.show();
+    }
+</script>

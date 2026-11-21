@@ -1,0 +1,585 @@
+@model Kawin_67091861_002.ViewModels.UserProfileViewModel
+@{
+    ViewData["Title"] = "โปรไฟล์ของฉัน - ABSOLUTE CINEMA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .profile-page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    /* Hero Profile Card */
+    .profile-hero-card {
+        background: linear-gradient(135deg, #181824 0%, #0d0d14 100%);
+        border: 1px solid rgba(223, 183, 108, 0.3);
+        border-radius: 16px;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-hero-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .profile-avatar-big {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dfb76c 0%, #9a7330 100%);
+        color: #120e06;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        font-weight: 800;
+        box-shadow: 0 0 20px rgba(223, 183, 108, 0.4);
+        flex-shrink: 0;
+    }
+
+    .profile-user-info h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 4px;
+    }
+
+    .profile-user-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #a4a4b4;
+    }
+
+    .tier-pill {
+        background: rgba(223, 183, 108, 0.15);
+        border: 1px solid #dfb76c;
+        color: #dfb76c;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .profile-hero-right {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-ticket-shortcut {
+        background: #dfb76c;
+        color: #120e06;
+        font-weight: 700;
+        font-size: 13.5px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .btn-ticket-shortcut:hover {
+        background: #f0cb82;
+        color: #000;
+        transform: translateY(-2px);
+    }
+
+    /* Tabs Bar */
+    .profile-tabs-nav {
+        display: flex;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 28px;
+        overflow-x: auto;
+    }
+
+    .profile-tab-btn {
+        background: transparent;
+        border: none;
+        padding: 12px 20px;
+        font-size: 14.5px;
+        font-weight: 500;
+        color: #8c8c9e;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+
+    .profile-tab-btn:hover {
+        color: #ffffff;
+    }
+
+    .profile-tab-btn.active {
+        color: #dfb76c;
+        font-weight: 700;
+        border-bottom-color: #dfb76c;
+    }
+
+    /* Tab Panes */
+    .tab-content-panel {
+        display: none;
+    }
+
+    .tab-content-panel.active {
+        display: block;
+    }
+
+    /* Theme Switcher Card */
+    .settings-card {
+        background: #14141e;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .settings-card-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .settings-card-sub {
+        font-size: 13px;
+        color: #8c8c9e;
+        margin-bottom: 20px;
+    }
+
+    .theme-toggle-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        max-width: 500px;
+    }
+
+    .theme-option-box {
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 18px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+    }
+
+    .theme-option-box:hover {
+        border-color: #dfb76c;
+    }
+
+    .theme-option-box.selected {
+        border-color: #dfb76c;
+        background: rgba(223, 183, 108, 0.08);
+    }
+
+    .theme-icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .theme-dark-circle { background: #0b0b12; color: #fbbf24; border: 1px solid #282838; }
+    .theme-light-circle { background: #ffffff; color: #d97706; border: 1px solid #e2e8f0; }
+
+    .theme-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: #ffffff;
+    }
+
+    /* History Table */
+    .history-card {
+        background: #14141e;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .history-table th {
+        background: #181824;
+        padding: 14px 20px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #8c8c9e;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .history-table td {
+        padding: 16px 20px;
+        font-size: 13.5px;
+        color: #d1d1dc;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        vertical-align: middle;
+    }
+
+    .history-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-confirmed-pill {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11.5px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-cancelled-pill {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11.5px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .btn-cancel-small {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-cancel-small:hover {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    /* Watched Movies Cards */
+    .watched-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .watched-card {
+        background: #14141e;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .watched-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .watched-details {
+        font-size: 12.5px;
+        color: #8c8c9e;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .watched-review-box {
+        background: rgba(223, 183, 108, 0.06);
+        border-left: 3px solid #dfb76c;
+        padding: 10px 14px;
+        border-radius: 0 8px 8px 0;
+        font-size: 12.5px;
+        color: #fde68a;
+    }
+</style>
+
+<div class="profile-page-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #4ade80; border-radius: 10px; margin-bottom: 24px;">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; border-radius: 10px; margin-bottom: 24px;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Profile Hero Card -->
+    <div class="profile-hero-card">
+        <div class="profile-hero-left">
+            <div class="profile-avatar-big">
+                @(string.IsNullOrEmpty(Model.FullName) ? "A" : Model.FullName.Substring(0, 1))
+            </div>
+            <div class="profile-user-info">
+                <h2>@Model.FullName</h2>
+                <div class="profile-user-meta">
+                    <span class="tier-pill"><i class="fas fa-crown"></i> @Model.MemberTier</span>
+                    <span><i class="fas fa-envelope me-1"></i> @Model.Email</span>
+                    <span><i class="fas fa-phone me-1"></i> @Model.Phone</span>
+                </div>
+            </div>
+        </div>
+        <div class="profile-hero-right">
+            <a asp-controller="Account" asp-action="Tickets" class="btn-ticket-shortcut">
+                <i class="fas fa-ticket-alt"></i>
+                <span>ตั๋วหนังของฉัน (@Model.ActiveTickets.Count ใบ)</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Profile Navigation Tabs -->
+    <div class="profile-tabs-nav">
+        <button class="profile-tab-btn @(Model.ActiveTab == "profile" ? "active" : "")" onclick="switchProfileTab('profile', this)">
+            <i class="fas fa-sliders-h"></i> ข้อมูล & การตั้งค่าโหมด
+        </button>
+        <button class="profile-tab-btn @(Model.ActiveTab == "history" ? "active" : "")" onclick="switchProfileTab('history', this)">
+            <i class="fas fa-receipt"></i> ประวัติการจอง & ชำระเงิน (@Model.BookingHistory.Count)
+        </button>
+        <button class="profile-tab-btn @(Model.ActiveTab == "watched" ? "active" : "")" onclick="switchProfileTab('watched', this)">
+            <i class="fas fa-film"></i> ภาพยนตร์ที่ดูแล้ว (@Model.WatchedHistory.Count)
+        </button>
+    </div>
+
+    <!-- TAB 1: Profile & Theme Settings -->
+    <div id="tab-profile" class="tab-content-panel @(Model.ActiveTab == "profile" ? "active" : "")">
+        <!-- Theme Mode Switcher -->
+        <div class="settings-card">
+            <div class="settings-card-title">
+                <i class="fas fa-palette text-warning"></i>
+                การตั้งค่าโหมดการแสดงผล (Theme Settings)
+            </div>
+            <div class="settings-card-sub">
+                เลือกโหมดการแสดงผลตามที่คุณชื่นชอบ ระบบจะบันทึกการตั้งค่านี้ไว้ใช้งานตลอดไป
+            </div>
+
+            <div class="theme-toggle-options">
+                <div class="theme-option-box" id="themeDarkBox" onclick="setCinemaTheme('dark')">
+                    <div class="theme-icon-circle theme-dark-circle">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <div class="theme-name">โหมดมืด (Dark Mode)</div>
+                    <span style="font-size: 11px; color: #8c8c9e;">ถนอมสายตา สีดำหรูหรา</span>
+                </div>
+
+                <div class="theme-option-box" id="themeLightBox" onclick="setCinemaTheme('light')">
+                    <div class="theme-icon-circle theme-light-circle">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="theme-name">โหมดสว่าง (Light Mode)</div>
+                    <span style="font-size: 11px; color: #8c8c9e;">สว่าง คมชัด สบายตา</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Info Details -->
+        <div class="settings-card">
+            <div class="settings-card-title">
+                <i class="fas fa-id-card text-warning"></i>
+                ข้อมูลบัญชีสมาชิก
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <label style="font-size: 12px; color: #8c8c9e;">ชื่อ-นามสกุล</label>
+                    <div style="font-size: 14.5px; font-weight: 600; color: #fff;">@Model.FullName</div>
+                </div>
+                <div class="col-md-6">
+                    <label style="font-size: 12px; color: #8c8c9e;">ชื่อผู้ใช้งาน / อีเมล</label>
+                    <div style="font-size: 14.5px; font-weight: 600; color: #fff;">@Model.Email</div>
+                </div>
+                <div class="col-md-6">
+                    <label style="font-size: 12px; color: #8c8c9e;">เบอร์โทรศัพท์สำหรับรับตั๋วและพร้อมเพย์</label>
+                    <div style="font-size: 14.5px; font-weight: 600; color: #dfb76c;">093-363-2239</div>
+                </div>
+                <div class="col-md-6">
+                    <label style="font-size: 12px; color: #8c8c9e;">ระดับสิทธิ์และสถานะ</label>
+                    <div style="font-size: 14.5px; font-weight: 600; color: #4ade80;">@Model.RoleName (เปิดใช้งานปกติ)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Booking & Payment History -->
+    <div id="tab-history" class="tab-content-panel @(Model.ActiveTab == "history" ? "active" : "")">
+        <div class="history-card">
+            <div class="table-responsive">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>รหัสการจอง</th>
+                            <th>ภาพยนตร์</th>
+                            <th>รอบฉาย</th>
+                            <th>ที่นั่ง</th>
+                            <th>ยอดเงิน</th>
+                            <th>วิธีชำระ</th>
+                            <th>สถานะ</th>
+                            <th style="text-align: right;">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var b in Model.BookingHistory)
+                        {
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: #dfb76c;">@b.ReferenceCode</div>
+                                    <div style="font-size: 11px; color: #8c8c9e;">@b.TaxInvoiceNo</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600; color: #ffffff;">@b.MovieTitle</div>
+                                    <div style="font-size: 11.5px; color: #8c8c9e;">@b.CinemaName</div>
+                                </td>
+                                <td>
+                                    <div>@b.ShowtimeDateText</div>
+                                    <div style="font-size: 11.5px; color: #dfb76c;">@b.ShowtimeTimeText</div>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 700; color: #fbbf24;">@b.SeatNumbers</span>
+                                    <div style="font-size: 11px; color: #8c8c9e;">(@b.SeatCount ที่นั่ง)</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 700; color: #4ade80;">฿@b.TotalAmount.ToString("N0")</div>
+                                </td>
+                                <td>
+                                    <span style="font-size: 12.5px;">@b.PaymentMethod</span>
+                                </td>
+                                <td>
+                                    @if (b.Status == "Cancelled")
+                                    {
+                                        <span class="status-cancelled-pill"><i class="fas fa-times-circle me-1"></i>ยกเลิกแล้ว</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-confirmed-pill"><i class="fas fa-check-circle me-1"></i>ชำระเงินแล้ว</span>
+                                    }
+                                </td>
+                                <td style="text-align: right;">
+                                    @if (b.Status != "Cancelled" && b.CanCancel)
+                                    {
+                                        <form asp-controller="Account" asp-action="CancelBooking" method="post" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการยกเลิกตั๋วชมภาพยนตร์รายการนี้?');" style="display: inline;">
+                                            <input type="hidden" name="bookingId" value="@b.BookingId" />
+                                            <button type="submit" class="btn-cancel-small" title="กดยกเลิกตั๋วภาพยนตร์">
+                                                <i class="fas fa-ban me-1"></i> กดยกเลิกตั๋ว
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (b.Status == "Cancelled")
+                                    {
+                                        <span style="font-size: 11.5px; color: #8c8c9e;">คืนเงินแล้ว</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: Watched Movies History -->
+    <div id="tab-watched" class="tab-content-panel @(Model.ActiveTab == "watched" ? "active" : "")">
+        <div class="watched-grid">
+            @foreach (var w in Model.WatchedHistory)
+            {
+                <div class="watched-card">
+                    <div class="watched-title">@w.MovieTitle</div>
+                    <div class="watched-details">
+                        <span><i class="fas fa-calendar-check text-warning me-1"></i> วันที่เข้าชม: @w.WatchedDateText</span>
+                        <span><i class="fas fa-video text-warning me-1"></i> @w.CinemaHall</span>
+                        <span><i class="fas fa-couch text-warning me-1"></i> ที่นั่ง: @w.Seats</span>
+                        <span><i class="fas fa-star text-warning me-1"></i> คะแนนความพึงพอใจ: @w.Rating / 10</span>
+                    </div>
+                    <div class="watched-review-box">
+                        <i class="fas fa-quote-left me-1"></i> @w.ReviewComment
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchProfileTab(tabName, btn) {
+        document.querySelectorAll('.profile-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const target = document.getElementById('tab-' + tabName);
+        if (target) {
+            target.classList.add('active');
+        }
+    }
+
+    function setCinemaTheme(mode) {
+        localStorage.setItem('cinema_theme', mode);
+        document.documentElement.setAttribute('data-theme', mode);
+
+        // Update active UI cards
+        if (mode === 'light') {
+            document.getElementById('themeLightBox')?.classList.add('selected');
+            document.getElementById('themeDarkBox')?.classList.remove('selected');
+        } else {
+            document.getElementById('themeDarkBox')?.classList.add('selected');
+            document.getElementById('themeLightBox')?.classList.remove('selected');
+        }
+
+        // Send to backend session
+        fetch('/Account/UpdateTheme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'theme=' + mode
+        });
+    }
+
+    // Initial theme check
+    document.addEventListener('DOMContentLoaded', function () {
+        const currentTheme = localStorage.getItem('cinema_theme') || 'dark';
+        setCinemaTheme(currentTheme);
+    });
+</script>

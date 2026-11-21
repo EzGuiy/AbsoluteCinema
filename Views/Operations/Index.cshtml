@@ -107,8 +107,8 @@
             <div>
                 <h2 class="panel-main-title">รายการเหตุขัดข้องล่าสุด</h2>
             </div>
-            <a href="@Url.Action("Index")" class="link-view-all">
-                ดูประวัติหมด <i class="bi bi-arrow-right"></i>
+            <a asp-action="Incidents" class="link-view-all">
+                ดูทั้งหมด <i class="bi bi-arrow-right"></i>
             </a>
         </div>
 
@@ -180,7 +180,9 @@
         <div class="op-card-panel">
             <div class="panel-header-row mb-3">
                 <h3 class="panel-section-title">สุขภาพระบบ</h3>
-                <span class="text-muted small">รายละเอียด</span>
+                <a asp-action="SystemHealth" class="text-emerald text-decoration-none small">
+                    ดูภาพรวม <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
 
             <div class="health-metrics-list">

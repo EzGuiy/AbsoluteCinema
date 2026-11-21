@@ -49,5 +49,53 @@
     "Status": "RefundPending",
     "BookedAt": "2026-11-12 13:10:00",
     "SavedToDatabase": false
+  },
+  {
+    "BookingId": 8737,
+    "ReferenceCode": "AC-261118-8006",
+    "TaxInvoiceNo": "INV-261118-55816",
+    "ShowtimeId": 105,
+    "MovieId": 1,
+    "SeatNumbers": "D6, D7",
+    "SeatCount": 2,
+    "TotalAmount": 5600,
+    "PaymentMethod": "PromptPay",
+    "CustomerName": "คุณลูกค้า Absolute Cinema",
+    "CustomerPhone": "081-234-5678",
+    "Status": "Confirmed",
+    "BookedAt": "2026-11-18 13:45:44",
+    "SavedToDatabase": false
+  },
+  {
+    "BookingId": 6129,
+    "ReferenceCode": "AC-261120-4891",
+    "TaxInvoiceNo": "INV-261120-86788",
+    "ShowtimeId": 202,
+    "MovieId": 2,
+    "SeatNumbers": "B6, B9",
+    "SeatCount": 2,
+    "TotalAmount": 3600,
+    "PaymentMethod": "PromptPay",
+    "CustomerName": "คุณลูกค้า Absolute Cinema",
+    "CustomerPhone": "081-234-5678",
+    "Status": "Confirmed",
+    "BookedAt": "2026-11-20 11:31:34",
+    "SavedToDatabase": false
+  },
+  {
+    "BookingId": 4992,
+    "ReferenceCode": "AC-261120-6584",
+    "TaxInvoiceNo": "INV-261120-45437",
+    "ShowtimeId": 201,
+    "MovieId": 2,
+    "SeatNumbers": "B5, B6",
+    "SeatCount": 2,
+    "TotalAmount": 3600,
+    "PaymentMethod": "PromptPay",
+    "CustomerName": "คุณลูกค้า Absolute Cinema",
+    "CustomerPhone": "081-234-5678",
+    "Status": "Confirmed",
+    "BookedAt": "2026-11-20 12:10:37",
+    "SavedToDatabase": false
   }
 ]

@@ -1,0 +1,344 @@
+@model List<Kawin_67091861_002.ViewModels.UserTicketDto>
+@{
+    ViewData["Title"] = "ตั๋วหนังของฉัน - ABSOLUTE CINEMA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .tickets-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 20px 80px;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    .tickets-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .tickets-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .tickets-sub {
+        font-size: 13.5px;
+        color: #8c8c9e;
+        margin-top: 4px;
+    }
+
+    /* Ticket Card */
+    .ticket-card {
+        background: #14141e;
+        border: 1px solid rgba(223, 183, 108, 0.35);
+        border-radius: 16px;
+        display: grid;
+        grid-template-columns: 1fr 260px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        position: relative;
+    }
+
+    .ticket-left {
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .ticket-movie-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .ticket-movie-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 6px;
+    }
+
+    .ticket-hall-tag {
+        background: rgba(223, 183, 108, 0.15);
+        border: 1px solid #dfb76c;
+        color: #dfb76c;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .ticket-grid-specs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 16px 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .spec-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .spec-label {
+        font-size: 11px;
+        color: #8c8c9e;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .spec-val-strong {
+        font-size: 14.5px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .spec-val-gold {
+        font-size: 16px;
+        font-weight: 800;
+        color: #dfb76c;
+    }
+
+    /* Ticket Right (Stub) */
+    .ticket-right-stub {
+        background: #0f0f17;
+        border-left: 2px dashed rgba(223, 183, 108, 0.3);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+        position: relative;
+    }
+
+    /* Perforated notch */
+    .ticket-right-stub::before {
+        content: '';
+        position: absolute;
+        top: -12px;
+        left: -12px;
+        width: 24px;
+        height: 24px;
+        background: #0b0b12;
+        border-radius: 50%;
+    }
+
+    .ticket-right-stub::after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: -12px;
+        width: 24px;
+        height: 24px;
+        background: #0b0b12;
+        border-radius: 50%;
+    }
+
+    .stub-ref {
+        font-size: 12px;
+        font-weight: 700;
+        color: #dfb76c;
+        letter-spacing: 1px;
+    }
+
+    .stub-barcode-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        margin: 10px 0;
+    }
+
+    .mock-barcode {
+        font-family: 'Courier New', monospace;
+        letter-spacing: 3px;
+        font-size: 26px;
+        font-weight: 900;
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        border-radius: 4px;
+    }
+
+    .stub-scan-note {
+        font-size: 10.5px;
+        color: #8c8c9e;
+    }
+
+    .btn-cancel-ticket {
+        width: 100%;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #f87171;
+        font-weight: 600;
+        font-size: 12.5px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel-ticket:hover {
+        background: #ef4444;
+        color: #ffffff;
+    }
+
+    .empty-tickets-box {
+        background: #14141e;
+        border: 1px dashed rgba(223, 183, 108, 0.3);
+        border-radius: 16px;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    @@media (max-width: 768px) {
+        .ticket-card {
+            grid-template-columns: 1fr;
+        }
+        .ticket-right-stub {
+            border-left: none;
+            border-top: 2px dashed rgba(223, 183, 108, 0.3);
+        }
+        .ticket-right-stub::before, .ticket-right-stub::after {
+            display: none;
+        }
+    }
+</style>
+
+<div class="tickets-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #4ade80; border-radius: 10px; margin-bottom: 24px;">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; border-radius: 10px; margin-bottom: 24px;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="tickets-header">
+        <div>
+            <h1 class="tickets-title">
+                <i class="fas fa-ticket-alt text-warning"></i>
+                ตั๋วหนังของฉัน (My Tickets)
+            </h1>
+            <div class="tickets-sub">
+                ตั๋วที่คุณซื้อไว้และยังไม่ได้ดู สามารถนำ Barcode หรือรหัสจองไปสแกนเข้าชมที่โรงภาพยนตร์ได้ทันที
+            </div>
+        </div>
+        <div>
+            <a asp-controller="Home" asp-action="NowShowing" class="btn" style="background: rgba(223, 183, 108, 0.15); border: 1px solid #dfb76c; color: #dfb76c; border-radius: 8px; font-size: 13px;">
+                <i class="fas fa-plus me-1"></i> จองตั๋วเพิ่ม
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-tickets-box">
+            <i class="fas fa-ticket-alt" style="font-size: 48px; color: #dfb76c; margin-bottom: 16px;"></i>
+            <h3 style="color: #fff; font-size: 18px; font-weight: 700;">ยังไม่มีตั๋วหนังที่ซื้อไว้</h3>
+            <p style="color: #8c8c9e; font-size: 14px; margin-bottom: 20px;">คุณยังไม่มีตั๋วภาพยนตร์ที่รอเข้าชม สามารถเลือกชมภาพยนตร์ที่กำลังฉายและจองที่นั่งได้เลย</p>
+            <a asp-controller="Home" asp-action="NowShowing" class="btn" style="background: #dfb76c; color: #000; font-weight: 700; padding: 10px 24px; border-radius: 8px;">
+                ดูภาพยนตร์ที่กำลังฉาย
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var ticket in Model)
+        {
+            <div class="ticket-card">
+                <!-- Left Details -->
+                <div class="ticket-left">
+                    <div class="ticket-movie-header">
+                        <div>
+                            <span class="ticket-hall-tag">@ticket.CinemaName • @ticket.HallTier</span>
+                            <h2 class="ticket-movie-title mt-2">@ticket.MovieTitle</h2>
+                            <div style="font-size: 13px; color: #8c8c9e;">ใบเสร็จ: @ticket.TaxInvoiceNo | วันที่ทำรายการ: @ticket.BookedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 600;">
+                                <i class="fas fa-check-circle me-1"></i> ตั๋วพร้อมใช้งาน
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-grid-specs">
+                        <div class="spec-item">
+                            <span class="spec-label">วันที่จัดฉาย</span>
+                            <span class="spec-val-strong"><i class="fas fa-calendar-day text-warning me-1"></i>@ticket.DateDisplayTh</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">เวลาเริ่มฉาย</span>
+                            <span class="spec-val-strong"><i class="fas fa-clock text-warning me-1"></i>@ticket.TimeDisplayTh</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">ที่นั่งที่จอง</span>
+                            <span class="spec-val-gold"><i class="fas fa-couch me-1"></i>@ticket.SeatNumbers</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">จำนวนที่นั่ง</span>
+                            <span class="spec-val-strong">@ticket.SeatCount ที่นั่ง</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">ยอดชำระเงิน</span>
+                            <span class="spec-val-strong" style="color: #4ade80;">฿@ticket.TotalAmount.ToString("N0")</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">ช่องทางชำระ</span>
+                            <span class="spec-val-strong" style="font-size: 12.5px;">@ticket.PaymentMethod</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Stub / Admission Barcode & Cancel -->
+                <div class="ticket-right-stub">
+                    <div class="stub-ref">@ticket.ReferenceCode</div>
+
+                    <div class="stub-barcode-box">
+                        <div class="mock-barcode">||| | |||| | ||| ||||</div>
+                        <span class="stub-scan-note">สแกนบาร์โค้ดนี้เพื่อเข้าโรงภาพยนตร์</span>
+                    </div>
+
+                    @if (ticket.CanCancel)
+                    {
+                        <form asp-controller="Account" asp-action="CancelBooking" method="post" 
+                              onsubmit="return confirm('ยืนยันการยกเลิกตั๋วชมภาพยนตร์เรื่อง @ticket.MovieTitle?\n\nเงื่อนไข: เมื่อกดยกเลิก ที่นั่งจะถูกปล่อยคืนสู่ระบบ และคืนเงินจำนวน ฿@ticket.TotalAmount.ToString("N0") ทันที');" 
+                              style="width: 100%;">
+                            <input type="hidden" name="bookingId" value="@ticket.BookingId" />
+                            <button type="submit" class="btn-cancel-ticket">
+                                <i class="fas fa-ban me-1"></i> กดยกเลิกตั๋วหนัง
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

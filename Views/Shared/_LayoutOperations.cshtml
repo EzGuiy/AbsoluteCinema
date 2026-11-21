@@ -279,9 +279,19 @@
         </div>
 
         <!-- Navigation Menu -->
+        @{
+            string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+            int unreadIncidents = ViewBag.UnreadIncidentsCount != null 
+                ? (int)ViewBag.UnreadIncidentsCount 
+                : (Context.Session.GetString("Incidents_Seen") == "true" ? 0 : 3);
+
+            int unreadChat = ViewBag.UnreadChatCount != null 
+                ? (int)ViewBag.UnreadChatCount 
+                : (Context.Session.GetString("TechChat_Seen_tech-oncall") == "true" && Context.Session.GetString("TechChat_Seen_manager") == "true" ? 0 : 3);
+        }
         <ul class="nav-list">
             <li>
-                <a asp-controller="Operations" asp-action="Index" class="nav-link-item active">
+                <a asp-controller="Operations" asp-action="Index" class="nav-link-item @(currentAction == "Index" ? "active" : "")">
                     <div class="nav-link-left">
                         <i class="bi bi-speedometer2"></i>
                         <span>ศูนย์ควบคุม</span>
@@ -289,16 +299,19 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Operations" asp-action="Index" asp-route-filter="open" class="nav-link-item">
+                <a asp-controller="Operations" asp-action="Incidents" class="nav-link-item @(currentAction == "Incidents" ? "active" : "")">
                     <div class="nav-link-left">
                         <i class="bi bi-exclamation-octagon"></i>
                         <span>เหตุขัดข้อง</span>
                     </div>
-                    <span class="badge-count-red">5</span>
+                    @if (unreadIncidents > 0)
+                    {
+                        <span class="badge-count-red">@unreadIncidents</span>
+                    }
                 </a>
             </li>
             <li>
-                <a asp-controller="Operations" asp-action="Health" class="nav-link-item">
+                <a asp-controller="Operations" asp-action="SystemHealth" class="nav-link-item @(currentAction == "SystemHealth" || currentAction == "Health" ? "active" : "")">
                     <div class="nav-link-left">
                         <i class="bi bi-cpu"></i>
                         <span>สุขภาพระบบ</span>
@@ -306,7 +319,7 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Operations" asp-action="Maintenance" class="nav-link-item">
+                <a asp-controller="Operations" asp-action="Maintenance" class="nav-link-item @(currentAction == "Maintenance" ? "active" : "")">
                     <div class="nav-link-left">
                         <i class="bi bi-wrench"></i>
                         <span>งานบำรุงรักษา</span>
@@ -314,15 +327,15 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Operations" asp-action="Hardware" class="nav-link-item">
+                <a asp-controller="Operations" asp-action="Hardware" class="nav-link-item @(currentAction == "Hardware" ? "active" : "")">
                     <div class="nav-link-left">
                         <i class="bi bi-display"></i>
-                        <span>อุปกรณ์และฮาร์ดแวร์</span>
+                        <span>อุปกรณ์และทรัพย์สิน</span>
                     </div>
                 </a>
             </li>
             <li>
-                <a asp-controller="Operations" asp-action="ShiftLog" class="nav-link-item">
+                <a asp-controller="Operations" asp-action="ShiftLog" class="nav-link-item @(currentAction == "ShiftLog" ? "active" : "")">
                     <div class="nav-link-left">
                         <i class="bi bi-journal-text"></i>
                         <span>บันทึกการเปลี่ยนเวร</span>
@@ -330,12 +343,15 @@
                 </a>
             </li>
             <li>
-                <a asp-controller="Operations" asp-action="TechChat" class="nav-link-item">
+                <a asp-controller="Operations" asp-action="TechChat" class="nav-link-item @(currentAction == "TechChat" ? "active" : "")">
                     <div class="nav-link-left">
                         <i class="bi bi-chat-dots"></i>
                         <span>แชททีมเทคนิค</span>
                     </div>
-                    <span class="badge-count-red">4</span>
+                    @if (unreadChat > 0)
+                    {
+                        <span class="badge-count-red">@unreadChat</span>
+                    }
                 </a>
             </li>
 

@@ -1,35 +1,144 @@
 [
   {
     "Code": "INC-0842",
-    "Title": "เสียงกระตุกในโรง 2",
-    "SourceAndTime": "ระบบตรวจพบอัตโนมัติ • 10:42",
+    "Title": "เสียงขาดช่วงในโรง 2",
+    "SourceAndTime": "ระบบตรวจจับอัตโนมัติ • 10:42",
     "Assignee": "อนุชา",
-    "Status": "เปิดอยู่",
-    "StatusColor": "red"
+    "Status": "เร่งด่วน",
+    "StatusColor": "red",
+    "UrgencyLevel": "เร่งด่วนที่สุด",
+    "OpenTime": "10:42",
+    "Detector": "ระบบวิเคราะห์ความถี่เสียงอัตโนมัติ",
+    "TimeAgoText": "4 นาทีที่แล้ว",
+    "ActivityLogs": [
+      {
+        "TimeText": "10:42",
+        "Title": "ตรวจพบปัญหาอัตโนมัติ",
+        "Description": "ตรวจวัดพบสัญญาณเสียงดรอปเกิน 15dB",
+        "Color": "red"
+      },
+      {
+        "TimeText": "10:44",
+        "Title": "มอบหมายให้ 'อนุชา' ตรวจสอบ",
+        "Description": "หัวหน้าช่างเทคนิคจ่ายงานและประสานงาน",
+        "Color": "yellow"
+      },
+      {
+        "TimeText": "10:49",
+        "Title": "เตรียมอุปกรณ์สำรองเครื่องถอดรหัส",
+        "Description": "อนุชากำลังย้ายไปทำงานที่ Rack โรง 2",
+        "Color": "teal"
+      }
+    ]
   },
   {
     "Code": "INC-0841",
-    "Title": "อุณหภูมิห้อง Server สูง",
+    "Title": "อุณหภูมิห้อง Server สูงผิดปกติ",
     "SourceAndTime": "Sensor SRV-01 • 10:18",
     "Assignee": "วรพล",
     "Status": "กำลังตรวจสอบ",
-    "StatusColor": "yellow"
+    "StatusColor": "yellow",
+    "UrgencyLevel": "ปานกลาง",
+    "OpenTime": "10:18",
+    "Detector": "Sensor SRV-01 ภายในห้องควบคุม",
+    "TimeAgoText": "28 นาทีที่แล้ว",
+    "ActivityLogs": [
+      {
+        "TimeText": "10:18",
+        "Title": "เซ็นเซอร์แจ้งเตือนอุณหภูมิห้อง Server แตะ 28°C",
+        "Description": "ระบบ Cooling ตัวที่ 2 มีรอบพัดลมต่ำกว่าปกติ",
+        "Color": "yellow"
+      },
+      {
+        "TimeText": "10:25",
+        "Title": "วรพลเข้าตรวจสอบห้องเซิร์ฟเวอร์",
+        "Description": "กำลังเปลี่ยนฟิลเตอร์และตรวจสอบคอมเพรสเซอร์แอร์",
+        "Color": "teal"
+      }
+    ]
   },
   {
     "Code": "INC-0839",
-    "Title": "เครื่องออกตั๋วช่อง 4 ออฟไลน์",
+    "Title": "เครื่องพิมพ์ตั๋วช่อง 4 ออฟไลน์",
     "SourceAndTime": "พนักงาน Box Office • 09:55",
     "Assignee": "ศุภชัย",
-    "Status": "สำเร็จแล้ว",
-    "StatusColor": "teal"
+    "Status": "กำลังตรวจสอบ",
+    "StatusColor": "yellow",
+    "UrgencyLevel": "ปานกลาง",
+    "OpenTime": "09:55",
+    "Detector": "พนักงาน Box Office ช่อง 4",
+    "TimeAgoText": "51 นาทีที่แล้ว",
+    "ActivityLogs": [
+      {
+        "TimeText": "09:55",
+        "Title": "พนักงานแจ้งสัญญาณ LAN หลุดที่เคาน์เตอร์",
+        "Description": "เครื่องพิมพ์ตั๋วความร้อนไม่ได้รับคำสั่งพิมพ์จากระบบ",
+        "Color": "yellow"
+      },
+      {
+        "TimeText": "10:10",
+        "Title": "ศุภชัยตรวจสอบสายแลนและ IP Address",
+        "Description": "ทำการ Reset Mini Switch และทดสอบพิมพ์ตั๋วตัวอย่าง",
+        "Color": "teal"
+      }
+    ]
   },
   {
     "Code": "INC-0837",
-    "Title": "Projector Lamp ใกล้หมดอายุ",
-    "SourceAndTime": "โรง 4 • 08:30",
-    "Assignee": "กัมปนาท",
-    "Status": "รายงานแล้ว",
-    "StatusColor": "green"
+    "Title": "Projector Lamp ใกล้ครบอายุการใช้งาน",
+    "SourceAndTime": "โรง 6 • 08:30",
+    "Assignee": "ทีมรอบดึก",
+    "Status": "วางแผนแล้ว",
+    "StatusColor": "teal",
+    "UrgencyLevel": "เฝ้าระวัง",
+    "OpenTime": "08:30",
+    "Detector": "ระบบติดตามชั่วโมงการทำงานของเครื่องฉาย Christie 4K",
+    "TimeAgoText": "2 ชั่วโมงที่แล้ว",
+    "ActivityLogs": [
+      {
+        "TimeText": "08:30",
+        "Title": "ชั่วโมงหลอดฉายเหลือต่ำกว่า 50 ชม.",
+        "Description": "ระบบแจ้งเตือนตามเกณฑ์ความปลอดภัยเพื่อเตรียมการเปลี่ยน",
+        "Color": "teal"
+      },
+      {
+        "TimeText": "08:45",
+        "Title": "เบิกหลอดฉายสำรองจากคลังอุปกรณ์เรียบร้อย",
+        "Description": "นัดหมายทีมรอบดึกทำการเปลี่ยนหลังฉายรอบสุดท้ายเสร็จสิ้น",
+        "Color": "green"
+      }
+    ]
+  },
+  {
+    "Code": "INC-0835",
+    "Title": "แอร์โรง 3 ไม่เย็น",
+    "SourceAndTime": "ลูกค้าแจ้งสาขา • 08:12",
+    "Assignee": "อนุชา",
+    "Status": "แก้ไขแล้ว",
+    "StatusColor": "green",
+    "UrgencyLevel": "แก้ไขเสร็จแล้ว",
+    "OpenTime": "08:12",
+    "Detector": "พนักงานบริการชั้นโรงภาพยนตร์",
+    "TimeAgoText": "3 ชั่วโมงที่แล้ว",
+    "ActivityLogs": [
+      {
+        "TimeText": "08:12",
+        "Title": "รับแจ้งว่าลมแอร์ในโรง 3 มีอุณหภูมิสูงกว่าปกติ",
+        "Description": "อุณหภูมิวัดได้ 25.5°C ในบริเวณที่นั่งแถว E-F",
+        "Color": "yellow"
+      },
+      {
+        "TimeText": "08:25",
+        "Title": "อนุชาเข้าตรวจสอบวาล์วชิลเลอร์และพัดลมระบาย",
+        "Description": "ปรับระดับการจ่ายความเย็น Chiller Booster เป็น 100%",
+        "Color": "teal"
+      },
+      {
+        "TimeText": "08:35",
+        "Title": "อุณหภูมิลดลงสู่ระดับปกติ 21.5°C เรียบร้อย",
+        "Description": "ปิดงานซ่อมบำรุงและแจ้งหัวหน้าเวรรับทราบ",
+        "Color": "green"
+      }
+    ]
   }
 ]
-
