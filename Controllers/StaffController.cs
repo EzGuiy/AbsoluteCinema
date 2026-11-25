@@ -23,6 +23,24 @@ public class StaffController : Controller
     }
 
     // =========================================================================
+    // Auth Guard: ตรวจสิทธิ์ทุก action (Staff หรือ Admin เท่านั้น)
+    // =========================================================================
+    public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+        if (HttpContext.Session.GetString("UserLoggedIn") != "true")
+        {
+            context.Result = RedirectToAction("Login", "Account");
+            return;
+        }
+        var role = HttpContext.Session.GetString("UserRole") ?? "";
+        if (role != "Staff" && role != "Admin")
+        {
+            context.Result = RedirectToAction("Index", "Home");
+        }
+    }
+
+    // =========================================================================
     // 1. หน้าแรกของพนักงาน: สรุปสถิติจำนวนลูกค้าและการจอง
     // =========================================================================
     public IActionResult Index()

@@ -337,7 +337,7 @@
                 </li>
                 <li>
                     <a asp-controller="Home" asp-action="NowShowing"
-                       class="@(new[] { "NowShowing", "MovieDetail", "SelectSeat", "Payment" }.Contains(ViewContext.RouteData.Values["action"]?.ToString()) ? "active" : "")">
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "NowShowing" ? "active" : "")">
                         หนังกำลังฉาย
                     </a>
                 </li>

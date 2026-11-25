@@ -314,36 +314,20 @@
                 </a>
             </li>
 
-            <!-- Cross-Role Links -->
+            <!-- Back to Home & Logout -->
             <li style="margin-top:auto; padding-top:10px; border-top:1px solid rgba(0,0,0,0.08);">
-                <a asp-controller="Staff" asp-action="Index" class="mgr-nav-link">
-                    <div class="mgr-nav-left">
-                        <i class="bi bi-clipboard-check text-dark"></i>
-                        <span>พนักงานบริการ (Floor Staff)</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a asp-controller="Operations" asp-action="Index" class="mgr-nav-link">
-                    <div class="mgr-nav-left">
-                        <i class="bi bi-speedometer2 text-dark"></i>
-                        <span>ฝ่ายเทคนิค (Tech Ops)</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a asp-controller="Accountant" asp-action="Dashboard" class="mgr-nav-link">
-                    <div class="mgr-nav-left">
-                        <i class="bi bi-calculator text-danger"></i>
-                        <span>ฝ่ายบัญชี (Accountant)</span>
-                    </div>
-                </a>
-            </li>
-            <li>
                 <a asp-controller="Home" asp-action="Index" class="mgr-nav-link">
                     <div class="mgr-nav-left">
                         <i class="bi bi-house text-dark"></i>
                         <span>หน้าหลักโรงหนัง</span>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Account" asp-action="Logout" class="mgr-nav-link" style="color:#c00;">
+                    <div class="mgr-nav-left">
+                        <i class="bi bi-box-arrow-right text-danger"></i>
+                        <span>ออกจากระบบ</span>
                     </div>
                 </a>
             </li>
@@ -363,7 +347,7 @@
                     <i class="bi bi-person-fill"></i>
                 </div>
                 <div class="mgr-profile-text">
-                    <div class="mgr-name">ณัฐชา วัฒนากุล</div>
+                    <div class="mgr-name">@Context.Session.GetString("UserName")</div>
                     <div class="mgr-role">ผู้จัดการสาขา</div>
                 </div>
             </div>

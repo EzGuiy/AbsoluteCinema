@@ -25,6 +25,24 @@ public class AccountantController : Controller
     }
 
     // =========================================================================
+    // Auth Guard: ตรวจสิทธิ์ทุก action (Accountant หรือ Admin เท่านั้น)
+    // =========================================================================
+    public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+        if (HttpContext.Session.GetString("UserLoggedIn") != "true")
+        {
+            context.Result = RedirectToAction("Login", "Account");
+            return;
+        }
+        var role = HttpContext.Session.GetString("UserRole") ?? "";
+        if (role != "Accountant" && role != "Admin")
+        {
+            context.Result = RedirectToAction("Index", "Home");
+        }
+    }
+
+    // =========================================================================
     // 1. ภาพรวมประจำวัน (Daily Overview)
     // =========================================================================
     public IActionResult Dashboard()

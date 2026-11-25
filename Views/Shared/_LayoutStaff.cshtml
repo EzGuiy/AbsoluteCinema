@@ -300,36 +300,20 @@
                 </a>
             </li>
 
-            <!-- Switch Role Links -->
+            <!-- Switch Role Links - ซ่อนไว้ ให้ใช้ Logout แทน -->
             <li style="margin-top:auto; padding-top:14px; border-top: 1px solid var(--border-subtle);">
-                <a asp-controller="Manager" asp-action="Index" class="staff-nav-link">
-                    <div class="staff-nav-left">
-                        <i class="bi bi-briefcase text-warning"></i>
-                        <span>ผู้จัดการ (Manager)</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a asp-controller="Operations" asp-action="Index" class="staff-nav-link">
-                    <div class="staff-nav-left">
-                        <i class="bi bi-speedometer2 text-success"></i>
-                        <span>ฝ่ายเทคนิค (Tech Ops)</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a asp-controller="Accountant" asp-action="Dashboard" class="staff-nav-link">
-                    <div class="staff-nav-left">
-                        <i class="bi bi-calculator text-danger"></i>
-                        <span>ฝ่ายบัญชี (Accountant)</span>
-                    </div>
-                </a>
-            </li>
-            <li>
                 <a asp-controller="Home" asp-action="Index" class="staff-nav-link">
                     <div class="staff-nav-left">
                         <i class="bi bi-house"></i>
                         <span>หน้าหลักโรงหนัง</span>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Account" asp-action="Logout" class="staff-nav-link" style="color:#e50914;">
+                    <div class="staff-nav-left">
+                        <i class="bi bi-box-arrow-right" style="color:#e50914;"></i>
+                        <span>ออกจากระบบ</span>
                     </div>
                 </a>
             </li>
@@ -351,7 +335,7 @@
                 <i class="bi bi-person-fill"></i>
             </div>
             <div class="user-text-box">
-                <div class="user-name-th">สมศรี รักบริการ</div>
+                <div class="user-name-th">@Context.Session.GetString("UserName")</div>
                 <div class="user-role-en">FLOOR STAFF</div>
             </div>
         </div>

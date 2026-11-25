@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Kawin_67091861_002")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+df6ca448092da8e2fe7db101b88dc22ef642c974")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Kawin_67091861_002")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Kawin_67091861_002")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

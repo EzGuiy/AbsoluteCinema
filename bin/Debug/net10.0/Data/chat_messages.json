@@ -214,5 +214,23 @@
     "MessageText": "\u0E01\u0E2B\u0E14\u0E01\u0E2B\u0E14\u0E2B\u0E40\u0E14",
     "IsMine": true,
     "CreatedAt": "2026-11-24T23:15:58.3994557+07:00"
+  },
+  {
+    "Id": 11,
+    "ChannelId": "group",
+    "SenderName": "GUIY \u0E01\u0E01\u0E01",
+    "TimeText": "09:57 \u0E19.",
+    "MessageText": "\u0E01\u0E14\u0E40\u0E2B\u0E40",
+    "IsMine": true,
+    "CreatedAt": "2026-11-25T09:57:04.8744408+07:00"
+  },
+  {
+    "Id": 12,
+    "ChannelId": "group",
+    "SenderName": "GUIY \u0E01\u0E01\u0E01",
+    "TimeText": "09:57 \u0E19.",
+    "MessageText": "\u0E44\u0E33\u0E40\u0E14\u0E44\u0E40",
+    "IsMine": true,
+    "CreatedAt": "2026-11-25T09:57:13.5391212+07:00"
   }
 ]

@@ -427,41 +427,22 @@
                 </a>
             </li>
 
-            <!-- Switch Roles -->
+            <!-- Back to Home & Logout -->
             <li class="nav-item" style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle);">
-                <a asp-controller="Manager" asp-action="Index" class="nav-link-item">
-                    <i class="bi bi-briefcase nav-icon text-warning"></i>
-                    <div class="nav-texts">
-                        <span class="nav-title-th">ผู้จัดการ (Manager)</span>
-                        <span class="nav-sub-en">MANAGER CONSOLE</span>
-                    </div>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a asp-controller="Staff" asp-action="Index" class="nav-link-item">
-                    <i class="bi bi-clipboard-check nav-icon text-info"></i>
-                    <div class="nav-texts">
-                        <span class="nav-title-th">พนักงานบริการ (Floor Staff)</span>
-                        <span class="nav-sub-en">FLOOR OPERATIONS</span>
-                    </div>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a asp-controller="Operations" asp-action="Index" class="nav-link-item">
-                    <i class="bi bi-speedometer2 nav-icon text-success"></i>
-                    <div class="nav-texts">
-                        <span class="nav-title-th">ฝ่ายเทคนิค (Tech Ops)</span>
-                        <span class="nav-sub-en">TECH OPERATIONS</span>
-                    </div>
-                </a>
-            </li>
-            <!-- Back to Cinema Home -->
-            <li class="nav-item">
                 <a asp-controller="Home" asp-action="Index" class="nav-link-item">
                     <i class="bi bi-arrow-left-circle nav-icon"></i>
                     <div class="nav-texts">
                         <span class="nav-title-th">กลับสู่หน้าโรงภาพยนตร์</span>
                         <span class="nav-sub-en">ABSOLUTE CINEMA HOME</span>
+                    </div>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Account" asp-action="Logout" class="nav-link-item">
+                    <i class="bi bi-box-arrow-right nav-icon text-danger"></i>
+                    <div class="nav-texts">
+                        <span class="nav-title-th">ออกจากระบบ</span>
+                        <span class="nav-sub-en">LOGOUT</span>
                     </div>
                 </a>
             </li>
@@ -473,7 +454,7 @@
                 <i class="bi bi-person-fill"></i>
             </div>
             <div class="user-text-box">
-                <span class="user-name-th">ณิชา พงษ์ศิริ</span>
+                <span class="user-name-th">@Context.Session.GetString("UserName")</span>
                 <span class="user-role-en">HEAD ACCOUNTANT</span>
             </div>
         </div>

@@ -32,6 +32,24 @@ public class ManagerController : Controller
     }
 
     // ==========================================
+    // Auth Guard: ตรวจสิทธิ์ทุก action (Manager หรือ Admin เท่านั้น)
+    // ==========================================
+    public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+        if (HttpContext.Session.GetString("UserLoggedIn") != "true")
+        {
+            context.Result = RedirectToAction("Login", "Account");
+            return;
+        }
+        var role = HttpContext.Session.GetString("UserRole") ?? "";
+        if (role != "Manager" && role != "Admin")
+        {
+            context.Result = RedirectToAction("Index", "Home");
+        }
+    }
+
+    // ==========================================
     // 0. Dashboard / ภาพรวม
     // ==========================================
     public IActionResult Index()
@@ -428,21 +446,50 @@ public class ManagerController : Controller
         CalculateUnreadBadges();
         var vm = new ManagerStaffViewModel();
 
-        string staffPath = Path.Combine(_env.ContentRootPath, "Data", "manager_staff.json");
-        if (System.IO.File.Exists(staffPath))
+        // ดึงข้อมูลพนักงานจริง 100% จาก MySQL (เฉพาะ role ที่ไม่ใช่ User)
+        try
         {
-            try
+            if (_db.Database.CanConnect())
             {
-                var json = System.IO.File.ReadAllText(staffPath);
-                var list = JsonSerializer.Deserialize<List<ManagerStaffRowDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (list != null)
+                var staffRoles = new[] { "Staff", "Manager", "Technician", "Accountant", "Admin" };
+                var staffUsers = _db.Users
+                    .Include(u => u.Role)
+                    .Where(u => u.Role != null && staffRoles.Contains(u.Role.RoleName))
+                    .ToList();
+
+                vm.StaffList = staffUsers.Select(u => new ManagerStaffRowDto
                 {
-                    vm.StaffList = list;
-                    vm.OnDutyCount = list.Count(s => s.Status.Contains("ปฏิบัติงาน"));
-                    vm.OnLeaveCount = list.Count(s => !s.Status.Contains("ปฏิบัติงาน"));
-                }
+                    Id = u.UserId,
+                    Name = u.FullName ?? u.Username,
+                    RoleTitle = u.Role?.RoleName switch
+                    {
+                        "Staff" => "พนักงานบริการ",
+                        "Manager" => "ผู้จัดการสาขา",
+                        "Technician" => "ช่างเทคนิค",
+                        "Accountant" => "ฝ่ายบัญชี",
+                        "Admin" => "ผู้ดูแลระบบ",
+                        _ => u.Role?.RoleName ?? "พนักงาน"
+                    },
+                    ShiftText = "เวรเช้า (08:00 - 16:00)",
+                    AccessLevel = u.Role?.RoleName switch
+                    {
+                        "Manager" => "ระดับบริหาร",
+                        "Admin" => "ระดับผู้ดูแล",
+                        "Technician" => "ช่างเทคนิค",
+                        _ => "ระดับเริ่มต้น"
+                    },
+                    Status = "ปฏิบัติงาน (On-duty)",
+                    StatusColor = "green"
+                }).ToList();
+
+                vm.OnDutyCount = vm.StaffList.Count;
+                vm.OnLeaveCount = 0;
             }
-            catch { }
+        }
+        catch
+        {
+            // Fallback: ถ้า DB ไม่ได้เชื่อมต่อให้แสดงรายการว่าง
+            vm.StaffList = new List<ManagerStaffRowDto>();
         }
 
         return View(vm);

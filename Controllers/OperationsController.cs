@@ -36,6 +36,24 @@ public class OperationsController : Controller
     }
 
     // =========================================================================
+    // Auth Guard: ตรวจสิทธิ์ทุก action (Technician หรือ Admin เท่านั้น)
+    // =========================================================================
+    public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+        if (HttpContext.Session.GetString("UserLoggedIn") != "true")
+        {
+            context.Result = RedirectToAction("Login", "Account");
+            return;
+        }
+        var role = HttpContext.Session.GetString("UserRole") ?? "";
+        if (role != "Technician" && role != "Admin")
+        {
+            context.Result = RedirectToAction("Index", "Home");
+        }
+    }
+
+    // =========================================================================
     // 1. ศูนย์ควบคุม (Dashboard Overview)
     // =========================================================================
     public IActionResult Index(string filter = "all")

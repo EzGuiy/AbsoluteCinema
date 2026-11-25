@@ -67,17 +67,17 @@ public class HomeController : Controller
                             PriceMin = m.PriceMin > 0 ? m.PriceMin : 200,
                             PriceMax = m.PriceMax > 0 ? m.PriceMax : 350,
                             Rating = m.Rating > 0 ? m.Rating : 8.5,
-                            AgeRating = "ความรุนแรงระดับ 18+",
-                            SpecialTag = "IMAX SPECIAL",
+                            AgeRating = m.MovieId == 1 ? "ความรุนแรงระดับ 2000+" : "ความรุนแรงระดับ 18+",
+                            SpecialTag = m.MovieId == 1 ? "IMAX SPECIAL" : "DIGITAL 4K",
                             PosterUrl = poster,
                             SeatsRemaining = Math.Max(5, totalSeats - bookedSeats),
                             Showtimes = todayShowtimes
                         };
                     }).ToList();
 
-                    model.FeaturedMovie = movieList.FirstOrDefault(m => m.Title.Contains("ตุ๊ดตู่") || m.Title.Contains("ซุส")) ?? movieList.OrderByDescending(m => m.Rating).FirstOrDefault();
+                    model.FeaturedMovie = movieList.FirstOrDefault(m => m.MovieId == 1 || m.Title.Contains("ตุ๊ดตู่") || m.Title.Contains("ซุส")) ?? movieList.OrderByDescending(m => m.Rating).FirstOrDefault();
                     model.PopularMovies = movieList.Where(m => m.MovieId != model.FeaturedMovie?.MovieId).Take(4).ToList();
-                    model.NowShowingMovies = movieList.Skip(1).Take(6).ToList();
+                    model.NowShowingMovies = movieList.Take(6).ToList();
                     model.IsFromDatabase = true;
                     loadedFromDb = true;
                 }
@@ -154,7 +154,7 @@ public class HomeController : Controller
                         });
                     }
 
-                    model.FeaturedMovie = items.FirstOrDefault(i => i.Title.Contains("ตุ๊ดตู่") || i.Title.Contains("ซุส")) ?? items.FirstOrDefault();
+                    model.FeaturedMovie = items.FirstOrDefault(i => i.MovieId == 1 || i.Title.Contains("ตุ๊ดตู่") || i.Title.Contains("ซุส")) ?? items.FirstOrDefault();
                     model.PopularMovies = items.Where(i => i.MovieId >= 2 && i.MovieId <= 5).ToList();
                     model.NowShowingMovies = items.Where(i => i.MovieId >= 6).ToList();
                     model.IsFromDatabase = false;
@@ -178,7 +178,7 @@ public class HomeController : Controller
             if (_db.Database.CanConnect())
             {
                 var dbMovies = _db.Movies
-                    .Where(m => m.Status == "Showing" && !m.Title.Contains("ตุ๊ดตู่"))
+                    .Where(m => m.Status == "Showing")
                     .ToList();
 
                 if (dbMovies.Any())
@@ -331,11 +331,17 @@ public class HomeController : Controller
     // =========================================================================
     // 1. Movie Detail Page (/Home/MovieDetail/{id})
     // =========================================================================
-    public IActionResult MovieDetail(int? id, string? date, int? showtimeId)
+   public IActionResult MovieDetail(int? id, string? date, int? showtimeId)
+{
+    // ถ้าส่ง showtimeId มาแต่ไม่ได้ส่ง id ให้ค้นหา MovieId จาก showtimeId ก่อน
+    if (!id.HasValue && showtimeId.HasValue)
     {
-        int movieId = id ?? 1;
-        var vm = new MovieDetailViewModel();
+        var st = _db.Showtimes.FirstOrDefault(s => s.ShowtimeId == showtimeId.Value);
+        if (st != null) id = st.MovieId;
+    }
 
+    int movieId = id ?? 1;
+    var vm = new MovieDetailViewModel();
         // 1. ค้นหาข้อมูลภาพยนตร์จาก Database หรือไฟล์ JSON สำรอง
         bool loaded = false;
         try
@@ -408,9 +414,13 @@ public class HomeController : Controller
         {
             vm.SelectedShowtimeId = showtimeId.Value;
         }
-        else
+        else if (validSlots.Any())
         {
             vm.SelectedShowtimeId = validSlots.FirstOrDefault()?.ShowtimeId;
+        }
+        else if (selectedDate.Date > DateTime.Today && allSlots.Any())
+        {
+            vm.SelectedShowtimeId = allSlots.FirstOrDefault()?.ShowtimeId;
         }
 
         foreach (var s in allSlots)
@@ -612,7 +622,7 @@ public class HomeController : Controller
                             PricePerSeat = price,
                             Slots = grp.OrderBy(s => s.StartTime).Select(s =>
                             {
-                                int booked = s.Bookings.Where(b => b.Status != "Cancelled").Sum(b => b.SeatCount);
+                                int booked = s.Bookings != null ? s.Bookings.Where(b => b.Status != "Cancelled").Sum(b => b.SeatCount) : 0;
                                 return new ShowtimeSlotViewModel
                                 {
                                     ShowtimeId = s.ShowtimeId,
@@ -682,15 +692,7 @@ public class HomeController : Controller
     // =========================================================================
     public IActionResult SelectSeat(int showtimeId, int? movieId, string? date = null)
     {
-        int mId = movieId ?? (showtimeId / 100);
-        if (mId <= 0) mId = 1;
-
-        if (HttpContext.Session.GetString("UserLoggedIn") != "true")
-        {
-            string returnUrl = Url.Action("SelectSeat", "Home", new { showtimeId = showtimeId, movieId = mId, date = date }) ?? "/";
-            TempData["AuthNotice"] = "กรุณาเข้าสู่ระบบสมาชิกก่อนดำเนินการเลือกที่นั่งชมภาพยนตร์";
-            return RedirectToAction("Login", "Account", new { returnUrl = returnUrl });
-        }
+        int mId = (movieId.HasValue && movieId.Value > 0) ? movieId.Value : 0;
 
         DateTime targetDate = DateTime.Today;
         if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out var pd))
@@ -708,9 +710,33 @@ public class HomeController : Controller
                     .Include(s => s.Movie)
                     .Include(s => s.Cinema)
                     .FirstOrDefault(s => s.ShowtimeId == showtimeId);
+
+                // ถ้าพบ showtime แต่ไม่ตรงกับ movieId ที่ส่งมา ให้หา showtime ของ movieId นั้นโดยตรง เพื่อไม่ให้เปลี่ยนไปเรื่องอื่น
+                if (mId > 0 && dbShowtime != null && dbShowtime.MovieId != mId)
+                {
+                    var correctSt = _db.Showtimes
+                        .Include(s => s.Movie)
+                        .Include(s => s.Cinema)
+                        .FirstOrDefault(s => s.MovieId == mId && s.StartTime >= targetDate);
+                    if (correctSt != null)
+                    {
+                        dbShowtime = correctSt;
+                        showtimeId = correctSt.ShowtimeId;
+                    }
+                }
             }
         }
         catch { }
+
+        if (mId <= 0 && dbShowtime != null) mId = dbShowtime.MovieId;
+        if (mId <= 0) mId = 1;
+
+        if (HttpContext.Session.GetString("UserLoggedIn") != "true")
+        {
+            string returnUrl = Url.Action("SelectSeat", "Home", new { showtimeId = showtimeId, movieId = mId, date = date }) ?? "/";
+            TempData["AuthNotice"] = "กรุณาเข้าสู่ระบบสมาชิกก่อนดำเนินการเลือกที่นั่งชมภาพยนตร์";
+            return RedirectToAction("Login", "Account", new { returnUrl = returnUrl });
+        }
 
         var vm = new SeatSelectionViewModel
         {
@@ -720,9 +746,9 @@ public class HomeController : Controller
 
         if (dbShowtime != null)
         {
-            mId = dbShowtime.MovieId;
+            if (mId <= 0) mId = dbShowtime.MovieId;
             targetDate = dbShowtime.StartTime.Date;
-            if (dbShowtime.StartTime < DateTime.Now)
+            if (targetDate == DateTime.Today && dbShowtime.StartTime < DateTime.Now)
             {
                 TempData["AuthNotice"] = "รอบฉายนี้ได้ผ่านเวลาไปแล้ว กรุณาเลือกรอบฉายใหม่";
                 return RedirectToAction("MovieDetail", "Home", new { id = mId, date = targetDate.ToString("yyyy-MM-dd") });
@@ -907,7 +933,18 @@ public class HomeController : Controller
             return RedirectToAction("SelectSeat", new { showtimeId = showtimeId, date = date });
         }
 
-        int mId = showtimeId / 100;
+        int mId = 0;
+        try
+        {
+            if (_db.Database.CanConnect())
+            {
+                var st = _db.Showtimes.FirstOrDefault(s => s.ShowtimeId == showtimeId);
+                if (st != null) mId = st.MovieId;
+            }
+        }
+        catch { }
+
+        if (mId <= 0) mId = showtimeId / 100;
         if (mId <= 0) mId = 1;
 
         DateTime targetDate = DateTime.Today;
@@ -1341,7 +1378,7 @@ public class HomeController : Controller
         title = title ?? "";
 
         // 1. ตรวจสอบชื่อเรื่องยอดนิยมหรือรูปที่มีการระบุในเครื่อง
-        if (title.Contains("ซุส")) return "/images/zeus.jpg";
+        if (title.Contains("ซุส") || title.Contains("ตุ๊ดตู่")) return "/images/zeus.jpg";
         if (title.Contains("โหน่ง") || title.Contains("เท่ง") || title.Contains("หม่ำ")) return "/images/tengmam.jpg";
         if (title.Contains("สายลับ") || title.Contains("บ๊อก")) return "/images/bokbok.jpg";
 

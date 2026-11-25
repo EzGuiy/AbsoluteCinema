@@ -6,5 +6,101 @@
     "Phone": "04544561565",
     "Role": "User",
     "CreatedAt": "2026-11-24 23:11:10"
+  },
+  {
+    "UserId": 0,
+    "Email": "admin",
+    "FullName": "\u0E1C\u0E39\u0E49\u0E14\u0E39\u0E41\u0E25\u0E23\u0E30\u0E1A\u0E1A\u0E2A\u0E32\u0E02\u0E32 (Admin)",
+    "Phone": "080-000-0001",
+    "Role": "Admin",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "admin@absolutecinema.com",
+    "FullName": "\u0E1C\u0E39\u0E49\u0E14\u0E39\u0E41\u0E25\u0E23\u0E30\u0E1A\u0E1A\u0E2A\u0E32\u0E02\u0E32 (Admin)",
+    "Phone": "080-000-0001",
+    "Role": "Admin",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "manager",
+    "FullName": "\u0E13\u0E31\u0E10\u0E0A\u0E32 \u0E27\u0E31\u0E12\u0E19\u0E32\u0E01\u0E38\u0E25 (\u0E1C\u0E39\u0E49\u0E08\u0E31\u0E14\u0E01\u0E32\u0E23\u0E2A\u0E32\u0E02\u0E32)",
+    "Phone": "080-000-0002",
+    "Role": "Manager",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "manager@absolutecinema.com",
+    "FullName": "\u0E13\u0E31\u0E10\u0E0A\u0E32 \u0E27\u0E31\u0E12\u0E19\u0E32\u0E01\u0E38\u0E25 (\u0E1C\u0E39\u0E49\u0E08\u0E31\u0E14\u0E01\u0E32\u0E23\u0E2A\u0E32\u0E02\u0E32)",
+    "Phone": "080-000-0002",
+    "Role": "Manager",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "staff",
+    "FullName": "\u0E2A\u0E21\u0E28\u0E23\u0E35 \u0E23\u0E31\u0E01\u0E1A\u0E23\u0E34\u0E01\u0E32\u0E23 (\u0E1E\u0E19\u0E31\u0E01\u0E07\u0E32\u0E19\u0E1A\u0E23\u0E34\u0E01\u0E32\u0E23)",
+    "Phone": "080-000-0003",
+    "Role": "Staff",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "staff@absolutecinema.com",
+    "FullName": "\u0E2A\u0E21\u0E28\u0E23\u0E35 \u0E23\u0E31\u0E01\u0E1A\u0E23\u0E34\u0E01\u0E32\u0E23 (\u0E1E\u0E19\u0E31\u0E01\u0E07\u0E32\u0E19\u0E1A\u0E23\u0E34\u0E01\u0E32\u0E23)",
+    "Phone": "080-000-0003",
+    "Role": "Staff",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "technician",
+    "FullName": "\u0E2D\u0E19\u0E38\u0E0A\u0E32 \u0E17\u0E19\u0E17\u0E32\u0E19 (\u0E0A\u0E48\u0E32\u0E07\u0E40\u0E17\u0E04\u0E19\u0E34\u0E04)",
+    "Phone": "080-000-0004",
+    "Role": "Technician",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "tech@absolutecinema.com",
+    "FullName": "\u0E2D\u0E19\u0E38\u0E0A\u0E32 \u0E17\u0E19\u0E17\u0E32\u0E19 (\u0E0A\u0E48\u0E32\u0E07\u0E40\u0E17\u0E04\u0E19\u0E34\u0E04)",
+    "Phone": "080-000-0004",
+    "Role": "Technician",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "accountant",
+    "FullName": "\u0E13\u0E34\u0E0A\u0E32 \u0E1E\u0E07\u0E29\u0E4C\u0E28\u0E34\u0E23\u0E34 (\u0E1D\u0E48\u0E32\u0E22\u0E1A\u0E31\u0E0D\u0E0A\u0E35)",
+    "Phone": "080-000-0005",
+    "Role": "Accountant",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "acct@absolutecinema.com",
+    "FullName": "\u0E13\u0E34\u0E0A\u0E32 \u0E1E\u0E07\u0E29\u0E4C\u0E28\u0E34\u0E23\u0E34 (\u0E1D\u0E48\u0E32\u0E22\u0E1A\u0E31\u0E0D\u0E0A\u0E35)",
+    "Phone": "080-000-0005",
+    "Role": "Accountant",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "member",
+    "FullName": "\u0E01\u0E34\u0E15\u0E15\u0E34\u0E1E\u0E07\u0E29\u0E4C \u0E2A\u0E38\u0E02\u0E43\u0E08 (\u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B)",
+    "Phone": "089-123-4567",
+    "Role": "User",
+    "CreatedAt": "2026-11-25 09:51:23"
+  },
+  {
+    "UserId": 0,
+    "Email": "member@absolutecinema.com",
+    "FullName": "\u0E01\u0E34\u0E15\u0E15\u0E34\u0E1E\u0E07\u0E29\u0E4C \u0E2A\u0E38\u0E02\u0E43\u0E08 (\u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B)",
+    "Phone": "089-123-4567",
+    "Role": "User",
+    "CreatedAt": "2026-11-25 09:51:23"
   }
 ]
