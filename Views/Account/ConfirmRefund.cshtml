@@ -1,0 +1,210 @@
+@model Kawin_67091861_002.ViewModels.RefundItemDto
+@{
+    ViewData["Title"] = "ยืนยันรับทราบการคืนเงิน - ABSOLUTE CINEMA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .confirm-refund-container {
+        max-width: 680px;
+        margin: 40px auto 80px;
+        padding: 0 20px;
+        font-family: 'Prompt', sans-serif;
+    }
+
+    .refund-card {
+        background: #14141e;
+        border: 1px solid rgba(223, 183, 108, 0.4);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .refund-header {
+        background: linear-gradient(180deg, #1d1d2c 0%, #12121b 100%);
+        border-bottom: 2px solid #dfb76c;
+        padding: 35px 24px 28px;
+        text-align: center;
+    }
+
+    .refund-crown {
+        font-size: 40px;
+        color: #dfb76c;
+        margin-bottom: 8px;
+        display: inline-block;
+        filter: drop-shadow(0 0 12px rgba(223, 183, 108, 0.5));
+    }
+
+    .refund-brand {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 2.5px;
+        color: #ffffff;
+        text-transform: uppercase;
+    }
+
+    .refund-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid #22c55e;
+        color: #4ade80;
+        font-size: 13.5px;
+        font-weight: 700;
+        padding: 6px 18px;
+        border-radius: 20px;
+        margin-top: 14px;
+    }
+
+    .refund-body {
+        padding: 30px 28px;
+    }
+
+    .refund-greeting {
+        font-size: 15px;
+        color: #e5e5ec;
+        line-height: 1.7;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+
+    .refund-details-box {
+        background: #191925;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 20px 22px;
+        margin-bottom: 26px;
+    }
+
+    .r-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 13.5px;
+    }
+
+    .r-row:last-child {
+        border-bottom: none;
+    }
+
+    .r-label {
+        color: #8c8c9e;
+    }
+
+    .r-val {
+        color: #ffffff;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .r-val-gold {
+        color: #dfb76c;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .refund-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-return-tickets {
+        background: #dfb76c;
+        color: #0b0b12;
+        font-weight: 700;
+        padding: 12px 28px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-return-tickets:hover {
+        background: #ecc57c;
+        color: #0b0b12;
+    }
+
+    .btn-return-home {
+        background: #252538;
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-return-home:hover {
+        background: #2e2e46;
+        color: #dfb76c;
+    }
+</style>
+
+<div class="confirm-refund-container">
+    <div class="refund-card">
+        <div class="refund-header">
+            <div class="refund-crown">👑</div>
+            <div class="refund-brand">ABSOLUTE CINEMA</div>
+            <div class="refund-status-pill">
+                <i class="fas fa-check-circle"></i> ยืนยันรับทราบการคืนเงินสำเร็จ (CONFIRMED)
+            </div>
+        </div>
+
+        <div class="refund-body">
+            <p class="refund-greeting">
+                เรียน คุณ<strong>@Model.CustomerName</strong>,<br />
+                ระบบได้รับการ<strong>ยืนยันรับทราบการคืนเงิน</strong>สำหรับคำขอรหัส <strong>@Model.RequestId</strong> เรียบร้อยแล้ว<br />
+                กระบวนการคืนเงินเสร็จสมบูรณ์ ยอดเงินได้รับการส่งคืนเข้าสู่ช่องทางชำระเงินของท่านแล้ว
+            </p>
+
+            <div class="refund-details-box">
+                <div class="r-row">
+                    <span class="r-label">รหัสคำขอคืนเงิน:</span>
+                    <span class="r-val font-monospace text-warning">@Model.RequestId</span>
+                </div>
+                <div class="r-row">
+                    <span class="r-label">รหัสอ้างอิงการจอง:</span>
+                    <span class="r-val font-monospace">@Model.BookingCode</span>
+                </div>
+                <div class="r-row">
+                    <span class="r-label">ภาพยนตร์:</span>
+                    <span class="r-val">@Model.MovieTitle</span>
+                </div>
+                <div class="r-row">
+                    <span class="r-label">โรงภาพยนตร์:</span>
+                    <span class="r-val">@Model.CinemaName</span>
+                </div>
+                <div class="r-row">
+                    <span class="r-label">รอบเวลาฉาย:</span>
+                    <span class="r-val">@Model.ShowtimeText</span>
+                </div>
+                <div class="r-row">
+                    <span class="r-label">ที่นั่ง:</span>
+                    <span class="r-val text-info">@Model.SeatNumbers</span>
+                </div>
+                <div class="r-row">
+                    <span class="r-label">ยอดเงินที่คืน:</span>
+                    <span class="r-val-gold">฿@Model.Amount.ToString("N2") (คืนเต็มจำนวน)</span>
+                </div>
+                <div class="r-row">
+                    <span class="r-label">ยืนยันเสร็จสิ้นเมื่อ:</span>
+                    <span class="r-val text-success">@(Model.ConfirmedAtText ?? DateTime.Now.ToString("dd/MM/yyyy HH:mm น."))</span>
+                </div>
+            </div>
+
+            <div class="refund-actions">
+                <a asp-controller="Account" asp-action="Tickets" class="btn-return-tickets">
+                    <i class="fas fa-ticket-alt me-1"></i> ดูตั๋วหนังของฉัน
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="btn-return-home">
+                    <i class="fas fa-home me-1"></i> กลับหน้าหลัก
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

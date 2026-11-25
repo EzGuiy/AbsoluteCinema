@@ -15,47 +15,9 @@
     </div>
 </div>
 
-<!-- 2-Column Chat Layout -->
+<!-- Single-Column Group Chat Layout -->
 <div class="chat-container-grid">
-    <!-- Left Panel: Channels & Direct Messages -->
-    <div class="chat-sidebar-panel">
-        <!-- Channels Section -->
-        <div class="chat-section-group">
-            <div class="chat-section-heading">CHANNELS</div>
-            <div class="channel-items-list">
-                @foreach (var ch in Model.Channels)
-                {
-                    <a href="@Url.Action("Chat", new { channel = ch.Id })" 
-                       class="channel-item @(ch.IsActive ? "active" : "")">
-                        <span class="channel-name"># @ch.Name</span>
-                        @if (ch.UnreadCount > 0)
-                        {
-                            <span class="badge-unread">@ch.UnreadCount</span>
-                        }
-                    </a>
-                }
-            </div>
-        </div>
-
-        <!-- Direct Messages Section -->
-        <div class="chat-section-group mt-4">
-            <div class="chat-section-heading">DIRECT MESSAGES</div>
-            <div class="dm-items-list">
-                @foreach (var dm in Model.DirectMessages)
-                {
-                    <div class="dm-contact-item" onclick="selectContact('@dm.Name')">
-                        <div class="dm-avatar-dot"></div>
-                        <div class="dm-info">
-                            <span class="dm-name">@dm.Name</span>
-                            <span class="dm-role">@dm.Role</span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Panel: Active Chat Viewport -->
+    <!-- Active Chat Viewport -->
     <div class="chat-main-viewport">
         <!-- Viewport Header -->
         <div class="viewport-header">
@@ -66,9 +28,6 @@
                 <button type="button" class="btn-action-icon" title="ค้นหาในแชท" onclick="promptSearchChat()">
                     <i class="bi bi-search"></i>
                 </button>
-                <button type="button" class="btn-action-icon" title="รายละเอียดห้องแชท" onclick="alert('ห้องแชททางการสำหรับประสานงานภายในองค์กร ABSOLUTE CINEMA')">
-                    <i class="bi bi-info-circle"></i>
-                </button>
             </div>
         </div>
 
@@ -76,7 +35,7 @@
         <div class="pinned-notice-banner">
             <i class="bi bi-pin-angle-fill pin-icon"></i>
             <div class="pinned-text">
-                <strong class="text-white">ปักหมุด :</strong> @Model.PinnedNotice
+                <strong class="text-white">ปักหมุด :</strong> แชททางการสำหรับประสานงานระหว่างฝ่ายต่างๆ ในสาขา
             </div>
         </div>
 
@@ -100,11 +59,11 @@
 
         <!-- Bottom Input Bar -->
         <div class="chat-input-bar">
-            <form method="post" asp-action="SendChatMessage" class="chat-form" id="chatForm">
+            <form method="post" asp-action="SendChatMessage" class="chat-form" id="acctChatForm">
                 <input type="hidden" name="channelId" value="@Model.ActiveChannelId" />
-                <input type="text" name="message" id="messageInput"
+                <input type="text" name="message" id="acctMessageInput"
                        class="chat-text-input" 
-                       placeholder="พิมพ์ข้อความถึง@(Model.ActiveChannelName.Split(' ')[0])..." 
+                       placeholder="พิมพ์ข้อความ..." 
                        autocomplete="off" required />
                 <button type="submit" class="btn-send-chat">
                     <span>ส่ง</span>
@@ -134,7 +93,7 @@
     /* Container Grid */
     .chat-container-grid {
         display: grid;
-        grid-template-columns: 290px 1fr;
+        grid-template-columns: 1fr;
         gap: 24px;
         margin-top: 24px;
         min-height: 640px;
@@ -441,18 +400,93 @@
     }
 </style>
 
+@{ var currentAcctUserName = Context.Session.GetString("UserName") ?? "ฝ่ายบัญชี"; }
 @section Scripts {
 <script>
-    // Scroll chat to bottom automatically
-    const stream = document.getElementById('messagesStream');
-    if (stream) {
-        stream.scrollTop = stream.scrollHeight;
-    }
+    (function () {
+        const stream = document.getElementById('messagesStream');
+        const form = document.getElementById('acctChatForm');
+        const input = document.getElementById('acctMessageInput');
+        const activeChannel = '@Model.ActiveChannelId';
+        const myName = '@Html.Raw(currentAcctUserName.Replace("'", "\\'"))';
 
-    function selectContact(name) {
-        document.getElementById('messageInput').placeholder = "พิมพ์ข้อความถึง " + name + "...";
-        document.getElementById('messageInput').focus();
-    }
+        function scrollToBottom() {
+            if (stream) stream.scrollTop = stream.scrollHeight;
+        }
+        scrollToBottom();
+
+        if (form) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const msgText = (input.value || '').trim();
+                if (!msgText) return;
+
+                const nowTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'chat-message-entry is-mine';
+                tempDiv.innerHTML = `
+                    <div class="msg-sender-row">
+                        <span class="msg-sender-name mine-name">${escapeHtml(myName)}</span>
+                        <span class="msg-timestamp">${nowTime}</span>
+                    </div>
+                    <div class="msg-bubble mine-bubble">${escapeHtml(msgText)}</div>
+                `;
+
+                stream.appendChild(tempDiv);
+                scrollToBottom();
+                input.value = '';
+
+                const fd = new FormData();
+                fd.append('channelId', activeChannel);
+                fd.append('message', msgText);
+                try {
+                    await fetch('/Accountant/SendMessageApi', { method: 'POST', body: fd });
+                } catch (err) { }
+            });
+        }
+
+        let lastMsgCount = @Model.Messages.Count;
+        setInterval(async function () {
+            try {
+                const res = await fetch(`/Accountant/GetMessagesApi?channel=${encodeURIComponent(activeChannel)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.messages) && data.messages.length !== lastMsgCount) {
+                    lastMsgCount = data.messages.length;
+                    renderMessages(data.messages);
+                }
+            } catch (err) { }
+        }, 2500);
+
+        function renderMessages(msgs) {
+            if (!stream) return;
+            if (!msgs.length) {
+                stream.innerHTML = '<div class="text-center py-5 text-muted">ยังไม่มีข้อความ</div>';
+                return;
+            }
+            let html = '';
+            msgs.forEach(m => {
+                const isMineClass = m.isMine ? 'is-mine' : '';
+                const nameClass = m.isMine ? 'mine-name' : '';
+                const bubbleClass = m.isMine ? 'mine-bubble' : '';
+                html += `
+                    <div class="chat-message-entry ${isMineClass}">
+                        <div class="msg-sender-row">
+                            <span class="msg-sender-name ${nameClass}">${escapeHtml(m.senderName)}</span>
+                            <span class="msg-timestamp">${escapeHtml(m.timeText)}</span>
+                        </div>
+                        <div class="msg-bubble ${bubbleClass}">${escapeHtml(m.messageText)}</div>
+                    </div>`;
+            });
+            stream.innerHTML = html;
+            scrollToBottom();
+        }
+
+        function escapeHtml(t) {
+            if (!t) return '';
+            return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+        }
+    })();
 
     function promptSearchChat() {
         const query = prompt("ค้นหาข้อความในห้องแชท:");

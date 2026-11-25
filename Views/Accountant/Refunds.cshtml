@@ -146,8 +146,23 @@
                 </div>
 
                 <div class="review-field-group">
+                    <span class="field-label">อีเมลสำหรับแจ้งผล</span>
+                    <span class="field-value text-info font-monospace">@(!string.IsNullOrEmpty(selected.CustomerEmail) ? selected.CustomerEmail : "member@absolutecinema.com")</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">เบอร์โทรศัพท์</span>
+                    <span class="field-value font-monospace">@(!string.IsNullOrEmpty(selected.CustomerPhone) ? selected.CustomerPhone : "-")</span>
+                </div>
+
+                <div class="review-field-group">
                     <span class="field-label">รหัสการจอง</span>
                     <span class="field-value highlight-bold">@selected.BookingCode</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">ที่นั่ง</span>
+                    <span class="field-value text-warning">@(!string.IsNullOrEmpty(selected.SeatNumbers) ? selected.SeatNumbers : "-")</span>
                 </div>
 
                 <div class="review-field-group">
@@ -168,6 +183,13 @@
                 <div class="review-field-group">
                     <span class="field-label">จำนวนเงินที่คืน</span>
                     <span class="field-value">@selected.RefundAmountText</span>
+                </div>
+
+                <div class="review-field-group">
+                    <span class="field-label">สถานะยืนยันของลูกค้า</span>
+                    <span class="field-value @(selected.IsConfirmedByCustomer ? "text-success" : "text-muted")">
+                        @(selected.IsConfirmedByCustomer ? "✓ ลูกค้ายืนยันรับทราบแล้ว" : "รอการกดยืนยันผ่านอีเมล")
+                    </span>
                 </div>
             </div>
 

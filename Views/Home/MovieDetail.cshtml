@@ -132,14 +132,20 @@
                             <div class="time-slots-container">
                                 @foreach (var slot in cinema.Slots)
                                 {
+                                    bool isPassed = slot.StartTime < DateTime.Now;
                                     <button type="button"
-                                            class="time-slot-btn @(slot.IsSelected ? "active" : "")"
+                                            class="time-slot-btn @(slot.IsSelected && !isPassed ? "active" : "") @(isPassed ? "slot-disabled" : "")"
                                             data-showtime-id="@slot.ShowtimeId"
                                             data-cinema-name="@cinema.CinemaName"
                                             data-time="@slot.TimeStr"
                                             data-price="@cinema.PricePerSeat"
-                                            onclick="selectShowtime(this)">
+                                            @(isPassed ? "disabled=\"disabled\"" : "onclick=\"selectShowtime(this)\"")
+                                            title="@(isPassed ? "รอบฉายนี้หมดเวลาแล้ว" : "")">
                                         <span class="slot-time">@slot.TimeStr</span>
+                                        @if (isPassed)
+                                        {
+                                            <span class="slot-passed-tag">หมดเวลา</span>
+                                        }
                                     </button>
                                 }
                             </div>
@@ -147,19 +153,45 @@
                     }
                 </div>
 
+                @{
+                    var activeSlot = Model.CinemaShowtimeGroups.SelectMany(g => g.Slots).FirstOrDefault(s => s.ShowtimeId == Model.SelectedShowtimeId);
+                    var activeCinema = Model.CinemaShowtimeGroups.FirstOrDefault(g => g.Slots.Any(s => s.ShowtimeId == Model.SelectedShowtimeId));
+                }
+
                 <!-- Selected Showtime Summary Bar & CTA Button -->
                 <div class="selected-showtime-bar">
                     <div class="bar-summary">
-                        <div class="bar-label">รอบที่เลือก:</div>
-                        <div class="bar-val-line">
-                            <span id="selectedCinemaTime" class="bar-name">Gold Class (Premium) - 15:00 น.</span>
-                            <span class="bar-divider">|</span>
-                            <span class="bar-price"><span id="selectedPriceDisplay">2,400</span> บาท / ที่นั่ง</span>
-                        </div>
+                        @if (activeSlot != null && activeCinema != null)
+                        {
+                            <div class="bar-label">รอบที่เลือก:</div>
+                            <div class="bar-val-line">
+                                <span id="selectedCinemaTime" class="bar-name">@activeCinema.CinemaName - @activeSlot.TimeStr น.</span>
+                                <span class="bar-divider">|</span>
+                                <span class="bar-price"><span id="selectedPriceDisplay">@activeCinema.PricePerSeat.ToString("N0")</span> บาท / ที่นั่ง</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="bar-label" style="color:#ff6b77;"><i class="bi bi-clock-history"></i> รอบฉายสำหรับวันนี้ผ่านเวลาไปแล้ว</div>
+                            <div class="bar-val-line">
+                                <span id="selectedCinemaTime" class="bar-name" style="color:#888;">กรุณาเลือกวันฉายถัดไปจากแท็บด้านบน</span>
+                                <span class="bar-divider" style="display:none;">|</span>
+                                <span class="bar-price" style="display:none;"><span id="selectedPriceDisplay">0</span> บาท / ที่นั่ง</span>
+                            </div>
+                        }
                     </div>
-                    <a id="btnProceedToSeat" href="@Url.Action("SelectSeat", "Home", new { showtimeId = Model.SelectedShowtimeId ?? 103, movieId = Model.MovieId })" class="btn-select-seat">
-                        เลือกที่นั่ง <i class="bi bi-arrow-right"></i>
-                    </a>
+                    @if (Model.SelectedShowtimeId.HasValue)
+                    {
+                        <a id="btnProceedToSeat" href="@Url.Action("SelectSeat", "Home", new { showtimeId = Model.SelectedShowtimeId.Value, movieId = Model.MovieId, date = Model.SelectedDateStr })" class="btn-select-seat">
+                            เลือกที่นั่ง <i class="bi bi-arrow-right"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button id="btnProceedToSeat" type="button" class="btn-select-seat" disabled style="opacity:0.4; cursor:not-allowed; background:#444; color:#999; box-shadow:none;">
+                            รอบหมดเวลา <i class="bi bi-slash-circle"></i>
+                        </button>
+                    }
                 </div>
             </div>
         </div>
@@ -659,6 +691,30 @@
         box-shadow: 0 6px 20px rgba(223, 183, 108, 0.5);
     }
 
+    .time-slot-btn.slot-disabled {
+        opacity: 0.35 !important;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+        background: #14141c !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        color: #777788 !important;
+    }
+
+    .time-slot-btn.slot-disabled .slot-time {
+        text-decoration: line-through;
+        color: #888899;
+    }
+
+    .slot-passed-tag {
+        display: block;
+        font-size: 9px;
+        color: #f87171;
+        margin-top: 2px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        line-height: 1;
+    }
+
     /* Responsive */
     @@media (max-width: 992px) {
         .detail-grid {
@@ -675,10 +731,12 @@
 </style>
 
 <script>
-    let currentShowtimeId = @(Model.SelectedShowtimeId ?? 103);
+    let currentShowtimeId = @(Model.SelectedShowtimeId.HasValue ? Model.SelectedShowtimeId.Value.ToString() : "null");
     const movieId = @Model.MovieId;
 
     function selectShowtime(btn) {
+        if (btn.classList.contains('slot-disabled') || btn.disabled) return;
+
         // Remove active class from all buttons
         document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -691,12 +749,30 @@
         currentShowtimeId = showtimeId;
 
         // Update summary bar
-        document.getElementById('selectedCinemaTime').innerText = cinemaName + ' - ' + timeStr + ' น.';
-        document.getElementById('selectedPriceDisplay').innerText = price;
+        const nameEl = document.getElementById('selectedCinemaTime');
+        if (nameEl) {
+            nameEl.innerText = cinemaName + ' - ' + timeStr + ' น.';
+            nameEl.style.color = '#ffffff';
+        }
+
+        const priceEl = document.getElementById('selectedPriceDisplay');
+        if (priceEl) {
+            priceEl.innerText = price;
+            priceEl.parentElement.style.display = 'inline';
+        }
 
         // Update proceed button link
         const btnProceed = document.getElementById('btnProceedToSeat');
-        btnProceed.href = '/Home/SelectSeat?showtimeId=' + showtimeId + '&movieId=' + movieId;
+        if (btnProceed) {
+            const selectedDate = '@Model.SelectedDateStr';
+            btnProceed.href = '/Home/SelectSeat?showtimeId=' + showtimeId + '&movieId=' + movieId + '&date=' + encodeURIComponent(selectedDate);
+            btnProceed.removeAttribute('disabled');
+            btnProceed.style.opacity = '1';
+            btnProceed.style.cursor = 'pointer';
+            btnProceed.style.background = '';
+            btnProceed.style.color = '';
+            btnProceed.innerHTML = 'เลือกที่นั่ง <i class="bi bi-arrow-right"></i>';
+        }
     }
 </script>
 

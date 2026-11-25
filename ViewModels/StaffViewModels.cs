@@ -25,9 +25,28 @@ public class StaffDashboardViewModel
     // Staff Shift & Checklist Tasks
     public List<StaffShiftTaskDto> ShiftTasks { get; set; } = new();
 
+    // รายการรหัสตั๋วและการจองล่าสุดของลูกค้าฝั่งพนักงาน
+    public List<StaffRecentBookingDto> RecentBookings { get; set; } = new();
+
     public string StaffName { get; set; } = "สมศรี รักบริการ";
     public string StaffRole { get; set; } = "พนักงานบริการลูกค้า (Floor Staff)";
     public string ShiftText { get; set; } = "กะปฏิบัติการ: 09:00 - 18:00 น.";
+}
+
+public class StaffRecentBookingDto
+{
+    public int BookingId { get; set; }
+    public string ReferenceCode { get; set; } = "";
+    public string MovieTitle { get; set; } = "";
+    public string CinemaName { get; set; } = "";
+    public string ShowtimeText { get; set; } = "";
+    public string SeatNumbers { get; set; } = "";
+    public int SeatCount { get; set; } = 1;
+    public string CustomerName { get; set; } = "";
+    public string CustomerPhone { get; set; } = "";
+    public decimal TotalAmount { get; set; }
+    public string Status { get; set; } = "Confirmed";
+    public string BookedAtText { get; set; } = "";
 }
 
 public class CinemaHallCardDto

@@ -31,12 +31,12 @@
             </div>
         }
 
-        <form method="post" asp-controller="Account" asp-action="Login">
+        <form method="post" asp-controller="Account" asp-action="Login" id="loginForm">
             <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
             <div class="form-group">
                 <label asp-for="Email">อีเมลหรือชื่อผู้ใช้งาน</label>
                 <div class="input-wrapper">
-                    <input asp-for="Email" id="email" placeholder="example@email.com" required />
+                    <input asp-for="Email" id="email" value="@Model.Email" placeholder="example@email.com" required />
                 </div>
                 <span asp-validation-for="Email" style="color: #ff6b6b; font-size: 13px; display: block; margin-top: 4px;"></span>
             </div>
@@ -44,7 +44,7 @@
             <div class="form-group">
                 <label asp-for="Password">รหัสผ่าน</label>
                 <div class="input-wrapper">
-                    <input asp-for="Password" type="password" id="password" placeholder="••••••••" required />
+                    <input asp-for="Password" type="password" id="password" value="@Model.Password" placeholder="••••••••" required />
                     <span class="input-icon" onclick="togglePassword('password', this)">
                         <i class="fas fa-eye"></i>
                     </span>
@@ -62,19 +62,6 @@
 
             <button type="submit" class="btn-submit">เข้าสู่ระบบ</button>
         </form>
-
-        <div class="auth-divider">
-            <span>หรือเข้าสู่ระบบด้วย</span>
-        </div>
-
-        <div class="social-buttons">
-            <a href="#" class="btn-social">
-                <i class="fab fa-google"></i> Google
-            </a>
-            <a href="#" class="btn-social">
-                <i class="fab fa-facebook-f"></i> Facebook
-            </a>
-        </div>
 
         <div class="auth-switch">
             ยังไม่มีบัญชี? <a asp-controller="Account" asp-action="Register">สมัครสมาชิก</a>
@@ -97,5 +84,42 @@
                 icon.classList.add('fa-eye');
             }
         }
+
+        // ระบบจดจำฉัน (Remember Me) ทำงานร่วมกันทั้ง Cookie และ LocalStorage ให้คงอยู่เสมอแม้กดออกจากระบบ
+        document.addEventListener('DOMContentLoaded', function () {
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const rememberMeCheckbox = document.getElementById('rememberMe');
+            const loginForm = document.getElementById('loginForm');
+
+            // 1. ตรวจสอบการจำข้อมูลจาก LocalStorage หากฟอร์มยังไม่ได้ค่าจาก Cookie
+            const savedRemember = localStorage.getItem('abs_cinema_remember_me');
+            if (savedRemember === 'true') {
+                rememberMeCheckbox.checked = true;
+                if (!emailInput.value) {
+                    const savedEmail = localStorage.getItem('abs_cinema_remember_email');
+                    if (savedEmail) emailInput.value = savedEmail;
+                }
+                if (!passwordInput.value) {
+                    const savedPass = localStorage.getItem('abs_cinema_remember_password');
+                    if (savedPass) passwordInput.value = savedPass;
+                }
+            }
+
+            // 2. บันทึกหรือลบข้อมูลเมื่อกดปุ่มเข้าสู่ระบบ
+            if (loginForm) {
+                loginForm.addEventListener('submit', function () {
+                    if (rememberMeCheckbox.checked) {
+                        localStorage.setItem('abs_cinema_remember_me', 'true');
+                        localStorage.setItem('abs_cinema_remember_email', emailInput.value || '');
+                        localStorage.setItem('abs_cinema_remember_password', passwordInput.value || '');
+                    } else {
+                        localStorage.removeItem('abs_cinema_remember_me');
+                        localStorage.removeItem('abs_cinema_remember_email');
+                        localStorage.removeItem('abs_cinema_remember_password');
+                    }
+                });
+            }
+        });
     </script>
 }

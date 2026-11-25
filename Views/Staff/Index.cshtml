@@ -167,6 +167,89 @@
     </div>
 </div>
 
+<!-- Real-time Ticket Records & Bookings Table -->
+<div class="staff-panel-box mt-4">
+    <div class="panel-header-split mb-3">
+        <div>
+            <h3 class="panel-section-title" style="color: #ffffff; font-size: 17px; font-weight: 700;">
+                <i class="bi bi-ticket-perforated-fill text-warning me-2"></i>
+                รายการรหัสตั๋วและบันทึกการจองภาพยนตร์ (Real-time Ticket Records)
+            </h3>
+            <span class="panel-head-sub" style="font-size: 12px; color: #8c8c9e;">
+                บันทึกรหัสอ้างอิงตั๋ว (Ticket ID), รอบฉาย, ชื่อลูกค้า, เบอร์โทรศัพท์ และที่นั่งสำหรับพนักงานตรวจสอบ
+            </span>
+        </div>
+        <span class="badge bg-primary" style="font-size: 11.5px; padding: 6px 12px; border-radius: 6px;">อัปเดตเรียลไทม์</span>
+    </div>
+
+    @if (Model.RecentBookings != null && Model.RecentBookings.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="font-size: 13px; background: transparent;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #8c8c9e;">
+                        <th>รหัสตั๋ว (TICKET ID)</th>
+                        <th>ภาพยนตร์ / โรง</th>
+                        <th>รอบฉาย</th>
+                        <th>ที่นั่ง</th>
+                        <th>ชื่อลูกค้า</th>
+                        <th>เบอร์โทรศัพท์</th>
+                        <th>ยอดชำระ</th>
+                        <th>สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.RecentBookings)
+                    {
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td>
+                                <span class="font-monospace fw-bold text-warning" style="letter-spacing: 0.5px;">@item.ReferenceCode</span>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-white">@item.MovieTitle</div>
+                                <div class="text-muted small">@item.CinemaName</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">@item.ShowtimeText</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-info">@item.SeatNumbers</span>
+                                <span class="text-muted small">(@item.SeatCount ที่นั่ง)</span>
+                            </td>
+                            <td class="text-white">@item.CustomerName</td>
+                            <td>
+                                <span class="font-monospace" style="color: #38bdf8;">@item.CustomerPhone</span>
+                            </td>
+                            <td class="fw-bold text-success">฿@item.TotalAmount.ToString("N0")</td>
+                            <td>
+                                @if (item.Status == "Cancelled")
+                                {
+                                    <span class="badge bg-danger">ยกเลิกแล้ว</span>
+                                }
+                                else if (item.Status == "รอดำเนินการคืนเงิน")
+                                {
+                                    <span class="badge bg-warning text-dark">รอดำเนินการคืนเงิน</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">ยืนยันการจองแล้ว</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-2 mb-2 d-block"></i>
+            ยังไม่มีรายการจองภาพยนตร์ในรอบนี้
+        </div>
+    }
+</div>
+
 <style>
     /* Header */
     .staff-top-header {

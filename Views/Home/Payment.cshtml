@@ -325,12 +325,61 @@
             </div>
 
             <!-- Barcode Visual -->
-            <div class="ticket-barcode-box">
-                <div class="barcode-lines">
-                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                </div>
+            <div class="ticket-barcode-box" style="background: #ffffff; padding: 12px 16px; border-radius: 8px; text-align: center;">
+                <svg class="ticket-barcode-svg" id="tBarcodeSvg" width="280" height="46" viewBox="0 0 280 46" preserveAspectRatio="none" style="width: 100%; max-width: 280px; height: 46px; display: block; margin: 0 auto;">
+                    <rect x="0" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="5" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="9" y="0" width="5" height="46" fill="#000000" />
+                    <rect x="16" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="20" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="26" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="30" y="0" width="6" height="46" fill="#000000" />
+                    <rect x="38" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="43" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="47" y="0" width="5" height="46" fill="#000000" />
+                    <rect x="54" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="58" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="64" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="69" y="0" width="6" height="46" fill="#000000" />
+                    <rect x="77" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="81" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="87" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="92" y="0" width="5" height="46" fill="#000000" />
+                    <rect x="99" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="103" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="109" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="113" y="0" width="6" height="46" fill="#000000" />
+                    <rect x="121" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="126" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="130" y="0" width="5" height="46" fill="#000000" />
+                    <rect x="137" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="142" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="148" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="152" y="0" width="6" height="46" fill="#000000" />
+                    <rect x="160" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="165" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="169" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="175" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="179" y="0" width="5" height="46" fill="#000000" />
+                    <rect x="186" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="191" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="195" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="201" y="0" width="6" height="46" fill="#000000" />
+                    <rect x="209" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="213" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="218" y="0" width="5" height="46" fill="#000000" />
+                    <rect x="225" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="229" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="235" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="240" y="0" width="6" height="46" fill="#000000" />
+                    <rect x="248" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="252" y="0" width="4" height="46" fill="#000000" />
+                    <rect x="258" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="262" y="0" width="5" height="46" fill="#000000" />
+                    <rect x="269" y="0" width="3" height="46" fill="#000000" />
+                    <rect x="274" y="0" width="2" height="46" fill="#000000" />
+                    <rect x="278" y="0" width="2" height="46" fill="#000000" />
+                </svg>
                 <div class="barcode-num" id="tBarcodeText">AC-67091861-@Model.ShowtimeId</div>
             </div>
         </div>
@@ -343,9 +392,6 @@
             <button type="button" class="btn-ticket-print" onclick="window.print()">
                 <i class="bi bi-printer"></i> พิมพ์ตั๋ว
             </button>
-            <a href="@Url.Action("ViewDatabase", "Seed")" class="btn-ticket-db" target="_blank">
-                <i class="bi bi-database-check"></i> ดูใน Database
-            </a>
             <a href="@Url.Action("Index", "Home")" class="btn-ticket-home">
                 <i class="bi bi-house"></i> หน้าหลัก
             </a>
@@ -1085,35 +1131,36 @@
     /* Barcode Visual */
     .ticket-barcode-box {
         text-align: center;
-        background: #ffffff;
+        background: #ffffff !important;
         padding: 14px 10px 8px;
         border-radius: 8px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
-    .barcode-lines {
-        display: flex;
-        justify-content: center;
-        gap: 4px;
-        height: 42px;
-        align-items: stretch;
-    }
-
-    .barcode-lines span {
-        background: #000;
-        width: 3px;
+    .ticket-barcode-svg {
+        width: 100%;
+        max-width: 260px;
+        height: 46px;
         display: block;
+        margin: 0 auto;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
-    .barcode-lines span:nth-child(even) { width: 5px; }
-    .barcode-lines span:nth-child(3n) { width: 2px; }
-    .barcode-lines span:nth-child(5n) { width: 6px; }
+    .ticket-barcode-svg rect {
+        fill: #000000 !important;
+    }
 
     .barcode-num {
-        color: #000;
+        color: #000000 !important;
         font-family: monospace;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         margin-top: 6px;
         letter-spacing: 2px;
+        font-weight: 700;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     /* Actions in modal */
@@ -1121,11 +1168,11 @@
         padding: 18px 24px 22px;
         background: #171726;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1.5fr 1fr 1fr;
         gap: 10px;
     }
 
-    .btn-ticket-print, .btn-ticket-db, .btn-ticket-home {
+    .btn-ticket-print, .btn-ticket-home {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1150,17 +1197,6 @@
         background: #ecc57c;
     }
 
-    .btn-ticket-db {
-        background: #252538;
-        color: #34d399;
-        border: 1px solid rgba(52, 211, 153, 0.3);
-    }
-
-    .btn-ticket-db:hover {
-        background: #2e2e46;
-        color: #fff;
-    }
-
     .btn-ticket-home {
         background: #252538;
         color: #ffffff;
@@ -1179,6 +1215,137 @@
         }
         .ticket-actions {
             grid-template-columns: 1fr;
+        }
+    }
+
+    /* Print Stylesheet (พิมพ์ตั๋วอย่างเดียว ซ่อนปุ่มด้านล่างทั้งหมด และแสดงบาร์โค้ดชัดเจน) */
+    @@media print {
+        html, body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+        }
+
+        /* ซ่อนส่วนที่ไม่ใช่ตัวตั๋วทั้งหมดโดยใช้ display: none (ไม่ใช้ visibility: hidden เพื่อไม่ให้บัง SVG บาร์โค้ด) */
+        nav, header, footer,
+        .cinema-navbar, .auth-navbar, .cinema-footer, .cinema-luxury-footer, .auth-footer,
+        .payment-page-container, .checkout-stepper, .payment-grid,
+        .ticket-actions, .ticket-actions *, .btn-ticket-print, .btn-ticket-home {
+            display: none !important;
+        }
+
+        .main-content {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+        }
+
+        /* ให้แสดงเฉพาะกล่องตั๋ว ticket-modal-content */
+        #ticketModal, .ticket-modal-overlay {
+            position: static !important;
+            display: block !important;
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .ticket-modal-content {
+            position: static !important;
+            box-shadow: none !important;
+            border: 2px solid #dfb76c !important;
+            border-radius: 12px !important;
+            max-width: 440px !important;
+            margin: 20px auto !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .ticket-gold-header {
+            background: #0d0d12 !important;
+            color: #dfb76c !important;
+            padding: 16px 22px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .th-brand .th-crown {
+            color: #dfb76c !important;
+        }
+
+        .cinema-ticket-card {
+            background: #ffffff !important;
+            color: #000000 !important;
+            padding: 24px 26px 20px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .t-movie-title {
+            color: #000000 !important;
+        }
+
+        .t-badge.gold {
+            background: rgba(223, 183, 108, 0.2) !important;
+            color: #8c6a23 !important;
+            border-color: #dfb76c !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .t-badge {
+            background: #eeeeee !important;
+            color: #333333 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .ti-item .ti-label {
+            color: #666666 !important;
+        }
+
+        .ti-item .ti-val {
+            color: #000000 !important;
+        }
+
+        .ti-item .ti-val.highlight-gold {
+            color: #8c6a23 !important;
+            font-size: 1.25rem !important;
+        }
+
+        .ticket-barcode-box {
+            background: #ffffff !important;
+            padding: 14px 10px 8px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .ticket-barcode-svg {
+            display: block !important;
+            width: 280px !important;
+            height: 46px !important;
+            margin: 0 auto !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .ticket-barcode-svg rect {
+            fill: #000000 !important;
+            stroke: none !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .barcode-num {
+            color: #000000 !important;
+            margin-top: 6px !important;
         }
     }
 </style>
@@ -1234,6 +1401,7 @@
         const payload = {
             showtimeId: showtimeId,
             movieId: movieId,
+            showtimeDate: '@Model.SelectedDateStr',
             selectedSeats: selectedSeatsStr,
             totalAmount: totalAmount,
             promoCode: promoCode,

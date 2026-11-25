@@ -8,51 +8,20 @@
 <div class="chat-header-bar">
     <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-            <h1 class="chat-main-title">แชตและศูนย์ติดต่อสื่อสารภายในทีม</h1>
+            <h1 class="chat-main-title">แชทและการสื่อสารภายในทีม</h1>
             <span class="live-status-pill">
                 <span class="pulse-dot"></span> LIVE
             </span>
         </div>
         <p class="chat-subtitle">
-            ประสานงานกับทีมงาน บันทึกอาการและประสานงานแก้ไขปัญหาแบบทันที
+            ห้องแชทกลุ่มรวมทุกแผนก (ผู้จัดการ, พนักงานบริการ, ช่างเทคนิค, บัญชี, แอดมิน)
         </p>
     </div>
 </div>
 
-<!-- Chat 2-Column Grid -->
+<!-- Single-Column Chat Grid -->
 <div class="chat-layout-grid mt-4">
-    <!-- Left Column: ห้องสนทนาทั้งหมด -->
-    <div class="chat-rooms-panel">
-        <h2 class="rooms-panel-title">ห้องสนทนาทั้งหมด</h2>
-
-        <div class="rooms-list-group mt-3">
-            @foreach (var room in Model.Rooms)
-            {
-                <a asp-action="TechChat" asp-route-channel="@room.Id" 
-                   class="room-item-link @(room.IsActive ? "active" : "")">
-                    <div class="room-avatar-green">
-                        <i class="bi bi-chat-square-text-fill"></i>
-                    </div>
-
-                    <div class="room-item-info">
-                        <div class="room-title-row">
-                            <span class="room-title-text">@room.Name</span>
-                            <span class="room-time-text">@room.LastMessageTime</span>
-                        </div>
-                        <div class="room-preview-row">
-                            <span class="room-preview-text text-truncate">@room.LastMessageText</span>
-                            @if (room.UnreadCount > 0)
-                            {
-                                <span class="room-unread-badge">@room.UnreadCount</span>
-                            }
-                        </div>
-                    </div>
-                </a>
-            }
-        </div>
-    </div>
-
-    <!-- Right Column: Chat Window -->
+    <!-- Chat Window -->
     <div class="chat-window-panel">
         <!-- Room Header -->
         <div class="chat-window-header">
@@ -114,10 +83,10 @@
 
         <!-- Chat Input Footer Form -->
         <div class="chat-input-footer">
-            <form asp-action="SendTechChatMessage" method="post" class="chat-send-form">
+            <form asp-action="SendTechChatMessage" method="post" class="chat-send-form" id="techChatForm">
                 <input type="hidden" name="channelId" value="@Model.ActiveRoomId" />
-                <input type="text" name="messageText" class="form-control chat-custom-input" 
-                       placeholder="พิมพ์ข้อความประสานงานทางเทคนิค..." autocomplete="off" required />
+                <input type="text" name="messageText" id="techChatInput" class="form-control chat-custom-input" 
+                       placeholder="พิมพ์ข้อความ..." autocomplete="off" required />
                 <button type="submit" class="btn-chat-send">
                     ส่งข้อความ
                 </button>
@@ -126,14 +95,101 @@
     </div>
 </div>
 
+@{ var currentTechUserName = Context.Session.GetString("UserName") ?? "ช่างเทคนิค"; }
 <script>
-    // Auto scroll chat to bottom
-    window.addEventListener('DOMContentLoaded', () => {
+    (function () {
         const container = document.getElementById('messagesContainer');
-        if (container) {
-            container.scrollTop = container.scrollHeight;
+        const form = document.getElementById('techChatForm');
+        const input = document.getElementById('techChatInput');
+        const activeChannel = '@Model.ActiveRoomId';
+        const myName = '@Html.Raw(currentTechUserName.Replace("'", "\\'"))';
+
+        function scrollToBottom() {
+            if (container) container.scrollTop = container.scrollHeight;
         }
-    });
+        scrollToBottom();
+
+        if (form) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const msgText = (input.value || '').trim();
+                if (!msgText) return;
+
+                const nowTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'chat-msg-row outgoing';
+                tempDiv.innerHTML = `
+                    <div class="msg-meta-info text-end">
+                        <span class="msg-sender-name">${escapeHtml(myName)}</span>
+                    </div>
+                    <div class="msg-bubble outgoing">${escapeHtml(msgText)}</div>
+                    <div class="msg-time-info text-end">${nowTime}</div>
+                `;
+
+                if (container.querySelector('.bi-chat-dots')) container.innerHTML = '';
+                container.appendChild(tempDiv);
+                scrollToBottom();
+                input.value = '';
+
+                const fd = new FormData();
+                fd.append('channelId', activeChannel);
+                fd.append('messageText', msgText);
+                try {
+                    await fetch('/Operations/SendMessageApi', { method: 'POST', body: fd });
+                } catch (err) { }
+            });
+        }
+
+        let lastMsgCount = @Model.Messages.Count;
+        setInterval(async function () {
+            try {
+                const res = await fetch(`/Operations/GetMessagesApi?channel=${encodeURIComponent(activeChannel)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.messages) && data.messages.length !== lastMsgCount) {
+                    lastMsgCount = data.messages.length;
+                    renderMessages(data.messages);
+                }
+            } catch (err) { }
+        }, 2500);
+
+        function renderMessages(msgs) {
+            if (!container) return;
+            if (!msgs.length) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary"></i>ยังไม่มีข้อความ</div>';
+                return;
+            }
+            let html = '';
+            msgs.forEach(m => {
+                if (m.isMine) {
+                    html += `
+                        <div class="chat-msg-row outgoing">
+                            <div class="msg-meta-info text-end">
+                                <span class="msg-sender-name">${escapeHtml(m.senderName)}</span>
+                            </div>
+                            <div class="msg-bubble outgoing">${escapeHtml(m.messageText)}</div>
+                            <div class="msg-time-info text-end">${escapeHtml(m.timeText)}</div>
+                        </div>`;
+                } else {
+                    html += `
+                        <div class="chat-msg-row incoming">
+                            <div class="msg-meta-info">
+                                <span class="msg-sender-name">${escapeHtml(m.senderName)}</span>
+                            </div>
+                            <div class="msg-bubble incoming">${escapeHtml(m.messageText)}</div>
+                            <div class="msg-time-info">${escapeHtml(m.timeText)}</div>
+                        </div>`;
+                }
+            });
+            container.innerHTML = html;
+            scrollToBottom();
+        }
+
+        function escapeHtml(t) {
+            if (!t) return '';
+            return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+        }
+    })();
 </script>
 
 <style>
@@ -179,10 +235,10 @@
         box-shadow: 0 0 6px #10b981;
     }
 
-    /* 2-Column Grid */
+    /* Single-Column Grid */
     .chat-layout-grid {
         display: grid;
-        grid-template-columns: 360px 1fr;
+        grid-template-columns: 1fr;
         gap: 20px;
         height: calc(100vh - 190px);
         min-height: 580px;

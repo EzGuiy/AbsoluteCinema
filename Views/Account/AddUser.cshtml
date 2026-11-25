@@ -15,6 +15,15 @@
             <div class="subtitle">เพิ่มผู้ใช้งานใหม่</div>
         </div>
 
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 16px;">
+            <a asp-controller="Account" asp-action="UserList" class="btn-login-nav" style="padding: 6px 14px; font-size: 12px;">
+                <i class="fas fa-list"></i> รายชื่อผู้ใช้
+            </a>
+            <a asp-controller="Account" asp-action="AdminChat" class="btn-register-nav" style="padding: 6px 14px; font-size: 12px; background: rgba(212, 168, 67, 0.2); border: 1px solid var(--gold); color: var(--gold);">
+                <i class="fas fa-comments"></i> แชททีมงาน (Admin Chat)
+            </a>
+        </div>
+
         @if (ViewBag.Error != null)
         {
             <div class="auth-error">
@@ -68,18 +77,30 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="role">ตำแหน่ง / บทบาท (จาก DB)</label>
-                <div class="input-wrapper">
-                    <select id="role" name="role" style="width: 100%; height: 48px; background: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0 16px; font-size: 14px; color: #f0f0f0; font-family: 'Prompt', sans-serif; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; transition: all 0.3s ease;">
-                        @foreach (var r in roles)
-                        {
-                            <option value="@r.RoleName" style="background: #1a1a1a;">@r.RoleName</option>
-                        }
-                    </select>
-                    <span class="input-icon">
-                        <i class="fas fa-chevron-down"></i>
-                    </span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="role">สิทธิ์ / บทบาท (Role)</label>
+                    <div class="input-wrapper">
+                        <select id="role" name="role" style="width: 100%; height: 48px; background: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0 16px; font-size: 14px; color: #f0f0f0; font-family: 'Prompt', sans-serif; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; transition: all 0.3s ease;">
+                            @foreach (var r in roles)
+                            {
+                                <option value="@r.RoleName" style="background: #1a1a1a;">@r.RoleName</option>
+                            }
+                        </select>
+                        <span class="input-icon">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="position">ตำแหน่งงาน (ระบุในวงเล็บ)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="position" name="position" placeholder="เช่น พนักงานบริการ, หัวหน้ากะ" />
+                        <span class="input-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </span>
+                    </div>
                 </div>
             </div>
 

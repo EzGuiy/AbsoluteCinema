@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Kawin_67091861_002.Models;
 using Kawin_67091861_002.ViewModels;
+using Kawin_67091861_002.Helpers;
 
 namespace Kawin_67091861_002.Controllers;
 
@@ -38,7 +39,16 @@ public class AccountController : Controller
             return RedirectToAction("Index", "Home");
         }
         ViewBag.ReturnUrl = returnUrl;
-        return View(new LoginViewModel());
+
+        var vm = new LoginViewModel();
+        if (Request.Cookies["RememberMe"] == "true")
+        {
+            vm.Email = Request.Cookies["RememberEmail"] ?? "";
+            vm.Password = Request.Cookies["RememberPassword"] ?? "";
+            vm.RememberMe = true;
+        }
+
+        return View(vm);
     }
 
     // ==========================================
@@ -55,37 +65,112 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // ประมวลผล: ค้นหาผู้ใช้จาก DB ด้วย Username หรือ Email
-        var user = _db.Users
-            .Include(u => u.Role)
-            .FirstOrDefault(u => u.Username == model.Email);
+        // เตรียมข้อมูลเริ่มต้นใน DB และค้นหาผู้ใช้จาก DB ด้วย Username/Email
+        DbInitializer.Initialize(_db, _env.ContentRootPath);
 
-        if (user == null)
+        string inputLower = (model.Email ?? "").Trim().ToLowerInvariant();
+        User? user = null;
+        bool dbConnected = false;
+        try
         {
-            ViewBag.Error = "ไม่พบบัญชีผู้ใช้นี้ในระบบ";
+            if (_db.Database.CanConnect())
+            {
+                dbConnected = true;
+                user = _db.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefault(u => u.Username.ToLower() == inputLower);
+            }
+        }
+        catch { }
+
+        // Fallback เฉพาะกรณีที่ฐานข้อมูล MySQL ยังไม่ได้เชื่อมต่อเท่านั้น
+        if (user == null && !dbConnected)
+        {
+            if (model.Password == "password123")
+            {
+                user = inputLower switch
+                {
+                    "manager" or "manager@absolutecinema.com" => new User { UserId = 2, Username = "manager", FullName = "ณัฐชา วัฒนากุล (ผู้จัดการสาขา)", PasswordHash = "password123", Role = new Role { RoleName = "Manager" } },
+                    "staff" or "staff@absolutecinema.com" => new User { UserId = 3, Username = "staff", FullName = "สมศรี รักบริการ (พนักงานบริการ)", PasswordHash = "password123", Role = new Role { RoleName = "Staff" } },
+                    "technician" or "tech@absolutecinema.com" => new User { UserId = 4, Username = "technician", FullName = "อนุชา ทนทาน (ช่างเทคนิค)", PasswordHash = "password123", Role = new Role { RoleName = "Technician" } },
+                    "accountant" or "acct@absolutecinema.com" => new User { UserId = 5, Username = "accountant", FullName = "ณิชา พงษ์ศิริ (ฝ่ายบัญชี)", PasswordHash = "password123", Role = new Role { RoleName = "Accountant" } },
+                    "admin" or "admin@absolutecinema.com" => new User { UserId = 1, Username = "admin", FullName = "ผู้ดูแลระบบสาขา (Admin)", PasswordHash = "password123", Role = new Role { RoleName = "Admin" } },
+                    "member" or "member@absolutecinema.com" => new User { UserId = 6, Username = "member", FullName = "กิตติพงษ์ สุขใจ (สมาชิกทั่วไป)", PasswordHash = "password123", Role = new Role { RoleName = "User" } },
+                    _ => null
+                };
+            }
+        }
+
+        if (user == null || user.PasswordHash != model.Password)
+        {
+            ViewBag.Error = "อีเมล/ชื่อผู้ใช้ หรือรหัสผ่านไม่ถูกต้อง";
             return View(model);
         }
 
-        // ตรวจสอบรหัสผ่าน (เปรียบเทียบตรงๆ เพราะ DB เก็บ PasswordHash แบบ plain)
-        if (user.PasswordHash != model.Password)
+        // กำหนดบทบาทและตำแหน่งงาน
+        string roleName = user.Role?.RoleName ?? "User";
+        string positionTitle = roleName switch
         {
-            ViewBag.Error = "รหัสผ่านไม่ถูกต้อง";
-            return View(model);
+            "Staff" => "พนักงานบริการ",
+            "Manager" => "ผู้จัดการสาขา",
+            "Technician" => "ช่างเทคนิค",
+            "Accountant" => "ฝ่ายบัญชี",
+            "Admin" => "ผู้ดูแลระบบ",
+            _ => ""
+        };
+
+        // จัดรูปแบบชื่อพนักงานให้มี (ตำแหน่งงาน) กำกับไว้ด้วยเสมอ
+        string displayName = user.FullName ?? user.Username;
+        if (!string.IsNullOrEmpty(positionTitle) && !displayName.Contains("(") && !displayName.Contains(positionTitle))
+        {
+            displayName = $"{displayName} ({positionTitle})";
+        }
+
+        // จัดการคุกกี้สำหรับ "จดจำฉัน" (Remember Me)
+        if (model.RememberMe)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddDays(30),
+                HttpOnly = false,
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax
+            };
+            Response.Cookies.Append("RememberEmail", model.Email ?? "", cookieOptions);
+            Response.Cookies.Append("RememberPassword", model.Password ?? "", cookieOptions);
+            Response.Cookies.Append("RememberMe", "true", cookieOptions);
+        }
+        else
+        {
+            Response.Cookies.Delete("RememberEmail");
+            Response.Cookies.Delete("RememberPassword");
+            Response.Cookies.Delete("RememberMe");
         }
 
         // ล็อกอินสำเร็จ - บันทึก Session
         HttpContext.Session.SetString("UserLoggedIn", "true");
         HttpContext.Session.SetString("UserEmail", user.Username);
-        HttpContext.Session.SetString("UserName", user.FullName);
+        HttpContext.Session.SetString("UserName", displayName);
         HttpContext.Session.SetString("UserId", user.UserId.ToString());
-        HttpContext.Session.SetString("UserRole", user.Role?.RoleName ?? "User");
+        HttpContext.Session.SetString("UserRole", roleName);
+        string userPhone = UserProfileHelper.GetPhone(user.Username, user.UserId);
+        HttpContext.Session.SetString("UserPhone", userPhone);
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
         {
             return Redirect(returnUrl);
         }
 
-        return RedirectToAction("Index", "Home");
+        // นำทางตามบทบาทของพนักงานโดยอัตโนมัติ
+        return roleName switch
+        {
+            "Staff" => RedirectToAction("Index", "Staff"),
+            "Manager" => RedirectToAction("Index", "Manager"),
+            "Technician" => RedirectToAction("Index", "Operations"),
+            "Accountant" => RedirectToAction("Index", "Accountant"),
+            "Admin" => RedirectToAction("UserList", "Account"),
+            _ => RedirectToAction("Index", "Home")
+        };
     }
 
     // ==========================================
@@ -145,12 +230,16 @@ public class AccountController : Controller
             _db.Users.Add(newUser);
             _db.SaveChanges();
 
+            // บันทึกเบอร์โทรศัพท์ลง UserProfileHelper
+            UserProfileHelper.SaveOrUpdate(_env.ContentRootPath, newUser.UserId, newUser.Username, newUser.FullName, model.Phone, role.RoleName);
+
             // บันทึก Session เข้าสู่ระบบทันที
             HttpContext.Session.SetString("UserLoggedIn", "true");
             HttpContext.Session.SetString("UserEmail", newUser.Username);
             HttpContext.Session.SetString("UserName", $"{model.FirstName} {model.LastName}".Trim());
             HttpContext.Session.SetString("UserId", newUser.UserId.ToString());
             HttpContext.Session.SetString("UserRole", role.RoleName);
+            HttpContext.Session.SetString("UserPhone", model.Phone ?? "");
 
             return RedirectToAction("Index", "Home");
         }
@@ -176,7 +265,7 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult AddUser()
     {
-        ViewBag.Roles = _db.Roles.ToList();
+        ViewBag.Roles = GetSafeRolesList();
         return View();
     }
 
@@ -186,9 +275,9 @@ public class AccountController : Controller
     [HttpPost]
     public IActionResult AddUser(string firstName, string lastName, string email,
         string phone, string role, string password, string confirmPassword,
-        string birthDate, string address)
+        string birthDate, string address, string? position = null)
     {
-        ViewBag.Roles = _db.Roles.ToList();
+        ViewBag.Roles = GetSafeRolesList();
 
         // ตรวจสอบข้อมูลที่จำเป็น
         if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) ||
@@ -204,32 +293,49 @@ public class AccountController : Controller
             return View();
         }
 
-        // ตรวจสอบ Username ซ้ำ
-        if (_db.Users.Any(u => u.Username == email))
-        {
-            ViewBag.Error = $"อีเมล '{email}' ถูกใช้งานแล้ว";
-            return View();
-        }
-
-        // หา Role ที่เลือก
-        var userRole = _db.Roles.FirstOrDefault(r => r.RoleName == role);
-        if (userRole == null)
-        {
-            userRole = _db.Roles.FirstOrDefault() ?? new Role { RoleName = "User" };
-            if (userRole.RoleId == 0)
-            {
-                _db.Roles.Add(userRole);
-                _db.SaveChanges();
-            }
-        }
-
         try
         {
+            // ตรวจสอบ Username ซ้ำใน DB
+            if (_db.Database.CanConnect() && _db.Users.Any(u => u.Username == email))
+            {
+                ViewBag.Error = $"อีเมล '{email}' ถูกใช้งานแล้ว";
+                return View();
+            }
+
+            // หา Role ที่เลือก
+            var userRole = _db.Roles.FirstOrDefault(r => r.RoleName == role);
+            if (userRole == null)
+            {
+                userRole = _db.Roles.FirstOrDefault() ?? new Role { RoleName = role ?? "User" };
+                if (userRole.RoleId == 0)
+                {
+                    _db.Roles.Add(userRole);
+                    _db.SaveChanges();
+                }
+            }
+
+            // กำหนดชื่อตำแหน่งงานสำหรับพนักงาน
+            string posTitle = !string.IsNullOrWhiteSpace(position) ? position.Trim() : role switch
+            {
+                "Staff" => "พนักงานบริการ",
+                "Technician" => "ช่างเทคนิค",
+                "Accountant" => "ฝ่ายบัญชี",
+                "Manager" => "ผู้จัดการสาขา",
+                "Admin" => "ผู้ดูแลระบบ",
+                _ => ""
+            };
+
+            string fullDisplayName = $"{firstName} {lastName}".Trim();
+            if (!string.IsNullOrEmpty(posTitle) && !fullDisplayName.Contains($"({posTitle})"))
+            {
+                fullDisplayName = $"{fullDisplayName} ({posTitle})";
+            }
+
             var newUser = new User
             {
                 Username = email,
                 PasswordHash = password,
-                FullName = $"{firstName} {lastName}".Trim(),
+                FullName = fullDisplayName,
                 RoleId = userRole.RoleId,
                 CreatedAt = DateTime.Now
             };
@@ -237,7 +343,38 @@ public class AccountController : Controller
             _db.Users.Add(newUser);
             _db.SaveChanges();
 
-            ViewBag.Success = $"เพิ่มผู้ใช้ {firstName} {lastName} สำเร็จแล้ว!";
+            // บันทึกเบอร์โทรศัพท์ลง UserProfileHelper
+            UserProfileHelper.SaveOrUpdate(_env.ContentRootPath, newUser.UserId, newUser.Username, fullDisplayName, phone, role);
+
+            // หากเป็นพนักงาน ให้ซิงค์ลงใน Data/manager_staff.json ด้วย
+            if (role != "User")
+            {
+                try
+                {
+                    var staffPath = Path.Combine(_env.ContentRootPath, "Data", "manager_staff.json");
+                    List<ManagerStaffRowDto> staffList = new();
+                    if (System.IO.File.Exists(staffPath))
+                    {
+                        var json = System.IO.File.ReadAllText(staffPath);
+                        staffList = JsonSerializer.Deserialize<List<ManagerStaffRowDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                    }
+                    int nextStaffId = staffList.Any() ? staffList.Max(s => s.Id) + 1 : 1;
+                    staffList.Add(new ManagerStaffRowDto
+                    {
+                        Id = nextStaffId,
+                        Name = $"{firstName} {lastName}".Trim(),
+                        RoleTitle = string.IsNullOrEmpty(posTitle) ? role : posTitle,
+                        ShiftText = "เวรเช้า (08:00 - 16:00)",
+                        AccessLevel = role switch { "Manager" => "ระดับบริหาร", "Admin" => "ระดับผู้ดูแล", "Technician" => "ช่างเทคนิค", _ => "ระดับเริ่มต้น" },
+                        Status = "ปฏิบัติงาน (On-duty)",
+                        StatusColor = "green"
+                    });
+                    System.IO.File.WriteAllText(staffPath, JsonSerializer.Serialize(staffList, new JsonSerializerOptions { WriteIndented = true }));
+                }
+                catch { }
+            }
+
+            ViewBag.Success = $"เพิ่มพนักงาน/ผู้ใช้ {fullDisplayName} สำเร็จแล้ว!";
             return View();
         }
         catch (Exception ex)
@@ -247,9 +384,34 @@ public class AccountController : Controller
         }
     }
 
+    private List<Role> GetSafeRolesList()
+    {
+        try
+        {
+            if (_db.Database.CanConnect())
+            {
+                var rList = _db.Roles.ToList();
+                if (rList.Any()) return rList;
+            }
+        }
+        catch { }
+
+        return new List<Role>
+        {
+            new() { RoleId = 1, RoleName = "Admin" },
+            new() { RoleId = 2, RoleName = "User" },
+            new() { RoleId = 3, RoleName = "Accountant" },
+            new() { RoleId = 4, RoleName = "Technician" },
+            new() { RoleId = 5, RoleName = "Manager" },
+            new() { RoleId = 6, RoleName = "Staff" }
+        };
+    }
+
     // ==========================================
     // CRUD: READ - ส่วนแสดงผล (Display) แสดงรายชื่อผู้ใช้ทั้งหมดจาก DB
     // ==========================================
+    public IActionResult Users() => UserList();
+
     public IActionResult UserList()
     {
         var users = _db.Users
@@ -418,13 +580,23 @@ public class AccountController : Controller
         string userName = HttpContext.Session.GetString("UserName") ?? "คุณลูกค้า Absolute Cinema";
         string userEmail = HttpContext.Session.GetString("UserEmail") ?? "member@absolutecinema.com";
 
+        string userPhone = HttpContext.Session.GetString("UserPhone") ?? "";
+        if (string.IsNullOrEmpty(userPhone))
+        {
+            userPhone = UserProfileHelper.GetPhone(userEmail, userId);
+        }
+        if (string.IsNullOrEmpty(userPhone))
+        {
+            userPhone = "ยังไม่ได้ระบุเบอร์โทรศัพท์";
+        }
+
         var vm = new UserProfileViewModel
         {
             UserId = userId,
             Username = userEmail,
             FullName = userName,
             Email = userEmail,
-            Phone = "093-363-2239",
+            Phone = userPhone,
             RoleName = HttpContext.Session.GetString("UserRole") ?? "สมาชิกทั่วไป (Member)",
             MemberTier = "Absolute Gold Member",
             CreatedAt = DateTime.Now.AddMonths(-6),
@@ -449,23 +621,32 @@ public class AccountController : Controller
                 HallTier = "VIP / Dolby Atmos",
                 DateDisplayTh = b.ShowtimeDateText,
                 TimeDisplayTh = b.ShowtimeTimeText,
+                ShowtimeStartTime = b.ShowtimeStartTime,
                 SeatNumbers = b.SeatNumbers,
                 SeatCount = b.SeatCount,
                 TotalAmount = b.TotalAmount,
                 PaymentMethod = b.PaymentMethod,
                 Status = b.Status,
                 BarcodeCode = $"*AC{b.BookingId:D6}*",
-                CanCancel = true,
+                CanCancel = b.CanCancel,
+                CancelDisallowReason = b.CancelDisallowReason,
                 BookedAt = b.BookedAt
             }).ToList();
 
-        // 3. ประวัติภาพยนตร์ที่ดูแล้ว
-        vm.WatchedHistory = new List<WatchedMovieItemDto>
-        {
-            new() { MovieTitle = "Dune: Part Two", PosterUrl = "", WatchedDateText = "12 พ.ย. 2026", CinemaHall = "โรง 1 (IMAX Laser)", Seats = "G7, G8 (VIP ด้านหลัง)", Genre = "Sci-Fi / Adventure", Rating = 9.5, ReviewComment = "ภาพสวยตระการตาและระบบเสียงกระหึ่มสมบูรณ์แบบมาก" },
-            new() { MovieTitle = "Furiosa: A Mad Max Saga", PosterUrl = "", WatchedDateText = "28 ต.ค. 2026", CinemaHall = "โรง 2 (4DX Extreme)", Seats = "H5, H6 (VIP ด้านหลัง)", Genre = "Action", Rating = 9.0, ReviewComment = "ความมันส์ระดับ 10/10 เอฟเฟกต์ 4DX สมจริงสุดๆ" },
-            new() { MovieTitle = "หลานม่า (How to Make Millions)", PosterUrl = "", WatchedDateText = "15 ต.ค. 2026", CinemaHall = "โรง 3 (Gold Class)", Seats = "G11, G12 (VIP ด้านหลัง)", Genre = "Drama", Rating = 9.8, ReviewComment = "กินใจและอบอุ่นมาก เป็นหนังไทยที่ดีที่สุดของปี" }
-        };
+        // 3. ประวัติภาพยนตร์ที่ดูแล้ว (คำนวณจากตั๋วที่รอบฉายผ่านไปแล้วจริงเท่านั้น ไม่ใช้ข้อมูลจำลอง)
+        vm.WatchedHistory = vm.BookingHistory
+            .Where(b => b.Status == "Confirmed" && b.ShowtimeStartTime.HasValue && b.ShowtimeStartTime.Value < DateTime.Now)
+            .Select(b => new WatchedMovieItemDto
+            {
+                MovieTitle = b.MovieTitle,
+                PosterUrl = b.PosterUrl ?? "",
+                WatchedDateText = b.ShowtimeDateText,
+                CinemaHall = b.CinemaName,
+                Seats = b.SeatNumbers,
+                Genre = "ภาพยนตร์",
+                Rating = 9.5,
+                ReviewComment = "ชมภาพยนตร์ในโรงภาพยนตร์เรียบร้อยแล้ว"
+            }).ToList();
 
         return View(vm);
     }
@@ -497,13 +678,15 @@ public class AccountController : Controller
                 HallTier = "VIP / Dolby Atmos",
                 DateDisplayTh = b.ShowtimeDateText,
                 TimeDisplayTh = b.ShowtimeTimeText,
+                ShowtimeStartTime = b.ShowtimeStartTime,
                 SeatNumbers = b.SeatNumbers,
                 SeatCount = b.SeatCount,
                 TotalAmount = b.TotalAmount,
                 PaymentMethod = b.PaymentMethod,
                 Status = b.Status,
                 BarcodeCode = $"*AC{b.BookingId:D6}*",
-                CanCancel = true,
+                CanCancel = b.CanCancel,
+                CancelDisallowReason = b.CancelDisallowReason,
                 BookedAt = b.BookedAt
             }).ToList();
 
@@ -524,30 +707,42 @@ public class AccountController : Controller
 
         try
         {
-            string movieTitle = "ภาพยนตร์";
-            decimal amount = 0;
-            string customerName = HttpContext.Session.GetString("UserName") ?? "ลูกค้า";
+            int userId = int.TryParse(HttpContext.Session.GetString("UserId"), out int uid) ? uid : 1;
+            string userName = HttpContext.Session.GetString("UserName") ?? "ลูกค้า";
+            string userEmail = HttpContext.Session.GetString("UserEmail") ?? "";
 
+            // ตรวจสอบข้อมูลการจองของลูกค้ารายนี้
+            var bookings = GetUserBookings(userId, userName);
+            var target = bookings.FirstOrDefault(b => b.BookingId == bookingId);
+
+            string movieTitle = target?.MovieTitle ?? "ภาพยนตร์";
+            decimal amount = target?.TotalAmount ?? 0m;
+            string refCode = target?.ReferenceCode ?? $"AC-{bookingId:D6}";
+            string cinemaName = target?.CinemaName ?? "Gold Class";
+            string showtimeDate = target?.ShowtimeDateText ?? DateTime.Today.ToString("dd/MM/yyyy");
+            string showtimeTime = target?.ShowtimeTimeText ?? "15:00 น.";
+            string seatNumbers = target?.SeatNumbers ?? "";
+            DateTime showtimeStart = target?.ShowtimeStartTime ?? DateTime.Today.AddHours(15);
+            string customerPhone = HttpContext.Session.GetString("UserPhone") ?? UserProfileHelper.GetPhone(userEmail, userId);
+
+            // กฎเหล็ก: ต้องยกเลิกก่อนเวลาหนังเริ่ม 5 ชั่วโมงขึ้นไปเท่านั้น
+            TimeSpan diff = showtimeStart - DateTime.Now;
+            if (diff < TimeSpan.FromHours(5))
+            {
+                TempData["Error"] = $"ไม่สามารถยกเลิกตั๋วได้ เนื่องจากเหลือน้อยกว่า 5 ชั่วโมงก่อนเวลาเริ่มฉาย (เหลือเวลา {Math.Max(0, (int)diff.TotalHours)} ชั่วโมง {Math.Max(0, diff.Minutes)} นาที - เงื่อนไขต้องยกเลิกก่อนเวลาฉายอย่างน้อย 5 ชั่วโมงขึ้นไป)";
+                return RedirectToAction("Tickets");
+            }
+
+            // ถ้าทัน (>= 5 ชม.): ปรับสถานะเป็น "รอดำเนินการคืนเงิน" และส่งเรื่องเข้าสู่ระบบพนักงานบัญชี
             // 1. อัปเดตใน MySQL
             try
             {
                 if (_db.Database.CanConnect())
                 {
-                    var booking = _db.Bookings
-                        .Include(b => b.Payments)
-                        .Include(b => b.Showtime).ThenInclude(s => s.Movie)
-                        .FirstOrDefault(b => b.BookingId == bookingId);
-
+                    var booking = _db.Bookings.FirstOrDefault(b => b.BookingId == bookingId);
                     if (booking != null)
                     {
-                        booking.Status = "Cancelled";
-                        movieTitle = booking.Showtime?.Movie?.Title ?? movieTitle;
-                        amount = booking.TotalAmount ?? 0m;
-
-                        foreach (var p in booking.Payments)
-                        {
-                            p.IsRefunded = true;
-                        }
+                        booking.Status = "รอดำเนินการคืนเงิน";
                         _db.SaveChanges();
                     }
                 }
@@ -569,14 +764,9 @@ public class AccountController : Controller
                         foreach (var item in doc.RootElement.EnumerateArray())
                         {
                             var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(item.GetRawText()) ?? new();
-                            if (dict.TryGetValue("BookingId", out var bIdObj))
+                            if (dict.TryGetValue("BookingId", out var bIdObj) && int.TryParse(bIdObj.ToString(), out int bId) && bId == bookingId)
                             {
-                                if (int.TryParse(bIdObj.ToString(), out int bId) && bId == bookingId)
-                                {
-                                    dict["Status"] = "Cancelled";
-                                    if (dict.TryGetValue("MovieTitle", out var mt)) movieTitle = mt.ToString() ?? movieTitle;
-                                    if (dict.TryGetValue("TotalAmount", out var ta) && decimal.TryParse(ta.ToString(), out decimal dAmt)) amount = dAmt;
-                                }
+                                dict["Status"] = "รอดำเนินการคืนเงิน";
                             }
                             updatedList.Add(dict);
                         }
@@ -586,40 +776,41 @@ public class AccountController : Controller
             }
             catch { }
 
-            // 3. บันทึกเข้า Data/refunds.json
+            // 3. ส่งคำขอเข้าสู่ระบบพนักงานบัญชี (Data/refunds.json) พร้อมข้อมูลครบถ้วน
             try
             {
                 var refundsPath = Path.Combine(_env.ContentRootPath, "Data", "refunds.json");
-                var refunds = new List<Dictionary<string, object>>();
+                var refunds = new List<RefundItemDto>();
                 if (System.IO.File.Exists(refundsPath))
                 {
                     var rJson = System.IO.File.ReadAllText(refundsPath);
-                    using var rDoc = JsonDocument.Parse(rJson);
-                    if (rDoc.RootElement.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var el in rDoc.RootElement.EnumerateArray())
-                        {
-                            var d = JsonSerializer.Deserialize<Dictionary<string, object>>(el.GetRawText());
-                            if (d != null) refunds.Add(d);
-                        }
-                    }
+                    refunds = JsonSerializer.Deserialize<List<RefundItemDto>>(rJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
                 }
-                int nextRefId = refunds.Count + 1;
-                refunds.Insert(0, new Dictionary<string, object>
+
+                string reqId = $"REF-{DateTime.Now:yyMMdd}-{new Random().Next(1000, 9999)}";
+                refunds.Insert(0, new RefundItemDto
                 {
-                    ["RefundId"] = nextRefId,
-                    ["BookingId"] = bookingId,
-                    ["CustomerName"] = customerName,
-                    ["Amount"] = amount,
-                    ["Reason"] = $"ลูกค้ายกเลิกตั๋วชมเรื่อง '{movieTitle}' ผ่านระบบออนไลน์",
-                    ["Status"] = "Approved",
-                    ["CreatedAt"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    RequestId = reqId,
+                    CustomerName = userName,
+                    CustomerEmail = !string.IsNullOrEmpty(userEmail) ? userEmail : "member@absolutecinema.com",
+                    CustomerPhone = !string.IsNullOrEmpty(customerPhone) ? customerPhone : "081-xxx-xxxx",
+                    MovieTitle = movieTitle,
+                    CinemaName = cinemaName,
+                    SeatNumbers = seatNumbers,
+                    Amount = amount,
+                    Status = "รอดำเนินการ",
+                    BookingCode = refCode,
+                    ShowtimeText = $"{showtimeDate} {showtimeTime}",
+                    CancellationTimeText = $"{DateTime.Now:dd/MM/yyyy HH:mm น.} (ก่อนฉาย {(int)diff.TotalHours} ชั่วโมง)",
+                    RefundAmountText = $"{amount:N2} บาท (คืนเต็มจำนวน)",
+                    IsConfirmedByCustomer = false
                 });
+
                 System.IO.File.WriteAllText(refundsPath, JsonSerializer.Serialize(refunds, new JsonSerializerOptions { WriteIndented = true }));
             }
             catch { }
 
-            TempData["Success"] = $"ยกเลิกตั๋วชมภาพยนตร์ #{bookingId} สำเร็จแล้ว! ระบบได้ดำเนินการคืนเงินจำนวน ฿{amount:N0} และปลดล็อคที่นั่งคืนสู่ระบบทันที";
+            TempData["Success"] = $"ส่งคำขอยกเลิกตั๋วสำหรับรหัส {refCode} (เรื่อง {movieTitle}) เข้าสู่ระบบพนักงานบัญชีเรียบร้อยแล้ว เมื่อฝ่ายบัญชีตรวจสอบความถูกต้องและกดยืนยันอนุมัติ ระบบจะส่งอีเมลแจ้งผลพร้อมปุ่มยืนยันไปยัง '{userEmail}'";
         }
         catch (Exception ex)
         {
@@ -627,6 +818,56 @@ public class AccountController : Controller
         }
 
         return RedirectToAction("Tickets");
+    }
+
+    // ==========================================
+    // CONFIRM REFUND (/Account/ConfirmRefund)
+    // ==========================================
+    [HttpGet]
+    public IActionResult ConfirmRefund(string? requestId)
+    {
+        if (string.IsNullOrEmpty(requestId))
+        {
+            TempData["Error"] = "ไม่พบรหัสคำขอคืนเงิน";
+            return RedirectToAction("Tickets");
+        }
+
+        RefundItemDto? refundItem = null;
+        try
+        {
+            var refundsPath = Path.Combine(_env.ContentRootPath, "Data", "refunds.json");
+            if (System.IO.File.Exists(refundsPath))
+            {
+                var rJson = System.IO.File.ReadAllText(refundsPath);
+                var list = JsonSerializer.Deserialize<List<RefundItemDto>>(rJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                refundItem = list.FirstOrDefault(r => string.Equals(r.RequestId, requestId, StringComparison.OrdinalIgnoreCase));
+                if (refundItem != null)
+                {
+                    refundItem.IsConfirmedByCustomer = true;
+                    refundItem.ConfirmedAtText = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss น.");
+                    System.IO.File.WriteAllText(refundsPath, JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true }));
+                }
+            }
+        }
+        catch { }
+
+        if (refundItem == null)
+        {
+            refundItem = new RefundItemDto
+            {
+                RequestId = requestId,
+                CustomerName = HttpContext.Session.GetString("UserName") ?? "คุณลูกค้า Absolute Cinema",
+                MovieTitle = "ภาพยนตร์ที่ทำรายการคืนเงิน",
+                CinemaName = "Gold Class",
+                SeatNumbers = "-",
+                Amount = 0,
+                Status = "อนุมัติแล้ว",
+                IsConfirmedByCustomer = true,
+                ConfirmedAtText = DateTime.Now.ToString("dd/MM/yyyy HH:mm น.")
+            };
+        }
+
+        return View(refundItem);
     }
 
     // ==========================================
@@ -647,17 +888,20 @@ public class AccountController : Controller
     {
         var list = new List<UserBookingHistoryItemDto>();
         var seenIds = new HashSet<int>();
+        string userEmail = HttpContext.Session.GetString("UserEmail") ?? "";
 
-        // 1. ดึงจาก MySQL
+        bool dbLoaded = false;
+        // 1. ดึงจาก MySQL 100%
         try
         {
             if (_db.Database.CanConnect())
             {
+                dbLoaded = true;
                 var dbBookings = _db.Bookings
                     .Include(b => b.Payments)
                     .Include(b => b.Showtime).ThenInclude(s => s.Movie)
                     .Include(b => b.Showtime).ThenInclude(s => s.Cinema)
-                    .Where(b => b.UserId == userId || (b.User != null && b.User.FullName == userName))
+                    .Where(b => b.UserId == userId)
                     .OrderByDescending(b => b.BookedAt)
                     .ToList();
 
@@ -665,6 +909,24 @@ public class AccountController : Controller
                 {
                     seenIds.Add(b.BookingId);
                     var pay = b.Payments.FirstOrDefault();
+                    DateTime stStart = b.Showtime != null ? b.Showtime.StartTime : DateTime.Today.AddHours(15);
+                    TimeSpan diff = stStart - DateTime.Now;
+                    string status = b.Status ?? "Confirmed";
+                    bool canCancel = (diff >= TimeSpan.FromHours(5)) && status != "Cancelled" && status != "รอดำเนินการคืนเงิน";
+                    string? disallowReason = null;
+                    if (status == "Cancelled")
+                    {
+                        disallowReason = "ตั๋วนี้ถูกยกเลิกแล้ว";
+                    }
+                    else if (status == "รอดำเนินการคืนเงิน")
+                    {
+                        disallowReason = "อยู่ระหว่างการพิจารณาคืนเงินโดยฝ่ายบัญชี";
+                    }
+                    else if (diff < TimeSpan.FromHours(5))
+                    {
+                        disallowReason = $"ไม่สามารถยกเลิกได้ (เหลือน้อยกว่า 5 ชม. ก่อนเริ่มฉาย - เหลือ {Math.Max(0, (int)diff.TotalHours)} ชม. {Math.Max(0, diff.Minutes)} นาที)";
+                    }
+
                     list.Add(new UserBookingHistoryItemDto
                     {
                         BookingId = b.BookingId,
@@ -675,22 +937,26 @@ public class AccountController : Controller
                         CinemaName = b.Showtime?.Cinema?.CinemaName ?? "Gold Class (Cinema 2)",
                         ShowtimeDateText = b.Showtime != null ? b.Showtime.StartTime.ToString("dd/MM/yyyy") : DateTime.Today.ToString("dd/MM/yyyy"),
                         ShowtimeTimeText = b.Showtime != null ? b.Showtime.StartTime.ToString("HH:mm น.") : "15:00 น.",
+                        ShowtimeStartTime = stStart,
                         SeatNumbers = b.SeatNumbers ?? "G7, G8",
                         SeatCount = b.SeatCount,
                         TotalAmount = b.TotalAmount ?? 0m,
                         PaymentMethod = "พร้อมเพย์ (PromptPay)",
-                        Status = b.Status ?? "Confirmed",
+                        Status = status,
                         BookedAt = b.BookedAt ?? DateTime.Now,
-                        CanCancel = b.Status != "Cancelled"
+                        CanCancel = canCancel,
+                        CancelDisallowReason = disallowReason
                     });
                 }
             }
         }
         catch { }
 
-        // 2. ดึงจาก Data/bookings.json เสริม
-        try
+        // 2. ดึงจาก Data/bookings.json เฉพาะกรณีที่ฐานข้อมูล MySQL ไม่ได้เชื่อมต่อ
+        if (!dbLoaded)
         {
+            try
+            {
             var path = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
             if (System.IO.File.Exists(path))
             {
@@ -705,36 +971,75 @@ public class AccountController : Controller
 
                         int bUid = item.TryGetProperty("UserId", out var uProp) ? uProp.GetInt32() : 0;
                         string custName = item.TryGetProperty("CustomerName", out var cn) ? cn.GetString() ?? "" : "";
+                        string custEmail = item.TryGetProperty("CustomerEmail", out var ce) ? ce.GetString() ?? "" : "";
 
-                        // จับคู่กับ user ปัจจุบัน หรือแสดงการจองล่าสุดถ้าเป็น guest
-                        if (bUid == userId || custName.Contains(userName) || bUid == 0 || userId == 1)
+                        // จับคู่กับ user ปัจจุบันอย่างแม่นยำ (ไม่เหมาบวม guest/uid=1)
+                        bool matchesUser = (bUid > 0 && bUid == userId) ||
+                                           (!string.IsNullOrEmpty(custEmail) && custEmail.Equals(userEmail, StringComparison.OrdinalIgnoreCase)) ||
+                                           (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(custName) && custName.Contains(userName));
+
+                        if (matchesUser)
                         {
                             string refCode = item.TryGetProperty("ReferenceCode", out var rc) ? rc.GetString() ?? "" : $"AC-{bId:D6}";
                             string invNo = item.TryGetProperty("TaxInvoiceNo", out var inv) ? inv.GetString() ?? "" : $"INV-{bId:D5}";
                             string status = item.TryGetProperty("Status", out var st) ? st.GetString() ?? "Confirmed" : "Confirmed";
-                            string movieTitle = item.TryGetProperty("MovieTitle", out var mt) ? mt.GetString() ?? "" : "Dune: Part Two";
-                            string seatNums = item.TryGetProperty("SeatNumbers", out var sn) ? sn.GetString() ?? "" : "G7, G8";
-                            int seatCount = item.TryGetProperty("SeatCount", out var sc) ? sc.GetInt32() : 2;
-                            decimal totalAmt = item.TryGetProperty("TotalAmount", out var ta) ? ta.GetDecimal() : 2800;
+                            string movieTitle = item.TryGetProperty("MovieTitle", out var mt) ? mt.GetString() ?? "" : "ภาพยนตร์";
+                            string? posterUrl = item.TryGetProperty("PosterUrl", out var pu) ? pu.GetString() : null;
+                            string cinemaName = item.TryGetProperty("CinemaName", out var cnm) ? cnm.GetString() ?? "Gold Class (Cinema 2)" : "Gold Class (Cinema 2)";
+                            string showDate = item.TryGetProperty("ShowtimeDateText", out var sdt) ? sdt.GetString() ?? DateTime.Today.ToString("dd/MM/yyyy") : DateTime.Today.ToString("dd/MM/yyyy");
+                            string showTime = item.TryGetProperty("ShowtimeTimeText", out var stt) ? stt.GetString() ?? "15:00 น." : "15:00 น.";
+                            string seatNums = item.TryGetProperty("SeatNumbers", out var sn) ? sn.GetString() ?? "" : "";
+                            int seatCount = item.TryGetProperty("SeatCount", out var sc) ? sc.GetInt32() : 1;
+                            decimal totalAmt = item.TryGetProperty("TotalAmount", out var ta) ? ta.GetDecimal() : 0;
                             string payMethod = item.TryGetProperty("PaymentMethod", out var pm) ? pm.GetString() ?? "PromptPay" : "PromptPay";
+
+                            DateTime stStart = DateTime.Today.AddHours(15);
+                            if (item.TryGetProperty("ShowtimeStartTime", out var sst) && DateTime.TryParse(sst.GetString(), out var parsedSst))
+                            {
+                                stStart = parsedSst;
+                            }
+
+                            TimeSpan diff = stStart - DateTime.Now;
+                            bool canCancel = (diff >= TimeSpan.FromHours(5)) && status != "Cancelled" && status != "รอดำเนินการคืนเงิน";
+                            string? disallowReason = null;
+                            if (status == "Cancelled")
+                            {
+                                disallowReason = "ตั๋วนี้ถูกยกเลิกแล้ว";
+                            }
+                            else if (status == "รอดำเนินการคืนเงิน")
+                            {
+                                disallowReason = "อยู่ระหว่างการพิจารณาคืนเงินโดยฝ่ายบัญชี";
+                            }
+                            else if (diff < TimeSpan.FromHours(5))
+                            {
+                                disallowReason = $"ไม่สามารถยกเลิกได้ (เหลือน้อยกว่า 5 ชม. ก่อนเริ่มฉาย - เหลือ {Math.Max(0, (int)diff.TotalHours)} ชม. {Math.Max(0, diff.Minutes)} นาที)";
+                            }
+
+                            DateTime bookedAt = DateTime.Now;
+                            if (item.TryGetProperty("BookedAt", out var bat) && DateTime.TryParse(bat.GetString(), out var parsedBat))
+                            {
+                                bookedAt = parsedBat;
+                            }
 
                             list.Add(new UserBookingHistoryItemDto
                             {
                                 BookingId = bId > 0 ? bId : 1001,
                                 ReferenceCode = refCode,
                                 TaxInvoiceNo = invNo,
-                                MovieTitle = string.IsNullOrWhiteSpace(movieTitle) ? "Dune: Part Two" : movieTitle,
-                                PosterUrl = null,
-                                CinemaName = "Gold Class (Cinema 2)",
-                                ShowtimeDateText = DateTime.Today.ToString("dd/MM/yyyy"),
-                                ShowtimeTimeText = "15:00 น.",
+                                MovieTitle = movieTitle,
+                                PosterUrl = posterUrl,
+                                CinemaName = cinemaName,
+                                ShowtimeDateText = showDate,
+                                ShowtimeTimeText = showTime,
+                                ShowtimeStartTime = stStart,
                                 SeatNumbers = seatNums,
                                 SeatCount = seatCount,
                                 TotalAmount = totalAmt,
-                                PaymentMethod = payMethod == "CreditCard" ? "บัตรเครดิต/เดบิต" : "พร้อมเพย์ (093-363-2239)",
+                                PaymentMethod = payMethod == "CreditCard" ? "บัตรเครดิต/เดบิต" : "พร้อมเพย์ (PromptPay)",
                                 Status = status,
-                                BookedAt = DateTime.Now,
-                                CanCancel = status != "Cancelled"
+                                BookedAt = bookedAt,
+                                CanCancel = canCancel,
+                                CancelDisallowReason = disallowReason
                             });
                             seenIds.Add(bId);
                         }
@@ -743,29 +1048,78 @@ public class AccountController : Controller
             }
         }
         catch { }
-
-        // ถ้ายังไม่มีประวัติเลย ให้มีตัวอย่างรายการล่าสุดให้เห็นทันที
-        if (!list.Any())
-        {
-            list.Add(new UserBookingHistoryItemDto
-            {
-                BookingId = 8901,
-                ReferenceCode = "AC-261121-8901",
-                TaxInvoiceNo = "INV-261121-10045",
-                MovieTitle = "Dune: Part Two",
-                CinemaName = "Gold Class Theater 2",
-                ShowtimeDateText = DateTime.Today.ToString("dd/MM/yyyy"),
-                ShowtimeTimeText = "19:00 น.",
-                SeatNumbers = "G7, G8 (VIP ด้านหลัง)",
-                SeatCount = 2,
-                TotalAmount = 3600,
-                PaymentMethod = "พร้อมเพย์ (PromptPay)",
-                Status = "Confirmed",
-                BookedAt = DateTime.Now.AddHours(-1),
-                CanCancel = true
-            });
         }
 
+        // คืนค่ารายการจริงของผู้ใช้เท่านั้น (ไม่มีการใส่ข้อมูลหลอก Dune: Part Two เมื่อเป็นไอดีใหม่)
         return list;
+    }
+
+    // ==========================================
+    // 7. แชทของแอดมิน (Admin Chat: แชทกลุ่มรวมทุกแผนก)
+    // ==========================================
+    [HttpGet]
+    public IActionResult AdminChat(string channel = "group")
+    {
+        string activeRoom = "group";
+        var rooms = ChatHelper.GetAdminRooms(_db, _env, activeRoom, HttpContext);
+
+        HttpContext.Session.SetString("AdminChat_Seen_group", "true");
+        var activeRoomDto = rooms.First();
+
+        string adminName = HttpContext.Session.GetString("UserName") ?? "ผู้ดูแลระบบสาขา (Admin)";
+        int adminId = ChatHelper.GetCurrentUserId(HttpContext, "Admin");
+        var messages = ChatHelper.GetMessagesForChannel(_db, _env, activeRoom, "Admin", adminName, adminId);
+
+        var vm = new ManagerChatViewModel
+        {
+            ActiveRoomId = activeRoom,
+            ActiveRoom = activeRoomDto,
+            Rooms = rooms,
+            Messages = messages,
+            TotalUnreadCount = 0
+        };
+
+        return View(vm);
+    }
+
+    [HttpPost]
+    public IActionResult SendAdminChatMessage(string channel, string message)
+    {
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            string adminName = HttpContext.Session.GetString("UserName") ?? "ผู้ดูแลระบบสาขา (Admin)";
+            ChatHelper.SendMessage(_db, _env, "group", message, adminName, "Admin", HttpContext);
+            HttpContext.Session.SetString("AdminChat_Seen_group", "true");
+        }
+        return RedirectToAction("AdminChat", new { channel = "group" });
+    }
+
+    [HttpGet]
+    public IActionResult GetAdminMessagesApi(string channel = "group")
+    {
+        string adminName = HttpContext.Session.GetString("UserName") ?? "ผู้ดูแลระบบสาขา (Admin)";
+        int adminId = ChatHelper.GetCurrentUserId(HttpContext, "Admin");
+        var messages = ChatHelper.GetMessagesForChannel(_db, _env, "group", "Admin", adminName, adminId);
+        return Json(new { success = true, channel = "group", messages = messages });
+    }
+
+    [HttpPost]
+    public IActionResult SendAdminMessageApi([FromForm] string channel, [FromForm] string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return Json(new { success = false, message = "ข้อความว่างเปล่า" });
+
+        string adminName = HttpContext.Session.GetString("UserName") ?? "ผู้ดูแลระบบสาขา (Admin)";
+        var newMsg = ChatHelper.SendMessage(_db, _env, "group", message, adminName, "Admin", HttpContext);
+
+        HttpContext.Session.SetString("AdminChat_Seen_group", "true");
+        return Json(new { success = true, newMsg = newMsg });
+    }
+
+    [HttpGet]
+    public IActionResult GetAdminRoomsApi(string currentRoom = "group")
+    {
+        var rooms = ChatHelper.GetAdminRooms(_db, _env, "group", HttpContext);
+        return Json(new { success = true, rooms = rooms });
     }
 }

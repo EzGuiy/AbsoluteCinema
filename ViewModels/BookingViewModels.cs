@@ -77,6 +77,7 @@ public class SeatSelectionViewModel
     public string HallTier { get; set; } = "";
 
     public DateTime ShowtimeDate { get; set; }
+    public string SelectedDateStr { get; set; } = "";
     public string DateDisplayTh { get; set; } = "";       // วันนี้ 15 พ.ย. 2026
     public string TimeDisplayTh { get; set; } = "";       // 15:00 น.
 
@@ -103,6 +104,7 @@ public class PaymentViewModel
     public string HallTier { get; set; } = "";
     public string DateDisplayTh { get; set; } = "";
     public string TimeDisplayTh { get; set; } = "";
+    public string SelectedDateStr { get; set; } = "";
 
     public List<string> SelectedSeats { get; set; } = new();
     public string SelectedSeatsString { get; set; } = "";
@@ -129,12 +131,14 @@ public class ConfirmBookingDto
 {
     public int ShowtimeId { get; set; }
     public int MovieId { get; set; }
+    public string? ShowtimeDate { get; set; } // e.g. "2026-11-25"
     public string SelectedSeats { get; set; } = ""; // e.g. "E7, E8"
     public decimal TotalAmount { get; set; }
     public string? PromoCode { get; set; }
     public string PaymentMethod { get; set; } = "PromptPay"; // PromptPay, CreditCard, BankTransfer
     public string? CustomerName { get; set; }
     public string? CustomerPhone { get; set; }
+    public string? CustomerEmail { get; set; }
 }
 
 public class BookingResponseDto

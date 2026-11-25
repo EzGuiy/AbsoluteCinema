@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kawin_67091861_002.Models;
 using Kawin_67091861_002.ViewModels;
+using Kawin_67091861_002.Helpers;
 
 namespace Kawin_67091861_002.Controllers;
 
@@ -23,12 +24,10 @@ public class ManagerController : Controller
 
     private void CalculateUnreadBadges()
     {
-        int adminUnread = HttpContext.Session.GetString("ManagerChat_Seen_admin") == "true" ? 0 : 3;
-        int acctUnread = HttpContext.Session.GetString("ManagerChat_Seen_accounting") == "true" ? 0 : 2;
-        int techUnread = HttpContext.Session.GetString("ManagerChat_Seen_technician") == "true" ? 0 : 1;
-        int staffUnread = HttpContext.Session.GetString("ManagerChat_Seen_staff") == "true" ? 0 : 2;
+        int groupUnread = HttpContext.Session.GetString("ManagerChat_Seen_group") == "true" ? 0 : 2;
+        int adminUnread = HttpContext.Session.GetString("ManagerChat_Seen_admin") == "true" ? 0 : 1;
 
-        int totalUnread = adminUnread + acctUnread + techUnread + staffUnread;
+        int totalUnread = groupUnread + adminUnread;
         ViewBag.UnreadManagerChatCount = totalUnread;
     }
 
@@ -40,64 +39,80 @@ public class ManagerController : Controller
         CalculateUnreadBadges();
         var vm = new ManagerDashboardViewModel();
 
-        // 1. KPI Stats
-        vm.TodayRevenue = 428650;
-        vm.RevenueChangeText = "+12.4%";
-        vm.TicketsSold = 1842;
-        vm.TicketsGoalText = "78% เป้าหมาย";
-        vm.AvgAttendancePercent = 78.6;
-        vm.AttendanceChangeText = "+5.2%";
-        vm.TodayShowtimesCount = 48;
-        vm.RemainingShowtimesText = "อีก 19 รอบ";
-
-        // 2. รอบฉายที่กำลังมาถึง (Upcoming Showtimes)
-        vm.UpcomingShowtimes = new List<UpcomingShowtimeDto>
-        {
-            new() { TimeText = "12:30", MovieTitle = "Dune: Part Two", HallAndType = "โรง 1 • IMAX", SeatsSoldText = "188 / 220", Status = "กำลังขาย", StatusBadgeColor = "green" },
-            new() { TimeText = "14:10", MovieTitle = "หลานม่า", HallAndType = "โรง 3 • Digital", SeatsSoldText = "95 / 140", Status = "กำลังขาย", StatusBadgeColor = "green" },
-            new() { TimeText = "16:45", MovieTitle = "Furiosa", HallAndType = "โรง 2 • 4DX", SeatsSoldText = "121 / 156", Status = "ใกล้เต็ม", StatusBadgeColor = "red" }
-        };
-
-        // 3. จัดการสถานะภาพยนตร์ (Movie Statuses)
-        vm.MovieStatuses = GetMovieStatuses();
-
-        // 4. การแจ้งเตือนแชททีมงาน (Team Chat) - เชื่อมโยงข้าม Role จริง
-        string techMsg = "แก้ไขระบบเสียงโรง 2 เรียบร้อย";
-        string acctMsg = "อนุมัติยอดเงินส่วนแบ่งรอบฉายแล้ว";
+        // ดึงข้อมูลจริง 100% จาก MySQL
         try
         {
-            var chatPath = Path.Combine(_env.ContentRootPath, "Data", "chat_messages.json");
-            if (System.IO.File.Exists(chatPath))
+            if (_db.Database.CanConnect())
             {
-                var json = System.IO.File.ReadAllText(chatPath);
-                using var doc = JsonDocument.Parse(json);
-                foreach (var el in doc.RootElement.EnumerateArray())
-                {
-                    if (el.TryGetProperty("ChannelId", out var ch))
+                var today = DateTime.Today;
+                var allBookings = _db.Bookings.Include(b => b.Showtime).ToList();
+                var activeBookings = allBookings.Where(b => b.Status != "Cancelled").ToList();
+                var todayShowtimes = _db.Showtimes
+                    .Include(s => s.Movie)
+                    .Include(s => s.Cinema)
+                    .Include(s => s.Bookings)
+                    .Where(s => s.StartTime >= today && s.StartTime < today.AddDays(1))
+                    .OrderBy(s => s.StartTime)
+                    .ToList();
+
+                vm.TodayRevenue = activeBookings.Sum(b => b.TotalAmount ?? 0m);
+                vm.RevenueChangeText = "ข้อมูลจริงจาก Database";
+                vm.TicketsSold = activeBookings.Sum(b => b.SeatCount);
+                vm.TicketsGoalText = $"{activeBookings.Count} รายการจอง";
+                int totalSeatsToday = todayShowtimes.Sum(s => s.Cinema?.TotalSeats ?? 100);
+                int bookedSeatsToday = todayShowtimes.SelectMany(s => s.Bookings).Where(b => b.Status != "Cancelled").Sum(b => b.SeatCount);
+                vm.AvgAttendancePercent = totalSeatsToday > 0 ? Math.Round((double)bookedSeatsToday / totalSeatsToday * 100, 1) : 0;
+                vm.AttendanceChangeText = "Real-time";
+                vm.TodayShowtimesCount = todayShowtimes.Count;
+                int remainingCount = todayShowtimes.Count(s => s.StartTime >= DateTime.Now);
+                vm.RemainingShowtimesText = $"อีก {remainingCount} รอบวันนี้";
+
+                vm.UpcomingShowtimes = todayShowtimes
+                    .Where(s => s.StartTime >= DateTime.Now)
+                    .Take(5)
+                    .Select(s =>
                     {
-                        string c = ch.GetString() ?? "";
-                        if (c == "manager" && el.TryGetProperty("MessageText", out var mt))
-                            techMsg = mt.GetString() ?? techMsg;
-                        else if (c == "accounting" && el.TryGetProperty("MessageText", out var ma))
-                            acctMsg = ma.GetString() ?? acctMsg;
+                        int cap = s.Cinema?.TotalSeats ?? 100;
+                        int sold = s.Bookings.Where(b => b.Status != "Cancelled").Sum(b => b.SeatCount);
+                        bool almostFull = cap > 0 && ((double)sold / cap) >= 0.75;
+                        return new UpcomingShowtimeDto
+                        {
+                            TimeText = s.StartTime.ToString("HH:mm"),
+                            MovieTitle = s.Movie?.Title ?? "ภาพยนตร์",
+                            HallAndType = s.Cinema?.CinemaName ?? $"โรง {s.CinemaId}",
+                            SeatsSoldText = $"{sold} / {cap}",
+                            Status = almostFull ? "ใกล้เต็ม" : "กำลังขาย",
+                            StatusBadgeColor = almostFull ? "red" : "green"
+                        };
+                    }).ToList();
+
+                // แจ้งเตือนแชททีมงานจริงจากตาราง Chats
+                var latestChats = _db.Chats
+                    .Include(c => c.Sender)
+                    .ThenInclude(u => u.Role)
+                    .OrderByDescending(c => c.SentAt)
+                    .Take(4)
+                    .ToList();
+
+                vm.ChatNotifications = latestChats.Select(c => new ManagerTeamChatNotificationDto
+                {
+                    DepartmentName = c.Sender?.FullName ?? c.Sender?.Role?.RoleName ?? "ทีมงาน",
+                    LastMessage = c.Message,
+                    UnreadCount = 0,
+                    AvatarColor = (c.Sender?.Role?.RoleName ?? "") switch
+                    {
+                        "Accountant" => "blue",
+                        "Technician" => "green",
+                        "Staff" => "brown",
+                        _ => "orange"
                     }
-                }
+                }).ToList();
             }
         }
         catch { }
 
-        int adminBadge = HttpContext.Session.GetString("ManagerChat_Seen_admin") == "true" ? 0 : 3;
-        int acctBadge = HttpContext.Session.GetString("ManagerChat_Seen_accounting") == "true" ? 0 : 2;
-        int techBadge = HttpContext.Session.GetString("ManagerChat_Seen_technician") == "true" ? 0 : 1;
-        int staffBadge = HttpContext.Session.GetString("ManagerChat_Seen_staff") == "true" ? 0 : 2;
-
-        vm.ChatNotifications = new List<ManagerTeamChatNotificationDto>
-        {
-            new() { DepartmentName = "ฝ่ายบัญชี", LastMessage = acctMsg, UnreadCount = acctBadge, AvatarColor = "blue" },
-            new() { DepartmentName = "แอดมินสาขา", LastMessage = "ขอรอบฉายเพิ่มเรื่องหลานม่า โรง 4", UnreadCount = adminBadge, AvatarColor = "orange" },
-            new() { DepartmentName = "ช่างเทคนิคประจำสาขา", LastMessage = techMsg, UnreadCount = techBadge, AvatarColor = "green" },
-            new() { DepartmentName = "พนักงานบริการ", LastMessage = "แจ้งขอพนักงานตรวจตั๋วเพิ่ม", UnreadCount = staffBadge, AvatarColor = "brown" }
-        };
+        // 3. จัดการสถานะภาพยนตร์ (Movie Statuses)
+        vm.MovieStatuses = GetMovieStatuses();
 
         return View(vm);
     }
@@ -230,6 +245,7 @@ public class ManagerController : Controller
     }
 
     [HttpPost]
+    [ActionName("AddMovie")]
     public IActionResult AddManagerMovie([FromForm] AddMovieDto dto)
     {
         if (dto != null && !string.IsNullOrWhiteSpace(dto.Title))
@@ -500,46 +516,31 @@ public class ManagerController : Controller
     }
 
     // ==========================================
-    // 6. แชทและการสื่อสารภายใน (Chat)
+    // 6. แชทและการสื่อสารภายใน (แชทกลุ่มรวมทุกแผนก)
     // ==========================================
-    public IActionResult Chat(string channel = "admin")
+    public IActionResult Chat(string channel = "group")
     {
-        // When visiting the channel, mark it as seen
-        HttpContext.Session.SetString("ManagerChat_Seen_" + channel, "true");
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Manager");
+        string activeRoom = "group";
+
+        HttpContext.Session.SetString("ManagerChat_Seen_group", "true");
         CalculateUnreadBadges();
 
         var vm = new ManagerChatViewModel();
-        vm.ActiveRoomId = channel;
-
-        int adminBadge = HttpContext.Session.GetString("ManagerChat_Seen_admin") == "true" ? 0 : 3;
-        int acctBadge = HttpContext.Session.GetString("ManagerChat_Seen_accounting") == "true" ? 0 : 2;
-        int techBadge = HttpContext.Session.GetString("ManagerChat_Seen_technician") == "true" ? 0 : 1;
-        int staffBadge = HttpContext.Session.GetString("ManagerChat_Seen_staff") == "true" ? 0 : 2;
+        string myName = HttpContext.Session.GetString("UserName") ?? "ผู้จัดการ";
 
         vm.Rooms = new List<ManagerChatRoomDto>
         {
-            new() { Id = "admin", Name = "แอดมินสาขา", LastMessageText = "ผู้จัดการครับ ทางลูกค้าแจ้งว่ารอบ Dune 14:30...", UnreadCount = adminBadge, ColorType = "gold", IsActive = channel == "admin", MembersInfo = "สมาชิกทั้งหมด 6 คน • ออนไลน์ 3 คน" },
-            new() { Id = "accounting", Name = "ฝ่ายบัญชี", LastMessageText = "แจ้งเรื่องสต็อกวัตถุดิบป๊อปคอร์นครับ สัปดาห์หน้า...", UnreadCount = acctBadge, ColorType = "blue", IsActive = channel == "accounting", MembersInfo = "สมาชิกทั้งหมด 4 คน • ออนไลน์ 2 คน" },
-            new() { Id = "technician", Name = "ช่างเทคนิคประจำสาขา", LastMessageText = "ระบบเสียงโรง 2 ปรับปรุงและทดสอบผ่านแล้ว...", UnreadCount = techBadge, ColorType = "green", IsActive = channel == "technician", MembersInfo = "สมาชิกทั้งหมด 5 คน • ออนไลน์ 4 คน" },
-            new() { Id = "staff", Name = "พนักงานบริการ", LastMessageText = "แจ้งพบลืมร่มไว้บริเวณโรงฉาย 5 ค่ะ...", UnreadCount = staffBadge, ColorType = "brown", IsActive = channel == "staff", MembersInfo = "สมาชิกทั้งหมด 12 คน • ออนไลน์ 8 คน" }
+            new() { Id = "group", Name = "แชทกลุ่มรวม (All Staff)", LastMessageText = "สื่อสารระหว่างพนักงานทุกแผนกในสาขา", UnreadCount = 0, ColorType = "blue", IsActive = true, MembersInfo = "ผู้จัดการ, พนักงานบริการ, ช่างเทคนิค, บัญชี, แอดมิน" }
         };
 
-        vm.ActiveRoom = vm.Rooms.FirstOrDefault(r => r.Id == channel) ?? vm.Rooms.First();
+        vm.ActiveRoomId = activeRoom;
+        vm.ActiveRoom = vm.Rooms.First();
 
-        // Read messages from chat_messages.json
-        string chatPath = Path.Combine(_env.ContentRootPath, "Data", "chat_messages.json");
-        if (System.IO.File.Exists(chatPath))
-        {
-            try
-            {
-                var json = System.IO.File.ReadAllText(chatPath);
-                var allMsgs = JsonSerializer.Deserialize<List<ManagerChatMessageDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-                vm.Messages = allMsgs.Where(m => m.ChannelId.Equals(channel, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.CreatedAt).ToList();
-            }
-            catch { }
-        }
+        string role = HttpContext.Session.GetString("UserRole") ?? "Manager";
+        vm.Messages = ChatHelper.GetMessagesForChannel(_db, _env, activeRoom, role, myName, myUserId);
 
-        vm.TotalUnreadCount = (int)(ViewBag.UnreadManagerChatCount ?? 0);
+        vm.TotalUnreadCount = 0;
 
         return View(vm);
     }
@@ -549,57 +550,33 @@ public class ManagerController : Controller
     {
         if (!string.IsNullOrWhiteSpace(message))
         {
-            string targetChannel = string.IsNullOrWhiteSpace(channel) ? "admin" : channel;
-            string chatPath = Path.Combine(_env.ContentRootPath, "Data", "chat_messages.json");
-            try
-            {
-                List<ManagerChatMessageDto> allMsgs = new();
-                if (System.IO.File.Exists(chatPath))
-                {
-                    var json = System.IO.File.ReadAllText(chatPath);
-                    allMsgs = JsonSerializer.Deserialize<List<ManagerChatMessageDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-                }
-
-                int nextId = allMsgs.Any() ? allMsgs.Max(m => m.Id) + 1 : 1;
-                var newMsg = new ManagerChatMessageDto
-                {
-                    Id = nextId,
-                    ChannelId = targetChannel,
-                    SenderName = "ณัฐชา (ผู้จัดการ - ตัวคุณ)",
-                    TimeText = DateTime.Now.ToString("HH:mm"),
-                    MessageText = message.Trim(),
-                    IsMine = true,
-                    CreatedAt = DateTime.Now
-                };
-
-                allMsgs.Add(newMsg);
-                System.IO.File.WriteAllText(chatPath, JsonSerializer.Serialize(allMsgs, new JsonSerializerOptions { WriteIndented = true }));
-
-                // Cross-sync to DB if connected
-                try
-                {
-                    if (_db.Database.CanConnect())
-                    {
-                        var user = _db.Users.FirstOrDefault(u => u.Role != null && u.Role.RoleName == "Manager") ?? _db.Users.FirstOrDefault();
-                        if (user != null)
-                        {
-                            var dbChat = new Chat
-                            {
-                                SenderId = user.UserId,
-                                Message = message.Trim(),
-                                SentAt = DateTime.Now
-                            };
-                            _db.Chats.Add(dbChat);
-                            _db.SaveChanges();
-                        }
-                    }
-                }
-                catch { }
-            }
-            catch { }
+            string sender = HttpContext.Session.GetString("UserName") ?? "ผู้จัดการ";
+            string role = HttpContext.Session.GetString("UserRole") ?? "Manager";
+            ChatHelper.SendMessage(_db, _env, "group", message, sender, role, HttpContext);
         }
+        return RedirectToAction("Chat", new { channel = "group" });
+    }
 
-        return RedirectToAction("Chat", new { channel = channel });
+    [HttpGet]
+    public IActionResult GetMessagesApi(string channel = "group")
+    {
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Manager");
+        string role = HttpContext.Session.GetString("UserRole") ?? "Manager";
+        string myName = HttpContext.Session.GetString("UserName") ?? "ผู้จัดการ";
+        var messages = ChatHelper.GetMessagesForChannel(_db, _env, "group", role, myName, myUserId);
+        return Json(new { success = true, channel = "group", messages = messages });
+    }
+
+    [HttpPost]
+    public IActionResult SendMessageApi([FromForm] string channel, [FromForm] string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return Json(new { success = false, message = "ข้อความว่างเปล่า" });
+
+        string sender = HttpContext.Session.GetString("UserName") ?? "ผู้จัดการ";
+        string role = HttpContext.Session.GetString("UserRole") ?? "Manager";
+        var newMsg = ChatHelper.SendMessage(_db, _env, "group", message, sender, role, HttpContext);
+        return Json(new { success = true, newMsg = newMsg });
     }
 
     // ==========================================

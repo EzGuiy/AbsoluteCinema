@@ -905,8 +905,9 @@
         const subtotal = selectedSeats.reduce((sum, s) => sum + s.price, 0);
         const discount = promoDiscountPercent > 0 ? (subtotal * promoDiscountPercent) : 0;
         const total = Math.round(subtotal - discount);
+        const showtimeDate = '@Model.SelectedDateStr';
 
-        const url = `/Home/Payment?showtimeId=${showtimeId}&seats=${encodeURIComponent(seatString)}&total=${total}&promo=${encodeURIComponent(appliedPromoCode)}`;
+        const url = `/Home/Payment?showtimeId=${showtimeId}&seats=${encodeURIComponent(seatString)}&total=${total}&promo=${encodeURIComponent(appliedPromoCode)}&date=${encodeURIComponent(showtimeDate)}`;
         window.location.href = url;
     }
 
@@ -914,7 +915,8 @@
     // Real-Time Polling for Seat Availability
     // ==========================================
     function syncOccupiedSeats() {
-        fetch(`/Home/GetOccupiedSeats?showtimeId=${showtimeId}`)
+        const showtimeDate = '@Model.SelectedDateStr';
+        fetch(`/Home/GetOccupiedSeats?showtimeId=${showtimeId}&date=${encodeURIComponent(showtimeDate)}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.occupiedSeats)) {

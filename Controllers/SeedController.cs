@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kawin_67091861_002.Models;
+using Kawin_67091861_002.Helpers;
 using System.Text.Json;
 
 namespace Kawin_67091861_002.Controllers;
@@ -95,8 +96,9 @@ public class SeedController : Controller
             SeedCinemas();
             SeedMovies();
             SeedShowtimes();
+            ChatHelper.EnsureDatabaseChatReady(_db, _env);
 
-            TempData["Success"] = "✅ Seed ข้อมูลสำเร็จ! เพิ่มข้อมูลภาพยนตร์และโรงภาพยนตร์ทั้งหมดลง Database แล้ว";
+            TempData["Success"] = "✅ Seed ข้อมูลสำเร็จ! เพิ่มข้อมูลภาพยนตร์ โรงภาพยนตร์ และข้อความแชททั้งหมดลง Database แล้ว";
         }
         catch (Exception ex)
         {
@@ -312,6 +314,20 @@ public class SeedController : Controller
                             p.TaxInvoiceNo,
                             p.Amount,
                             Date = p.PaymentDate.HasValue ? p.PaymentDate.Value.ToString("yyyy-MM-dd HH:mm") : "-"
+                        }).ToList(),
+
+                    Chats = _db.Chats
+                        .Include(c => c.Sender).ThenInclude(u => u.Role)
+                        .Include(c => c.TargetRoleNavigation)
+                        .OrderByDescending(c => c.SentAt)
+                        .Select(c => new
+                        {
+                            c.ChatId,
+                            Sender = c.Sender.FullName ?? c.Sender.Username,
+                            SenderRole = c.Sender.Role != null ? c.Sender.Role.RoleName : "-",
+                            TargetRole = c.TargetRoleNavigation != null ? c.TargetRoleNavigation.RoleName : "General",
+                            c.Message,
+                            Date = c.SentAt.HasValue ? c.SentAt.Value.ToString("yyyy-MM-dd HH:mm:ss") : "-"
                         }).ToList()
                 };
 
@@ -337,10 +353,19 @@ public class SeedController : Controller
             {
                 foreach (var item in mArray.EnumerateArray())
                 {
+                    string? pUrl = item.TryGetProperty("PosterUrl", out var pu) ? pu.GetString() : null;
+                    string itemTitle = item.GetProperty("Title").GetString() ?? "";
+                    if (string.IsNullOrEmpty(pUrl))
+                    {
+                        if (itemTitle.Contains("ซุส") || itemTitle.Contains("ตุ๊ดตู่")) pUrl = "/images/zeus.jpg";
+                        else if (itemTitle.Contains("โหน่ง") || itemTitle.Contains("เท่ง") || itemTitle.Contains("หม่ำ")) pUrl = "/images/tengmam.jpg";
+                        else if (itemTitle.Contains("สายลับ") || itemTitle.Contains("บ๊อก")) pUrl = "/images/bokbok.jpg";
+                    }
+
                     movies.Add(new
                     {
                         MovieId = item.GetProperty("MovieId").GetInt32(),
-                        Title = item.GetProperty("Title").GetString() ?? "",
+                        Title = itemTitle,
                         Genre = item.GetProperty("Genre").GetString() ?? "",
                         DurationMins = item.GetProperty("DurationMins").GetInt32(),
                         Status = item.GetProperty("Status").GetString() ?? "",
@@ -349,7 +374,7 @@ public class SeedController : Controller
                         PriceMax = item.GetProperty("PriceMax").GetDecimal(),
                         Rating = item.GetProperty("Rating").GetDouble(),
                         ReleaseDate = (DateTime?)DateTime.Parse(item.GetProperty("ReleaseDate").GetString() ?? "2026-10-15"),
-                        PosterUrl = (string?)null
+                        PosterUrl = pUrl
                     });
                 }
             }
@@ -428,7 +453,16 @@ public class SeedController : Controller
                 Users = new List<dynamic>(),
                 Roles = new List<dynamic>(),
                 Bookings = bookingsList,
-                Payments = paymentsList
+                Payments = paymentsList,
+                Chats = ChatHelper.ReadMessagesFromJson(_env).Select(m => new
+                {
+                    ChatId = m.Id,
+                    Sender = m.SenderName,
+                    SenderRole = "-",
+                    TargetRole = m.ChannelId,
+                    Message = m.MessageText,
+                    Date = m.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+                }).ToList()
             };
 
             return View(fallbackData);
@@ -443,7 +477,8 @@ public class SeedController : Controller
             Users = new List<dynamic>(),
             Roles = new List<dynamic>(),
             Bookings = new List<dynamic>(),
-            Payments = new List<dynamic>()
+            Payments = new List<dynamic>(),
+            Chats = new List<dynamic>()
         });
     }
 
@@ -560,7 +595,8 @@ public class SeedController : Controller
                     Genre = "แอ็คชั่น / ตลก",
                     Description = "พบกับมหากาพย์ภาพยนตร์แอ็คชั่นฟอร์มยักษ์แห่งปี การต่อสู้เพื่อกอบกู้เอกราชครั้งสุดท้ายที่จะตัดสินชะตากรรมของคนทั้งชาติ ชมระบบเสียง Dolby Atmos ดีที่สุดวันนี้",
                     PriceMin = 240, PriceMax = 380,
-                    Rating = 9.5, ReleaseDate = new DateTime(2026, 10, 15)
+                    Rating = 9.5, ReleaseDate = new DateTime(2026, 10, 15),
+                    PosterUrl = "/images/zeus.jpg"
                 },
                 new Movie
                 {
@@ -570,7 +606,8 @@ public class SeedController : Controller
                     Genre = "ตลกฮาหน้า",
                     Description = "เรื่องราวความฮาสุดป่วนที่จะทำให้คุณหัวเราะจนกรามค้าง การรวมตัวของสุดยอดดาวตลก",
                     PriceMin = 200, PriceMax = 320,
-                    Rating = 10.0, ReleaseDate = new DateTime(2026, 10, 20)
+                    Rating = 10.0, ReleaseDate = new DateTime(2026, 10, 20),
+                    PosterUrl = "/images/tengmam.jpg"
                 },
                 new Movie
                 {
@@ -590,7 +627,8 @@ public class SeedController : Controller
                     Genre = "ระทึกขวัญ / ดราม่า",
                     Description = "ภารกิจสายลับสุดระห่ำ ความลับระดับชาติที่ไม่อาจเปิดเผย และการหักหลังที่ไม่มีใครคาดคิด",
                     PriceMin = 240, PriceMax = 360,
-                    Rating = 10.0, ReleaseDate = new DateTime(2026, 11, 1)
+                    Rating = 10.0, ReleaseDate = new DateTime(2026, 11, 1),
+                    PosterUrl = "/images/bokbok.jpg"
                 },
                 new Movie
                 {

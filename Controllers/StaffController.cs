@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kawin_67091861_002.Models;
 using Kawin_67091861_002.ViewModels;
+using Kawin_67091861_002.Helpers;
 
 namespace Kawin_67091861_002.Controllers;
 
@@ -28,13 +29,13 @@ public class StaffController : Controller
     {
         var vm = new StaffDashboardViewModel();
 
-        // ดึงยอดจองจริงจาก bookings.json และ MySQL
+        // ดึงยอดจองจริง 100% จาก MySQL
         var realBookings = GetRealBookings();
         int realBookingsCount = realBookings.Count;
         int realCustomerCount = realBookings.Sum(b => b.SeatCount);
 
-        vm.ExpectedCustomersToday = realCustomerCount > 0 ? (1800 + realCustomerCount) : 1842;
-        vm.TodayBookingsCount = realBookingsCount > 0 ? (880 + realBookingsCount) : 892;
+        vm.ExpectedCustomersToday = realCustomerCount;
+        vm.TodayBookingsCount = realBookingsCount;
 
         vm.Halls = GetHallsFromFile();
         vm.ActiveHallsCount = vm.Halls.Count;
@@ -50,6 +51,23 @@ public class StaffController : Controller
             new() { TimeText = "15:10 น.", HallName = "โรง 7 (Standard)", TaskTitle = "เช็คเก้าอี้และถูพื้นเตรียมรอบ 15:30 น.", Status = "รอดำเนินการ", BadgeColor = "orange" },
             new() { TimeText = "13:45 น.", HallName = "โรง 3 (Digital 4K)", TaskTitle = "ตรวจความสะอาดและส่งมอบโรงสำเร็จ", Status = "เสร็จสิ้น", BadgeColor = "green" }
         };
+
+        // รายการรหัสตั๋วและข้อมูลการจองล่าสุดสำหรับพนักงานตรวจตั๋ว
+        vm.RecentBookings = realBookings.Take(10).Select(b => new StaffRecentBookingDto
+        {
+            BookingId = b.BookingId,
+            ReferenceCode = b.ReferenceCode,
+            MovieTitle = b.MovieTitle,
+            CinemaName = b.CinemaName,
+            ShowtimeText = b.ShowtimeText,
+            SeatNumbers = b.SeatNumbers,
+            SeatCount = b.SeatCount,
+            CustomerName = b.CustomerName,
+            CustomerPhone = b.CustomerPhone,
+            TotalAmount = b.TotalAmount,
+            Status = b.Status,
+            BookedAtText = b.BookedAtText
+        }).ToList();
 
         return View(vm);
     }
@@ -192,45 +210,39 @@ public class StaffController : Controller
     }
 
     // =========================================================================
-    // 7. ระบบแชตของพนักงาน (Floor Staff Internal Chat)
+    // 7. ระบบแชตของพนักงาน (แชทกลุ่มรวมทุกแผนก)
     // =========================================================================
-    public IActionResult Chat(string channel = "staff")
+    public IActionResult Chat(string channel = "group")
     {
-        HttpContext.Session.SetString("StaffChat_Seen_" + channel, "true");
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Staff");
+        string activeRoom = "group";
+
+        HttpContext.Session.SetString("StaffChat_Seen_group", "true");
 
         var vm = new ManagerChatViewModel();
-        vm.ActiveRoomId = channel;
-
-        int staffBadge = HttpContext.Session.GetString("StaffChat_Seen_staff") == "true" ? 0 : 2;
-        int adminBadge = HttpContext.Session.GetString("StaffChat_Seen_admin") == "true" ? 0 : 1;
-        int techBadge = HttpContext.Session.GetString("StaffChat_Seen_technician") == "true" ? 0 : 1;
-        int acctBadge = HttpContext.Session.GetString("StaffChat_Seen_accounting") == "true" ? 0 : 0;
+        string myName = HttpContext.Session.GetString("UserName") ?? "พนักงานบริการ";
 
         vm.Rooms = new List<ManagerChatRoomDto>
         {
-            new() { Id = "staff", Name = "พนักงานบริการ (Floor Staff)", LastMessageText = "แจ้งพบลืมร่มไว้บริเวณโรงฉาย 5 ค่ะ...", UnreadCount = staffBadge, ColorType = "brown", IsActive = channel == "staff", MembersInfo = "สมาชิกทั้งหมด 12 คน • ออนไลน์ 8 คน" },
-            new() { Id = "admin", Name = "ผู้จัดการ & แอดมินสาขา", LastMessageText = "ขอรอบฉายเพิ่มเรื่องหลานม่า โรง 4...", UnreadCount = adminBadge, ColorType = "gold", IsActive = channel == "admin", MembersInfo = "สมาชิกทั้งหมด 6 คน • ออนไลน์ 3 คน" },
-            new() { Id = "technician", Name = "ช่างเทคนิคประจำสาขา", LastMessageText = "ระบบเสียงโรง 2 ปรับปรุงและทดสอบผ่านแล้ว...", UnreadCount = techBadge, ColorType = "green", IsActive = channel == "technician", MembersInfo = "สมาชิกทั้งหมด 5 คน • ออนไลน์ 4 คน" },
-            new() { Id = "accounting", Name = "ฝ่ายบัญชี & การเงิน", LastMessageText = "สรุปยอดเงินส่วนแบ่งรอบฉายและตั๋ว...", UnreadCount = acctBadge, ColorType = "blue", IsActive = channel == "accounting", MembersInfo = "สมาชิกทั้งหมด 4 คน • ออนไลน์ 2 คน" }
+            new()
+            {
+                Id = "group",
+                Name = "แชทกลุ่มรวม (All Staff)",
+                LastMessageText = "สื่อสารระหว่างพนักงานทุกแผนกในสาขา",
+                UnreadCount = 0,
+                ColorType = "blue",
+                IsActive = true,
+                MembersInfo = "ผู้จัดการ, พนักงานบริการ, ช่างเทคนิค, บัญชี, แอดมิน"
+            }
         };
 
-        vm.ActiveRoom = vm.Rooms.FirstOrDefault(r => r.Id == channel) ?? vm.Rooms.First();
+        vm.ActiveRoomId = activeRoom;
+        vm.ActiveRoom = vm.Rooms.First();
 
-        // ดึงข้อความจาก Data/chat_messages.json
-        string chatPath = Path.Combine(_env.ContentRootPath, "Data", "chat_messages.json");
-        if (System.IO.File.Exists(chatPath))
-        {
-            try
-            {
-                var json = System.IO.File.ReadAllText(chatPath);
-                var allMsgs = JsonSerializer.Deserialize<List<ManagerChatMessageDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-                vm.Messages = allMsgs.Where(m => m.ChannelId.Equals(channel, StringComparison.OrdinalIgnoreCase)).OrderBy(m => m.CreatedAt).ToList();
-            }
-            catch { }
-        }
+        vm.Messages = ChatHelper.GetMessagesForChannel(_db, _env, activeRoom, "Staff", myName, myUserId);
 
-        vm.TotalUnreadCount = staffBadge + adminBadge + techBadge + acctBadge;
-        ViewBag.UnreadStaffChatCount = vm.TotalUnreadCount;
+        vm.TotalUnreadCount = 0;
+        ViewBag.UnreadStaffChatCount = 0;
 
         return View(vm);
     }
@@ -240,55 +252,32 @@ public class StaffController : Controller
     {
         if (!string.IsNullOrWhiteSpace(message))
         {
-            string targetChannel = string.IsNullOrWhiteSpace(channel) ? "staff" : channel;
-            string chatPath = Path.Combine(_env.ContentRootPath, "Data", "chat_messages.json");
-            try
-            {
-                List<ManagerChatMessageDto> allMsgs = new();
-                if (System.IO.File.Exists(chatPath))
-                {
-                    var json = System.IO.File.ReadAllText(chatPath);
-                    allMsgs = JsonSerializer.Deserialize<List<ManagerChatMessageDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-                }
-
-                int nextId = allMsgs.Any() ? allMsgs.Max(m => m.Id) + 1 : 1;
-                string sender = HttpContext.Session.GetString("UserName") ?? "พนักงานบริการ (ตัวคุณ)";
-
-                var newMsg = new ManagerChatMessageDto
-                {
-                    Id = nextId,
-                    ChannelId = targetChannel,
-                    SenderName = sender,
-                    TimeText = DateTime.Now.ToString("HH:mm น."),
-                    MessageText = message.Trim(),
-                    IsMine = true,
-                    CreatedAt = DateTime.Now
-                };
-
-                allMsgs.Add(newMsg);
-                System.IO.File.WriteAllText(chatPath, JsonSerializer.Serialize(allMsgs, new JsonSerializerOptions { WriteIndented = true }));
-
-                // บันทึกลง MySQL Table Chats ด้วย
-                try
-                {
-                    if (_db.Database.CanConnect())
-                    {
-                        var dbChat = new Chat
-                        {
-                            SenderId = 1,
-                            Message = message.Trim(),
-                            SentAt = DateTime.Now
-                        };
-                        _db.Chats.Add(dbChat);
-                        _db.SaveChanges();
-                    }
-                }
-                catch { }
-            }
-            catch { }
+            string sender = HttpContext.Session.GetString("UserName") ?? "พนักงานบริการ";
+            ChatHelper.SendMessage(_db, _env, "group", message, sender, "Staff", HttpContext);
         }
+        return RedirectToAction("Chat", new { channel = "group" });
+    }
 
-        return RedirectToAction("Chat", new { channel = channel });
+    [HttpGet]
+    public IActionResult GetMessagesApi(string channel = "group")
+    {
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Staff");
+        string role = HttpContext.Session.GetString("UserRole") ?? "Staff";
+        string myName = HttpContext.Session.GetString("UserName") ?? "พนักงานบริการ";
+        var messages = ChatHelper.GetMessagesForChannel(_db, _env, "group", role, myName, myUserId);
+        return Json(new { success = true, channel = "group", messages = messages });
+    }
+
+    [HttpPost]
+    public IActionResult SendMessageApi([FromForm] string channel, [FromForm] string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return Json(new { success = false, message = "ข้อความว่างเปล่า" });
+
+        string sender = HttpContext.Session.GetString("UserName") ?? "พนักงานบริการ";
+        string role = HttpContext.Session.GetString("UserRole") ?? "Staff";
+        var newMsg = ChatHelper.SendMessage(_db, _env, "group", message, sender, role, HttpContext);
+        return Json(new { success = true, newMsg = newMsg });
     }
 
     // =========================================================================
@@ -330,14 +319,17 @@ public class StaffController : Controller
         var list = new List<RealBookingItem>();
         var seenCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+        bool dbLoaded = false;
         // 1. ดึงจาก MySQL Database โดยตรงผ่าน Entity Framework Core
         try
         {
             if (_db.Database.CanConnect())
             {
+                dbLoaded = true;
                 var dbBookings = _db.Bookings
                     .Include(b => b.User)
                     .Include(b => b.Showtime).ThenInclude(s => s.Movie)
+                    .Include(b => b.Showtime).ThenInclude(s => s.Cinema)
                     .Where(b => b.Status != "Cancelled")
                     .OrderByDescending(b => b.BookingId)
                     .ToList();
@@ -345,28 +337,38 @@ public class StaffController : Controller
                 foreach (var b in dbBookings)
                 {
                     var seats = (b.SeatNumbers ?? "").Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    string refCode = $"BK-{b.BookingId:D5}";
+                    string refCode = $"AC-{b.BookingId:D6}";
                     seenCodes.Add(refCode);
+
+                    string realPhone = UserProfileHelper.GetPhone(b.User?.Username, b.UserId);
+                    if (string.IsNullOrEmpty(realPhone)) realPhone = "081-xxx-xxxx";
 
                     list.Add(new RealBookingItem
                     {
                         BookingId = b.BookingId,
                         CustomerName = b.User?.FullName ?? "ลูกค้า Absolute Cinema",
-                        CustomerPhone = "08x-xxx-xxxx",
+                        CustomerPhone = realPhone,
                         MovieTitle = b.Showtime?.Movie?.Title ?? "ภาพยนตร์รอบปัจจุบัน",
                         SeatNumbers = b.SeatNumbers ?? "",
                         SeatCount = seats.Length > 0 ? seats.Length : b.SeatCount,
-                        ReferenceCode = refCode
+                        ReferenceCode = refCode,
+                        ShowtimeText = b.Showtime != null ? b.Showtime.StartTime.ToString("dd/MM/yyyy HH:mm น.") : "15:00 น.",
+                        CinemaName = b.Showtime?.Cinema?.CinemaName ?? "Gold Class",
+                        Status = b.Status ?? "Confirmed",
+                        BookedAtText = b.BookedAt.HasValue ? b.BookedAt.Value.ToString("dd/MM/yyyy HH:mm") : "",
+                        TotalAmount = b.TotalAmount ?? 0m
                     });
                 }
             }
         }
         catch { }
 
-        // 2. ดึงเสริมจากไฟล์สำรอง Data/bookings.json (Dual Persistence สำรองข้อมูล)
-        try
+        // 2. ดึงเสริมจากไฟล์สำรองเฉพาะกรณีที่ฐานข้อมูล MySQL ไม่ได้เชื่อมต่อ
+        if (!dbLoaded)
         {
-            var path = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
+            try
+            {
+                var path = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
             if (System.IO.File.Exists(path))
             {
                 var json = System.IO.File.ReadAllText(path);
@@ -379,21 +381,43 @@ public class StaffController : Controller
                         if (!string.IsNullOrEmpty(refCode) && seenCodes.Contains(refCode))
                             continue; // ข้ามรายการที่โหลดจาก MySQL มาแล้ว
 
+                        string custPhone = item.TryGetProperty("CustomerPhone", out var cp) ? cp.GetString() ?? "" : "";
+                        if (string.IsNullOrEmpty(custPhone) || custPhone == "08x-xxx-xxxx")
+                        {
+                            string cEmail = item.TryGetProperty("CustomerEmail", out var ce) ? ce.GetString() ?? "" : "";
+                            int uId = item.TryGetProperty("UserId", out var uidP) ? uidP.GetInt32() : 0;
+                            custPhone = UserProfileHelper.GetPhone(cEmail, uId);
+                        }
+                        if (string.IsNullOrEmpty(custPhone)) custPhone = "081-xxx-xxxx";
+
+                        decimal totalAmt = item.TryGetProperty("TotalAmount", out var ta) ? ta.GetDecimal() : 0m;
+                        string mTitle = item.TryGetProperty("MovieTitle", out var mt) ? mt.GetString() ?? "" : "ภาพยนตร์";
+                        string cinema = item.TryGetProperty("CinemaName", out var cnm) ? cnm.GetString() ?? "Gold Class" : "Gold Class";
+                        string showTime = item.TryGetProperty("ShowtimeTimeText", out var stt) ? stt.GetString() ?? "15:00 น." : "15:00 น.";
+                        string status = item.TryGetProperty("Status", out var stp) ? stp.GetString() ?? "Confirmed" : "Confirmed";
+                        string bookedAt = item.TryGetProperty("BookedAt", out var bat) ? bat.GetString() ?? "" : "";
+
                         list.Add(new RealBookingItem
                         {
                             BookingId = item.TryGetProperty("BookingId", out var id) ? id.GetInt32() : 0,
                             CustomerName = item.TryGetProperty("CustomerName", out var cn) ? cn.GetString() ?? "ลูกค้า" : "ลูกค้า",
-                            CustomerPhone = item.TryGetProperty("CustomerPhone", out var cp) ? cp.GetString() ?? "" : "",
-                            MovieTitle = item.TryGetProperty("MovieTitle", out var mt) ? mt.GetString() ?? "" : "",
+                            CustomerPhone = custPhone,
+                            MovieTitle = mTitle,
                             SeatNumbers = item.TryGetProperty("SeatNumbers", out var sn) ? sn.GetString() ?? "" : "",
                             SeatCount = item.TryGetProperty("SeatCount", out var sc) ? sc.GetInt32() : 1,
-                            ReferenceCode = refCode
+                            ReferenceCode = refCode,
+                            ShowtimeText = showTime,
+                            CinemaName = cinema,
+                            Status = status,
+                            BookedAtText = bookedAt,
+                            TotalAmount = totalAmt
                         });
                     }
                 }
             }
+            }
+            catch { }
         }
-        catch { }
 
         return list;
     }
@@ -406,8 +430,8 @@ public class StaffController : Controller
 
         var realBookings = GetRealBookings();
 
-        // แมปการจองจริงลงที่นั่ง
-        var bookedSeatsMap = new Dictionary<string, (string name, string phone, string refCode)>();
+        // แมปการจองจริงจาก Database ลงที่นั่งเท่านั้น (ไม่สุ่มลูกค้าจำลอง)
+        var bookedSeatsMap = new Dictionary<string, (string name, string phone, string refCode, string bookedAt)>();
         foreach (var b in realBookings)
         {
             var splitSeats = b.SeatNumbers.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -416,24 +440,10 @@ public class StaffController : Controller
                 string cleanSeat = s.Trim().ToUpperInvariant();
                 if (!bookedSeatsMap.ContainsKey(cleanSeat))
                 {
-                    bookedSeatsMap[cleanSeat] = (b.CustomerName, b.CustomerPhone, b.ReferenceCode);
+                    bookedSeatsMap[cleanSeat] = (b.CustomerName, b.CustomerPhone, b.ReferenceCode, b.BookedAtText);
                 }
             }
         }
-
-        // รายชื่อตัวอย่างเสริมสำหรับที่นั่งอื่นๆ ที่จองแล้ว
-        var sampleCustomers = new[]
-        {
-            ("คุณกิตติพงษ์ สุขใจ", "081-998-1122", "BK-89021"),
-            ("คุณอริสรา พรหมศร", "082-555-8899", "BK-89115"),
-            ("คุณปองพล บุญส่ง", "089-123-4567", "BK-89088"),
-            ("คุณสมชาย วรเศรษฐ์", "084-332-9988", "BK-88902"),
-            ("คุณนิตยา เกียรติสกุล", "086-777-6543", "BK-88944"),
-            ("คุณวราภรณ์ สุวรรณโชติ", "085-443-2211", "BK-88712"),
-            ("คุณธีรพงศ์ อนันต์", "081-332-1144", "BK-88655")
-        };
-
-        int sampleIdx = 0;
 
         foreach (var r in rows)
         {
@@ -448,31 +458,16 @@ public class StaffController : Controller
                 string custName = "";
                 string custPhone = "";
                 string refCode = "";
+                string bookedAt = "";
 
-                // ตรวจสอบกับการจองจริง
                 if (bookedSeatsMap.TryGetValue(code, out var info))
                 {
                     isBooked = true;
                     custName = info.name;
                     custPhone = info.phone;
                     refCode = info.refCode;
-                    isCheckedIn = true; // สมมติว่าบางคนเช็คอินแล้ว
-                }
-                else
-                {
-                    // กำหนดสถานะตาม occupancy ของโรง
-                    // แถวกลางๆ มักมีคนจองเยอะ
-                    int hash = (code.GetHashCode() + hall.HallId * 7) % 100;
-                    if (Math.Abs(hash) < (int)hall.OccupancyPercent)
-                    {
-                        isBooked = true;
-                        var sample = sampleCustomers[sampleIdx % sampleCustomers.Length];
-                        custName = sample.Item1;
-                        custPhone = sample.Item2;
-                        refCode = sample.Item3;
-                        isCheckedIn = (hash % 2 == 0);
-                        sampleIdx++;
-                    }
+                    bookedAt = info.bookedAt;
+                    isCheckedIn = false;
                 }
 
                 seats.Add(new SeatStatusDto
@@ -487,8 +482,8 @@ public class StaffController : Controller
                     CustomerName = custName,
                     CustomerPhone = custPhone,
                     BookingCode = refCode,
-                    BookedAtText = "วันนี้",
-                    PaymentMethod = "PromptPay / บัตรเครดิต"
+                    BookedAtText = string.IsNullOrEmpty(bookedAt) ? "-" : bookedAt,
+                    PaymentMethod = "PromptPay"
                 });
             }
         }
@@ -505,6 +500,11 @@ public class StaffController : Controller
         public string SeatNumbers { get; set; } = "";
         public int SeatCount { get; set; } = 1;
         public string ReferenceCode { get; set; } = "";
+        public string ShowtimeText { get; set; } = "";
+        public string CinemaName { get; set; } = "";
+        public string Status { get; set; } = "Confirmed";
+        public string BookedAtText { get; set; } = "";
+        public decimal TotalAmount { get; set; }
     }
 }
 

@@ -77,10 +77,10 @@
         transition: 0.2s;
     }
 
-    /* Chat 2-Column Layout */
+    /* Chat Single-Column Layout */
     .chat-container-grid {
         display: grid;
-        grid-template-columns: 320px 1fr;
+        grid-template-columns: 1fr;
         gap: 20px;
         height: calc(100vh - 200px);
         min-height: 600px;
@@ -342,75 +342,22 @@
 <!-- Header -->
 <div class="page-header">
     <div>
-        <h1 class="page-title">แชทและการสื่อสารภายใน</h1>
-        <div class="page-subtitle">ศูนย์กลางประสานงานด่วนระหว่างผู้จัดการกับฝ่ายต่างๆ ในโรงภาพยนตร์</div>
-    </div>
-    <div class="header-actions">
-        <div class="search-input-box">
-            <i class="bi bi-search"></i>
-            <input type="text" placeholder="ค้นหาข้อความหรือชื่อเจ้าหน้าที่..." />
-        </div>
-        <div class="icon-circle-btn">
-            <i class="bi bi-bell"></i>
-        </div>
+        <h1 class="page-title">แชททีมงานรวมทุกแผนก</h1>
+        <div class="page-subtitle">ห้องสนทนารวมสำหรับทุกคนในสาขา (ผู้จัดการ, พนักงานบริการ, ช่างเทคนิค, บัญชี, แอดมิน)</div>
     </div>
 </div>
 
-<!-- 2-Column Chat Layout -->
+<!-- Single-Column Group Chat Layout -->
 <div class="chat-container-grid">
-    <!-- Channels List -->
-    <div class="channels-list-card">
-        <div class="channels-header">กลุ่มการสื่อสาร (CHANNELS)</div>
-        <div class="channel-items-scroll">
-            @foreach (var room in Model.Rooms)
-            {
-                string avatarClass = room.ColorType switch
-                {
-                    "gold" => "avatar-gold",
-                    "blue" => "avatar-blue",
-                    "green" => "avatar-green",
-                    "brown" => "avatar-brown",
-                    _ => "avatar-gold"
-                };
-
-                <a asp-controller="Manager" asp-action="Chat" asp-route-channel="@room.Id" 
-                   class="channel-item-link @(room.IsActive ? "active" : "")">
-                    <div class="channel-avatar @avatarClass">
-                        <i class="bi bi-hash"></i>
-                    </div>
-                    <div class="channel-info-col">
-                        <div class="channel-title-row">
-                            <span class="channel-name">@room.Name</span>
-                            @if (room.UnreadCount > 0)
-                            {
-                                <span class="badge-unread-red">@room.UnreadCount</span>
-                            }
-                        </div>
-                        <div class="channel-last-msg">@room.LastMessageText</div>
-                    </div>
-                </a>
-            }
-        </div>
-    </div>
-
     <!-- Active Channel Conversation -->
     <div class="conversation-card">
         <div class="conv-header">
             <div>
                 <div class="conv-title">
-                    <i class="bi bi-hash" style="color: #f59e0b;"></i> @Model.ActiveRoom.Name
+                    <i class="bi bi-people-fill" style="color: #f59e0b;"></i> @Model.ActiveRoom.Name
                 </div>
                 <div class="conv-sub">@Model.ActiveRoom.MembersInfo</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="icon-circle-btn" title="ค้นหาในห้องนี้"><i class="bi bi-search"></i></div>
-                <div class="icon-circle-btn" title="ข้อมูลห้อง"><i class="bi bi-info-circle"></i></div>
-            </div>
-        </div>
-
-        <div class="pinned-banner">
-            <i class="bi bi-pin-angle-fill me-2" style="color: #f59e0b;"></i>
-            <span>ปักหมุด: กรุณาแจ้งสรุปข้อผิดพลาดหรือรอบฉายฉุกเฉินในห้องนี้โดยด่วนเพื่อการประสานงานที่มีประสิทธิภาพ</span>
         </div>
 
         <div class="messages-stream-box" id="messagesBox">
@@ -439,9 +386,9 @@
         </div>
 
         <div class="conv-input-footer">
-            <form asp-controller="Manager" asp-action="SendManagerChatMessage" method="post" class="chat-input-form">
+            <form asp-controller="Manager" asp-action="SendManagerChatMessage" method="post" class="chat-input-form" id="chatForm">
                 <input type="hidden" name="channel" value="@Model.ActiveRoomId" />
-                <input type="text" name="message" class="chat-input-field" placeholder="พิมพ์ข้อความถึง@Model.ActiveRoom.Name..." autocomplete="off" required />
+                <input type="text" name="message" class="chat-input-field" id="chatInput" placeholder="พิมพ์ข้อความ..." autocomplete="off" required />
                 <button type="submit" class="btn-send-gold">
                     <span>ส่ง</span>
                     <i class="bi bi-send-fill"></i>
@@ -451,11 +398,76 @@
     </div>
 </div>
 
+@{ var currentUserName = Context.Session.GetString("UserName") ?? "ผู้จัดการ"; }
 <script>
-    window.addEventListener('DOMContentLoaded', function () {
-        var box = document.getElementById('messagesBox');
-        if (box) {
-            box.scrollTop = box.scrollHeight;
+    (function () {
+        const box = document.getElementById('messagesBox');
+        const form = document.getElementById('chatForm');
+        const input = document.getElementById('chatInput');
+        const activeChannel = '@Model.ActiveRoomId';
+        const myName = '@Html.Raw(currentUserName.Replace("'", "\\'"))';
+
+        function scrollToBottom() { if (box) box.scrollTop = box.scrollHeight; }
+        scrollToBottom();
+
+        if (form) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const msgText = (input.value || '').trim();
+                if (!msgText) return;
+
+                const nowTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'msg-item mine';
+                tempDiv.innerHTML = `
+                    <div class="msg-meta-row" style="justify-content: flex-end;">
+                        <span class="msg-sender">${escapeHtml(myName)}</span>
+                        <span class="msg-time">${nowTime}</span>
+                    </div>
+                    <div class="msg-bubble-mine">${escapeHtml(msgText)}</div>`;
+                if (box.querySelector('.bi-chat-dots')) box.innerHTML = '';
+                box.appendChild(tempDiv);
+                scrollToBottom();
+                input.value = '';
+
+                const fd = new FormData();
+                fd.append('channel', activeChannel);
+                fd.append('message', msgText);
+                try { await fetch('/Manager/SendMessageApi', { method: 'POST', body: fd }); } catch (err) { }
+            });
         }
-    });
+
+        let lastMsgCount = @Model.Messages.Count;
+        setInterval(async function () {
+            try {
+                const res = await fetch(`/Manager/GetMessagesApi?channel=${encodeURIComponent(activeChannel)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.messages) && data.messages.length !== lastMsgCount) {
+                    lastMsgCount = data.messages.length;
+                    renderMessages(data.messages);
+                }
+            } catch (err) { }
+        }, 2500);
+
+        function renderMessages(msgs) {
+            if (!box) return;
+            if (!msgs.length) { box.innerHTML = '<div style="text-align:center;color:#656575;margin-top:40px;"><i class="bi bi-chat-dots" style="font-size:32px;display:block;margin-bottom:8px;"></i>ยังไม่มีข้อความ</div>'; return; }
+            let html = '';
+            msgs.forEach(m => {
+                const cls = m.isMine ? 'mine' : 'theirs';
+                html += `<div class="msg-item ${cls}">
+                    <div class="msg-meta-row" style="${m.isMine ? 'justify-content:flex-end;' : ''}">
+                        <span class="msg-sender">${escapeHtml(m.senderName)}</span>
+                        <span class="msg-time">${escapeHtml(m.timeText)}</span>
+                    </div>
+                    <div class="${m.isMine ? 'msg-bubble-mine' : 'msg-bubble-theirs'}">${escapeHtml(m.messageText)}</div>
+                </div>`;
+            });
+            box.innerHTML = html;
+            scrollToBottom();
+        }
+
+        function escapeHtml(t) { if (!t) return ''; return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+    })();
 </script>

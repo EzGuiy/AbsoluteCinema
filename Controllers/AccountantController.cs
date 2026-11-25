@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kawin_67091861_002.Models;
 using Kawin_67091861_002.ViewModels;
+using Kawin_67091861_002.Helpers;
 
 namespace Kawin_67091861_002.Controllers;
 
@@ -14,11 +15,13 @@ public class AccountantController : Controller
 {
     private readonly AbsoluteCinemaContext _db;
     private readonly IWebHostEnvironment _env;
+    private readonly IConfiguration _config;
 
-    public AccountantController(AbsoluteCinemaContext db, IWebHostEnvironment env)
+    public AccountantController(AbsoluteCinemaContext db, IWebHostEnvironment env, IConfiguration config)
     {
         _db = db;
         _env = env;
+        _config = config;
     }
 
     // =========================================================================
@@ -28,57 +31,54 @@ public class AccountantController : Controller
     {
         var vm = new DailyOverviewViewModel();
 
-        // 1. ดึงข้อมูลตั๋วที่จองจริงจาก Database หรือ Data/bookings.json
+        // 1. ดึงข้อมูลตั๋วที่จองจริง 100% จาก Database
         var realBookings = GetRealBookings();
 
         decimal realTicketRevenue = realBookings.Where(b => b.Status != "Cancelled").Sum(b => b.Amount);
         int realBookingCount = realBookings.Count(b => b.Status != "Cancelled");
         int realCustomerCount = realBookings.Where(b => b.Status != "Cancelled").Sum(b => b.SeatCount);
 
-        // รวมยอด Concessions & Merchandise จากบันทึกบัญชี
+        // รวมยอด Concessions & Merchandise จากบันทึกบัญชีจริงใน Database
         var transactions = GetAccountingTransactions();
         decimal concessionRevenue = transactions.Where(t => t.Type == "Income" && t.Category == "Concessions").Sum(t => t.Amount);
         decimal merchRevenue = transactions.Where(t => t.Type == "Income" && t.Category == "Merchandise").Sum(t => t.Amount);
-        decimal adRevenue = transactions.Where(t => t.Type == "Income" && t.Category == "Advertising").Sum(t => t.Amount);
+        decimal otherIncome = transactions.Where(t => t.Type == "Income" && t.Category != "Concessions" && t.Category != "Merchandise").Sum(t => t.Amount);
 
-        if (concessionRevenue == 0) concessionRevenue = 62325;
-        if (merchRevenue == 0) merchRevenue = 24650;
-        if (adRevenue == 0) adRevenue = 15000;
-
-        decimal baseTicketRev = realTicketRevenue > 0 ? realTicketRevenue : 161525;
-        decimal totalRevenue = baseTicketRev + concessionRevenue + merchRevenue + adRevenue;
+        decimal baseTicketRev = realTicketRevenue;
+        decimal totalRevenue = baseTicketRev + concessionRevenue + merchRevenue + otherIncome;
 
         vm.TodayRevenue = totalRevenue;
-        vm.TodayCustomers = realCustomerCount > 0 ? (1200 + realCustomerCount) : 1247;
-        vm.TodayBookings = realBookingCount > 0 ? (880 + realBookingCount) : 892;
-        vm.AttendanceRate = 87.3;
+        vm.TodayCustomers = realCustomerCount;
+        vm.TodayBookings = realBookingCount;
+        vm.AttendanceRate = realBookingCount > 0 ? Math.Min(100.0, Math.Round((double)realCustomerCount / Math.Max(1, realBookingCount * 2) * 100, 1)) : 0;
 
         // สัดส่วนรายรับตามหมวดหมู่ (Category Breakdown)
+        decimal safeTotal = totalRevenue > 0 ? totalRevenue : 1;
         vm.CategoryBreakdown = new CategoryRevenueBreakdown
         {
             TotalRevenue = totalRevenue,
             CenterDisplay = $"฿{(totalRevenue / 1000m):F1}K",
             TicketsAmount = baseTicketRev,
-            TicketsPercent = Math.Round((double)(baseTicketRev / totalRevenue) * 100, 0),
+            TicketsPercent = totalRevenue > 0 ? Math.Round((double)(baseTicketRev / safeTotal) * 100, 0) : 0,
             ConcessionsAmount = concessionRevenue,
-            ConcessionsPercent = Math.Round((double)(concessionRevenue / totalRevenue) * 100, 0),
-            MerchandiseAmount = merchRevenue,
-            MerchandisePercent = Math.Round((double)(merchRevenue / totalRevenue) * 100, 0)
+            ConcessionsPercent = totalRevenue > 0 ? Math.Round((double)(concessionRevenue / safeTotal) * 100, 0) : 0,
+            MerchandiseAmount = merchRevenue + otherIncome,
+            MerchandisePercent = totalRevenue > 0 ? Math.Round((double)((merchRevenue + otherIncome) / safeTotal) * 100, 0) : 0
         };
 
-        // กราฟแนวโน้มรายรับ 7 วัน (Revenue Trend Last 7 Days)
-        vm.WeeklyRevenueTrend = new List<DayRevenueItem>
+        // กราฟแนวโน้มรายรับ 7 วันจริงจากฐานข้อมูล
+        var trend = new List<DayRevenueItem>();
+        for (int i = 6; i >= 0; i--)
         {
-            new() { DayName = "จันทร์", Revenue = 185000 },
-            new() { DayName = "อังคาร", Revenue = 210000 },
-            new() { DayName = "พุธ", Revenue = 175000 },
-            new() { DayName = "พฤหัสบดี", Revenue = 230000 },
-            new() { DayName = "ศุกร์", Revenue = 245000 },
-            new() { DayName = "เสาร์", Revenue = 220000 },
-            new() { DayName = "อาทิตย์ (วันนี้)", Revenue = totalRevenue }
-        };
+            var d = DateTime.Today.AddDays(-i);
+            decimal dayTicket = realBookings.Where(b => b.Status != "Cancelled" && b.BookedAt.Date == d).Sum(b => b.Amount);
+            decimal dayTxn = transactions.Where(t => t.Type == "Income" && t.TransactionDate.Date == d).Sum(t => t.Amount);
+            string dayName = i == 0 ? $"{d:dd/MM} (วันนี้)" : d.ToString("dd/MM");
+            trend.Add(new DayRevenueItem { DayName = dayName, Revenue = dayTicket + dayTxn });
+        }
+        vm.WeeklyRevenueTrend = trend;
 
-        // ภาพยนตร์ทำรายได้สูงสุดวันนี้ (Top Grossing Shows Today)
+        // ภาพยนตร์ทำรายได้สูงสุด (Top Grossing Shows) จากข้อมูลจริง
         vm.TopGrossingMovies = GetTopGrossingMovies(baseTicketRev, realBookings);
 
         return View(vm);
@@ -93,28 +93,18 @@ public class AccountantController : Controller
 
         var realBookings = GetRealBookings();
         decimal ticketSales = realBookings.Where(b => b.Status != "Cancelled").Sum(b => b.Amount);
-        if (ticketSales == 0) ticketSales = 161525;
+        int activeTicketCount = realBookings.Count(b => b.Status != "Cancelled");
 
-        // รายการรายรับ
+        // รายการรายรับจริงจาก Database
         vm.IncomeBreakdown = new List<FinancialLineItem>
         {
-            new() { Id = 1, CategoryName = "ตั๋วภาพยนตร์ (Ticket Sales)", Subtitle = "+4.15% vs เมื่อวาน", Amount = ticketSales },
-            new() { Id = 2, CategoryName = "ขนมและเครื่องดื่ม (Concessions)", Subtitle = "+12.1% vs เมื่อวาน", Amount = 62325 },
-            new() { Id = 3, CategoryName = "สินค้าของพรีเมียม (Merchandise)", Subtitle = "-2.5% vs เมื่อวาน", Amount = 24650 },
-            new() { Id = 4, CategoryName = "โฆษณาในโรงหนัง (Advertising)", Subtitle = "คงที่ (Stable)", Amount = 15000 }
+            new() { Id = 1, CategoryName = "ตั๋วภาพยนตร์ (Ticket Sales - Database)", Subtitle = $"รายการจองจริงทั้งหมด {activeTicketCount} รายการ", Amount = ticketSales }
         };
 
-        // รายการรายจ่าย
-        vm.ExpenseBreakdown = new List<FinancialLineItem>
-        {
-            new() { Id = 101, CategoryName = "ค่าจ้างพนักงาน (Staff Wages)", Subtitle = "รวมกะเช้าและกะดึก", Amount = 42500, IsExpense = true },
-            new() { Id = 102, CategoryName = "สาธารณูปโภค (Utilities)", Subtitle = "ค่าไฟและแอร์ตลอดวัน", Amount = 18200, IsExpense = true },
-            new() { Id = 103, CategoryName = "พัสดุและวัตถุดิบ (Supplies)", Subtitle = "วัตถุดิบป๊อปคอร์นและแก้วน้ำ", Amount = 12400, IsExpense = true },
-            new() { Id = 104, CategoryName = "การบำรุงรักษาเครื่อง (Maintenance)", Subtitle = "ดูแลระบบฉายและทำความสะอาด", Amount = 9500, IsExpense = true },
-            new() { Id = 105, CategoryName = "ส่วนแบ่งลิขสิทธิ์หนัง (Licensing)", Subtitle = "สัญญาแบ่งสตูดิโอค่ายหนัง", Amount = 85000, IsExpense = true }
-        };
+        // รายการรายจ่ายจริงจาก Database
+        vm.ExpenseBreakdown = new List<FinancialLineItem>();
 
-        // รวมยอดเพิ่มเติมจาก transactions ที่บันทึกเข้ามาจริง
+        // รวมยอดเพิ่มเติมจาก transactions ที่บันทึกเข้ามาจริงใน Database
         var userTransactions = GetAccountingTransactions();
         foreach (var ut in userTransactions)
         {
@@ -146,14 +136,23 @@ public class AccountantController : Controller
         vm.NetProfit = vm.TotalIncome - vm.TotalExpenses;
         vm.MarginStatus = vm.NetProfit >= 0 ? "✓ ดีเยี่ยม (Healthy Margin)" : "⚠ ขาดทุนสุทธิ (Deficit)";
 
-        // กราฟเปรียบเทียบในรอบ 30 วัน (4 สัปดาห์)
-        vm.MonthlyComparison = new List<WeeklyFinancialItem>
+        // กราฟเปรียบเทียบรายรับ-รายจ่ายจริงจากฐานข้อมูล (4 สัปดาห์ล่าสุด)
+        var weeklyComp = new List<WeeklyFinancialItem>();
+        for (int w = 3; w >= 0; w--)
         {
-            new() { WeekLabel = "สัปดาห์ 1", Income = 1750000, Expenses = 1120000 },
-            new() { WeekLabel = "สัปดาห์ 2", Income = 1920000, Expenses = 1250000 },
-            new() { WeekLabel = "สัปดาห์ 3", Income = 1680000, Expenses = 1190000 },
-            new() { WeekLabel = "สัปดาห์ 4", Income = 2100000, Expenses = 1380000 }
-        };
+            var weekEnd = DateTime.Today.AddDays(-w * 7).AddDays(1);
+            var weekStart = weekEnd.AddDays(-7);
+            decimal wTicket = realBookings.Where(b => b.Status != "Cancelled" && b.BookedAt >= weekStart && b.BookedAt < weekEnd).Sum(b => b.Amount);
+            decimal wInc = userTransactions.Where(t => t.Type == "Income" && t.TransactionDate >= weekStart && t.TransactionDate < weekEnd).Sum(t => t.Amount);
+            decimal wExp = userTransactions.Where(t => t.Type != "Income" && t.TransactionDate >= weekStart && t.TransactionDate < weekEnd).Sum(t => t.Amount);
+            weeklyComp.Add(new WeeklyFinancialItem
+            {
+                WeekLabel = $"สัปดาห์ที่ {4 - w}",
+                Income = wTicket + wInc,
+                Expenses = wExp
+            });
+        }
+        vm.MonthlyComparison = weeklyComp;
 
         return View(vm);
     }
@@ -344,12 +343,12 @@ public class AccountantController : Controller
 
         vm.RefundTransactions = transactions;
 
-        // คำนวณสรุปสถิติ
-        vm.TodayRequestsCount = 24;
-        vm.CompletedCount = transactions.Count(t => t.Status == "อนุมัติแล้ว") > 0 ? (20 + transactions.Count(t => t.Status == "อนุมัติแล้ว")) : 21;
+        // คำนวณสรุปสถิติจริง 100%
+        int totalBookings = GetRealBookings().Count;
+        vm.TodayRequestsCount = transactions.Count;
+        vm.CompletedCount = transactions.Count(t => t.Status == "อนุมัติแล้ว");
         vm.TotalRefundAmount = transactions.Where(t => t.Status == "อนุมัติแล้ว").Sum(t => t.Amount);
-        if (vm.TotalRefundAmount == 0) vm.TotalRefundAmount = 5460;
-        vm.CancellationRate = 1.8;
+        vm.CancellationRate = totalBookings > 0 ? Math.Round((double)vm.CompletedCount / totalBookings * 100, 1) : 0;
 
         // เลือกคำขอที่จะแสดงในแผง "PENDING REVIEW" ด้านขวา
         if (!string.IsNullOrEmpty(id))
@@ -372,20 +371,101 @@ public class AccountantController : Controller
         {
             UpdateRefundInFile(id, "อนุมัติแล้ว");
 
-            // อัปเดตใน bookings.json ด้วยหากมี
+            // อัปเดตใน bookings.json และส่งอีเมลหาลูกค้าตามที่ลงทะเบียนไว้
             try
             {
                 var refunds = GetRefundsFromFile();
                 var item = refunds.FirstOrDefault(r => r.RequestId == id);
-                if (item != null && !string.IsNullOrEmpty(item.BookingCode))
+                if (item != null)
                 {
-                    // ลองหาและอัปเดตใน Database หรือไฟล์
-                    UpdateBookingStatusByCode(item.BookingCode, "Cancelled");
+                    if (!string.IsNullOrEmpty(item.BookingCode))
+                    {
+                        UpdateBookingStatusByCode(item.BookingCode, "Cancelled");
+                    }
+                    // อัปเดตใน MySQL Bookings & Payments ด้วย
+                    try
+                    {
+                        if (_db.Database.CanConnect() && !string.IsNullOrEmpty(item.BookingCode))
+                        {
+                            string digits = new string(item.BookingCode.Where(char.IsDigit).ToArray());
+                            if (int.TryParse(digits, out int bId))
+                            {
+                                var dbBooking = _db.Bookings.Include(b => b.Payments).FirstOrDefault(b => b.BookingId == bId);
+                                if (dbBooking != null)
+                                {
+                                    dbBooking.Status = "Cancelled";
+                                    foreach (var p in dbBooking.Payments)
+                                    {
+                                        p.IsRefunded = true;
+                                    }
+                                    _db.SaveChanges();
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+
+                    // ค้นหาอีเมลลูกค้า
+                    string customerEmail = item.CustomerEmail;
+                    if (string.IsNullOrEmpty(customerEmail))
+                    {
+                        // ลองค้นหาจาก bookings.json
+                        try
+                        {
+                            var bPath = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
+                            if (System.IO.File.Exists(bPath))
+                            {
+                                var bJson = System.IO.File.ReadAllText(bPath);
+                                using var bDoc = JsonDocument.Parse(bJson);
+                                if (bDoc.RootElement.ValueKind == JsonValueKind.Array)
+                                {
+                                    foreach (var b in bDoc.RootElement.EnumerateArray())
+                                    {
+                                        string rc = b.TryGetProperty("ReferenceCode", out var rcp) ? rcp.GetString() ?? "" : "";
+                                        if (string.Equals(rc, item.BookingCode, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            customerEmail = b.TryGetProperty("CustomerEmail", out var cep) ? cep.GetString() ?? "" : "";
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (string.IsNullOrEmpty(customerEmail))
+                    {
+                        customerEmail = "member@absolutecinema.com";
+                    }
+
+                    string baseUrl = $"{Request.Scheme}://{Request.Host}";
+                    bool emailSent = EmailHelper.SendRefundApprovalEmail(
+                        _env.ContentRootPath,
+                        _config,
+                        customerEmail,
+                        item.CustomerName,
+                        item.BookingCode,
+                        item.MovieTitle,
+                        item.CinemaName,
+                        item.ShowtimeText,
+                        item.SeatNumbers,
+                        item.Amount,
+                        item.RequestId,
+                        baseUrl
+                    );
+
+                    TempData["Success"] = $"อนุมัติการคืนเงิน {id} สำเร็จ! ยอดเงินจำนวน ฿{item.Amount:N2} ได้ถูกดำเนินการคืนแล้ว และระบบได้ส่งอีเมลแจ้งผลพร้อมปุ่มยืนยันไปยัง '{customerEmail}' เรียบร้อยแล้ว";
+                }
+                else
+                {
+                    TempData["Success"] = $"อนุมัติการคืนเงิน {id} สำเร็จ ยอดเงินถูกคืนเข้าสู่บัญชีลูกค้าเรียบร้อยแล้ว";
                 }
             }
-            catch { }
-
-            TempData["Success"] = $"อนุมัติการคืนเงิน {id} สำเร็จ ยอดเงินถูกคืนเข้าสู่บัญชีลูกค้าเรียบร้อยแล้ว";
+            catch (Exception ex)
+            {
+                TempData["Success"] = $"อนุมัติการคืนเงิน {id} สำเร็จ (ข้อความแจ้งเตือน: {ex.Message})";
+            }
         }
 
         return RedirectToAction("Refunds", new { id });
@@ -404,57 +484,45 @@ public class AccountantController : Controller
     }
 
     // =========================================================================
-    // 6. แชทในองค์กร (Organization Chat)
     // =========================================================================
-    public IActionResult Chat(string channel = "accounting")
+    // =========================================================================
+    // 6. ระบบแชต (แชทกลุ่มรวมทุกแผนก)
+    // =========================================================================
+    public IActionResult Chat(string channel = "group")
     {
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Accountant");
+        string activeChannelId = "group";
+
+        HttpContext.Session.SetString("AcctChat_Seen_group", "true");
+
+        string myName = HttpContext.Session.GetString("UserName") ?? "ฝ่ายบัญชี";
+        string role = HttpContext.Session.GetString("UserRole") ?? "Accountant";
+
         var vm = new OrganizationChatViewModel
         {
-            ActiveChannelId = string.IsNullOrEmpty(channel) ? "accounting" : channel.ToLowerInvariant()
+            ActiveChannelId = activeChannelId,
+            ActiveChannelName = "แชทกลุ่มรวม (All Staff)"
         };
 
-        // ตั้งชื่อ Channel ที่เปิดอยู่
-        vm.ActiveChannelName = vm.ActiveChannelId switch
-        {
-            "purchasing" => "ฝ่ายจัดซื้อ (Purchasing)",
-            "executives" => "ผู้บริหาร (Executives)",
-            _ => "ฝ่ายบัญชี (Accounting)"
-        };
-
-        // Channels ตาม Mockup
         vm.Channels = new List<ChatChannelDto>
         {
-            new() { Id = "accounting", Name = "ฝ่ายบัญชี (Accounting)", UnreadCount = 0, IsActive = vm.ActiveChannelId == "accounting" },
-            new() { Id = "purchasing", Name = "ฝ่ายจัดซื้อ (Purchasing)", UnreadCount = 2, IsActive = vm.ActiveChannelId == "purchasing" },
-            new() { Id = "executives", Name = "ผู้บริหาร (Executives)", UnreadCount = 0, IsActive = vm.ActiveChannelId == "executives" }
+            new() { Id = "group", Name = "แชทกลุ่มรวม (All Staff)", UnreadCount = 0, IsActive = true }
         };
 
-        // Direct Messages ตาม Mockup
-        vm.DirectMessages = new List<ChatContactDto>
-        {
-            new() { Id = "somchai", Name = "สมชาย คลังสินค้า", Role = "Concessions Lead", IsOnline = true },
-            new() { Id = "kewalin", Name = "เกวลิน ฝ่ายขาย", Role = "Box Office Supervisor", IsOnline = true },
-            new() { Id = "thanawut", Name = "ธนาวุฒิ ระบบโรง", Role = "Projectionist Engineer", IsOnline = true }
-        };
+        vm.DirectMessages = new List<ChatContactDto>();
 
-        // ดึงข้อความของ Channel ปัจจุบัน
-        var allMessages = GetChatMessagesFromFile();
-        vm.Messages = allMessages.Where(m => m.ChannelId == vm.ActiveChannelId).OrderBy(m => m.CreatedAt).ToList();
-
-        // กรณีไม่มีข้อความใน channel อื่น ให้มีข้อความต้อนรับ
-        if (!vm.Messages.Any() && vm.ActiveChannelId != "accounting")
-        {
-            vm.Messages.Add(new ChatMessageDto
+        vm.Messages = ChatHelper.GetMessagesForChannel(_db, _env, activeChannelId, role, myName, myUserId)
+            .Select(m => new ChatMessageDto
             {
-                Id = 999,
-                ChannelId = vm.ActiveChannelId,
-                SenderName = "ระบบแจ้งเตือน",
-                TimeText = DateTime.Now.ToString("h:mm tt"),
-                MessageText = $"ยินดีต้อนรับสู่ห้องแชท #{vm.ActiveChannelName} สมาชิกสามารถส่งข้อความปรึกษางานได้ที่นี่",
-                IsMine = false,
-                CreatedAt = DateTime.Now
-            });
-        }
+                Id = m.Id,
+                ChannelId = m.ChannelId,
+                SenderName = m.SenderName,
+                TimeText = m.TimeText,
+                MessageText = m.MessageText,
+                IsMine = m.IsMine,
+                CreatedAt = m.CreatedAt
+            })
+            .ToList();
 
         return View(vm);
     }
@@ -464,45 +532,33 @@ public class AccountantController : Controller
     {
         if (!string.IsNullOrWhiteSpace(message))
         {
-            string ch = string.IsNullOrEmpty(channelId) ? "accounting" : channelId.ToLowerInvariant();
-            var allMessages = GetChatMessagesFromFile();
-
-            var newMsg = new ChatMessageDto
-            {
-                Id = allMessages.Count + 1,
-                ChannelId = ch,
-                SenderName = "ณิชา พงษ์ศิริ (คุณ)",
-                TimeText = DateTime.Now.ToString("h:mm tt"),
-                MessageText = message.Trim(),
-                IsMine = true,
-                CreatedAt = DateTime.Now
-            };
-
-            allMessages.Add(newMsg);
-            SaveChatMessagesToFile(allMessages);
-
-            // บันทึกลง MySQL chats table ด้วยถ้ามี
-            try
-            {
-                if (_db.Database.CanConnect())
-                {
-                    var user = _db.Users.FirstOrDefault(u => u.RoleId == 3) ?? _db.Users.FirstOrDefault();
-                    if (user != null)
-                    {
-                        _db.Chats.Add(new Chat
-                        {
-                            SenderId = user.UserId,
-                            Message = message.Trim(),
-                            SentAt = DateTime.Now
-                        });
-                        _db.SaveChanges();
-                    }
-                }
-            }
-            catch { }
+            string sender = HttpContext.Session.GetString("UserName") ?? "ฝ่ายบัญชี";
+            string role = HttpContext.Session.GetString("UserRole") ?? "Accountant";
+            ChatHelper.SendMessage(_db, _env, "group", message, sender, role, HttpContext);
         }
+        return RedirectToAction("Chat", new { channel = "group" });
+    }
 
-        return RedirectToAction("Chat", new { channel = channelId });
+    [HttpGet]
+    public IActionResult GetMessagesApi(string channel = "group")
+    {
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Accountant");
+        string role = HttpContext.Session.GetString("UserRole") ?? "Accountant";
+        string myName = HttpContext.Session.GetString("UserName") ?? "ฝ่ายบัญชี";
+        var messages = ChatHelper.GetMessagesForChannel(_db, _env, "group", role, myName, myUserId);
+        return Json(new { success = true, channel = "group", messages = messages });
+    }
+
+    [HttpPost]
+    public IActionResult SendMessageApi([FromForm] string channelId, [FromForm] string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return Json(new { success = false, message = "ข้อความว่างเปล่า" });
+
+        string sender = HttpContext.Session.GetString("UserName") ?? "ฝ่ายบัญชี";
+        string role = HttpContext.Session.GetString("UserRole") ?? "Accountant";
+        var newMsg = ChatHelper.SendMessage(_db, _env, "group", message, sender, role, HttpContext);
+        return Json(new { success = true, newMsg = newMsg });
     }
 
     // =========================================================================
@@ -512,11 +568,13 @@ public class AccountantController : Controller
     {
         var list = new List<RealBookingItem>();
 
+        bool dbLoaded = false;
         // จาก MySQL
         try
         {
             if (_db.Database.CanConnect())
             {
+                dbLoaded = true;
                 var dbBookings = _db.Bookings
                     .Include(b => b.User)
                     .Include(b => b.Showtime).ThenInclude(s => s.Movie)
@@ -543,39 +601,42 @@ public class AccountantController : Controller
         }
         catch { }
 
-        // จาก Data/bookings.json
-        try
+        // จาก Data/bookings.json เฉพาะกรณี DB ไม่ได้เชื่อมต่อ
+        if (!dbLoaded)
         {
-            var path = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
-            if (System.IO.File.Exists(path))
+            try
             {
-                var json = System.IO.File.ReadAllText(path);
-                using var doc = JsonDocument.Parse(json);
-                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                var path = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
+                if (System.IO.File.Exists(path))
                 {
-                    foreach (var item in doc.RootElement.EnumerateArray())
+                    var json = System.IO.File.ReadAllText(path);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
                     {
-                        int id = item.TryGetProperty("BookingId", out var bid) ? bid.GetInt32() : 0;
-                        if (!list.Any(l => l.BookingId == id))
+                        foreach (var item in doc.RootElement.EnumerateArray())
                         {
-                            list.Add(new RealBookingItem
+                            int id = item.TryGetProperty("BookingId", out var bid) ? bid.GetInt32() : 0;
+                            if (!list.Any(l => l.BookingId == id))
                             {
-                                BookingId = id,
-                                CustomerName = item.TryGetProperty("CustomerName", out var cn) ? (cn.GetString() ?? "ลูกค้า") : "ลูกค้า",
-                                MovieTitle = item.TryGetProperty("MovieTitle", out var mt) ? (mt.GetString() ?? "Dune: Part Two") : "Dune: Part Two",
-                                Seats = item.TryGetProperty("SeatNumbers", out var sn) ? (sn.GetString() ?? "-") : "-",
-                                SeatCount = item.TryGetProperty("SeatCount", out var sc) ? sc.GetInt32() : 1,
-                                Amount = item.TryGetProperty("TotalAmount", out var ta) ? ta.GetDecimal() : 0,
-                                Status = item.TryGetProperty("Status", out var st) ? (st.GetString() ?? "Confirmed") : "Confirmed",
-                                BookedAt = DateTime.TryParse(item.TryGetProperty("BookedAt", out var ba) ? ba.GetString() : null, out var bdt) ? bdt : DateTime.Now,
-                                TaxInvoiceNo = item.TryGetProperty("TaxInvoiceNo", out var iv) ? (iv.GetString() ?? "") : ""
-                            });
+                                list.Add(new RealBookingItem
+                                {
+                                    BookingId = id,
+                                    CustomerName = item.TryGetProperty("CustomerName", out var cn) ? (cn.GetString() ?? "ลูกค้า") : "ลูกค้า",
+                                    MovieTitle = item.TryGetProperty("MovieTitle", out var mt) ? (mt.GetString() ?? "ภาพยนตร์") : "ภาพยนตร์",
+                                    Seats = item.TryGetProperty("SeatNumbers", out var sn) ? (sn.GetString() ?? "-") : "-",
+                                    SeatCount = item.TryGetProperty("SeatCount", out var sc) ? sc.GetInt32() : 1,
+                                    Amount = item.TryGetProperty("TotalAmount", out var ta) ? ta.GetDecimal() : 0,
+                                    Status = item.TryGetProperty("Status", out var st) ? (st.GetString() ?? "Confirmed") : "Confirmed",
+                                    BookedAt = DateTime.TryParse(item.TryGetProperty("BookedAt", out var ba) ? ba.GetString() : null, out var bdt) ? bdt : DateTime.Now,
+                                    TaxInvoiceNo = item.TryGetProperty("TaxInvoiceNo", out var iv) ? (iv.GetString() ?? "") : ""
+                                });
+                            }
                         }
                     }
                 }
             }
+            catch { }
         }
-        catch { }
 
         return list;
     }
@@ -584,10 +645,10 @@ public class AccountantController : Controller
     {
         var movies = new List<TopGrossingMovieItem>();
 
-        // ถ้ามีการจองจริง ให้กรุ๊ปตามเรื่อง
-        if (realBookings.Any())
+        var active = realBookings.Where(b => b.Status != "Cancelled").ToList();
+        if (active.Any())
         {
-            var groups = realBookings.GroupBy(b => b.MovieTitle).OrderByDescending(g => g.Sum(x => x.Amount)).ToList();
+            var groups = active.GroupBy(b => b.MovieTitle).OrderByDescending(g => g.Sum(x => x.Amount)).ToList();
             int r = 1;
             foreach (var g in groups.Take(4))
             {
@@ -595,19 +656,10 @@ public class AccountantController : Controller
                 {
                     Rank = r++,
                     MovieTitle = g.Key,
-                    ShowtimesCount = Math.Max(2, g.Count()),
+                    ShowtimesCount = g.Count(),
                     NetGross = g.Sum(x => x.Amount)
                 });
             }
-        }
-
-        // หนังมาตรฐานตาม mockup
-        if (!movies.Any())
-        {
-            movies.Add(new TopGrossingMovieItem { Rank = 1, MovieTitle = "Dune: Part Two (IMAX 2D)", ShowtimesCount = 4, NetGross = 124500 });
-            movies.Add(new TopGrossingMovieItem { Rank = 2, MovieTitle = "Godzilla x Kong", ShowtimesCount = 2, NetGross = 62300 });
-            movies.Add(new TopGrossingMovieItem { Rank = 3, MovieTitle = "Exhuma (ขุดรอยหลอนอุบาทว์)", ShowtimesCount = 3, NetGross = 41200 });
-            movies.Add(new TopGrossingMovieItem { Rank = 4, MovieTitle = "หลานม่า (Lahn Mah)", ShowtimesCount = 3, NetGross = 20500 });
         }
 
         return movies;
@@ -814,17 +866,6 @@ public class AccountantController : Controller
             }
         }
         catch { }
-
-        if (!list.Any())
-        {
-            list = new List<RefundItemDto>
-            {
-                new() { RequestId = "REF-4001", CustomerName = "กิตติพงษ์ สุขใจ", MovieTitle = "Dune: Part Two", Amount = 260, Status = "อนุมัติแล้ว", BookingCode = "BK-89021", ShowtimeText = "24/02/2026 เวลา 19:00 น.", CancellationTimeText = "24/02/2026 เวลา 12:00 น. (ก่อนฉาย 7 ชั่วโมง)", RefundAmountText = "260.00 (คืนเต็มจำนวน)" },
-                new() { RequestId = "REF-4002", CustomerName = "อริสรา พรหมศร", MovieTitle = "หลานม่า (Lahn Mah)", Amount = 160, Status = "รอดำเนินการ", BookingCode = "BK-89115", ShowtimeText = "24/02/2026 เวลา 21:00 น.", CancellationTimeText = "24/02/2026 เวลา 14:00 น. (ก่อนฉาย 7 ชั่วโมง)", RefundAmountText = "160.00 (คืนเต็มจำนวน)" },
-                new() { RequestId = "REF-4003", CustomerName = "ปองพล บุญส่ง", MovieTitle = "Godzilla x Kong", Amount = 320, Status = "ปฏิเสธ", BookingCode = "BK-89088", ShowtimeText = "24/02/2026 เวลา 16:30 น.", CancellationTimeText = "24/02/2026 เวลา 15:45 น. (ก่อนฉาย 45 นาที)", RefundAmountText = "0.00 (ยกเลิกน้อยกว่า 5 ชม.)" }
-            };
-            SaveRefundsToFile(list);
-        }
 
         return list;
     }

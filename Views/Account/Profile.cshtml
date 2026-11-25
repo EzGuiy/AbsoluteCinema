@@ -436,7 +436,7 @@
                 </div>
                 <div class="col-md-6">
                     <label style="font-size: 12px; color: #8c8c9e;">เบอร์โทรศัพท์สำหรับรับตั๋วและพร้อมเพย์</label>
-                    <div style="font-size: 14.5px; font-weight: 600; color: #dfb76c;">093-363-2239</div>
+                    <div style="font-size: 14.5px; font-weight: 600; color: #dfb76c;">@Model.Phone</div>
                 </div>
                 <div class="col-md-6">
                     <label style="font-size: 12px; color: #8c8c9e;">ระดับสิทธิ์และสถานะ</label>
@@ -449,98 +449,141 @@
     <!-- TAB 2: Booking & Payment History -->
     <div id="tab-history" class="tab-content-panel @(Model.ActiveTab == "history" ? "active" : "")">
         <div class="history-card">
-            <div class="table-responsive">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>รหัสการจอง</th>
-                            <th>ภาพยนตร์</th>
-                            <th>รอบฉาย</th>
-                            <th>ที่นั่ง</th>
-                            <th>ยอดเงิน</th>
-                            <th>วิธีชำระ</th>
-                            <th>สถานะ</th>
-                            <th style="text-align: right;">การจัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var b in Model.BookingHistory)
-                        {
+            @if (Model.BookingHistory == null || !Model.BookingHistory.Any())
+            {
+                <div style="text-align: center; padding: 50px 20px; color: #8c8c9e;">
+                    <i class="fas fa-ticket-alt" style="font-size: 36px; color: #dfb76c; margin-bottom: 14px; display: block;"></i>
+                    <h5 style="color: #ffffff; font-weight: 700;">ยังไม่มีประวัติการจองตั๋วภาพยนตร์</h5>
+                    <p style="font-size: 13px; margin-bottom: 18px;">ท่านสามารถเลือกชมภาพยนตร์ที่กำลังฉายและทำการจองที่นั่งได้ทันที</p>
+                    <a asp-controller="Home" asp-action="NowShowing" class="btn" style="background: #dfb76c; color: #000; font-weight: 700; border-radius: 8px; font-size: 13px; padding: 8px 20px;">
+                        เลือกดูภาพยนตร์
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead>
                             <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: #dfb76c;">@b.ReferenceCode</div>
-                                    <div style="font-size: 11px; color: #8c8c9e;">@b.TaxInvoiceNo</div>
-                                </td>
-                                <td>
-                                    <div style="font-weight: 600; color: #ffffff;">@b.MovieTitle</div>
-                                    <div style="font-size: 11.5px; color: #8c8c9e;">@b.CinemaName</div>
-                                </td>
-                                <td>
-                                    <div>@b.ShowtimeDateText</div>
-                                    <div style="font-size: 11.5px; color: #dfb76c;">@b.ShowtimeTimeText</div>
-                                </td>
-                                <td>
-                                    <span style="font-weight: 700; color: #fbbf24;">@b.SeatNumbers</span>
-                                    <div style="font-size: 11px; color: #8c8c9e;">(@b.SeatCount ที่นั่ง)</div>
-                                </td>
-                                <td>
-                                    <div style="font-weight: 700; color: #4ade80;">฿@b.TotalAmount.ToString("N0")</div>
-                                </td>
-                                <td>
-                                    <span style="font-size: 12.5px;">@b.PaymentMethod</span>
-                                </td>
-                                <td>
-                                    @if (b.Status == "Cancelled")
-                                    {
-                                        <span class="status-cancelled-pill"><i class="fas fa-times-circle me-1"></i>ยกเลิกแล้ว</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-confirmed-pill"><i class="fas fa-check-circle me-1"></i>ชำระเงินแล้ว</span>
-                                    }
-                                </td>
-                                <td style="text-align: right;">
-                                    @if (b.Status != "Cancelled" && b.CanCancel)
-                                    {
-                                        <form asp-controller="Account" asp-action="CancelBooking" method="post" onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการยกเลิกตั๋วชมภาพยนตร์รายการนี้?');" style="display: inline;">
-                                            <input type="hidden" name="bookingId" value="@b.BookingId" />
-                                            <button type="submit" class="btn-cancel-small" title="กดยกเลิกตั๋วภาพยนตร์">
-                                                <i class="fas fa-ban me-1"></i> กดยกเลิกตั๋ว
-                                            </button>
-                                        </form>
-                                    }
-                                    else if (b.Status == "Cancelled")
-                                    {
-                                        <span style="font-size: 11.5px; color: #8c8c9e;">คืนเงินแล้ว</span>
-                                    }
-                                </td>
+                                <th>รหัสการจอง</th>
+                                <th>ภาพยนตร์</th>
+                                <th>รอบฉาย</th>
+                                <th>ที่นั่ง</th>
+                                <th>ยอดเงิน</th>
+                                <th>วิธีชำระ</th>
+                                <th>สถานะ</th>
+                                <th style="text-align: right;">การจัดการ</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in Model.BookingHistory)
+                            {
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700; color: #dfb76c;">@b.ReferenceCode</div>
+                                        <div style="font-size: 11px; color: #8c8c9e;">@b.TaxInvoiceNo</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600; color: #ffffff;">@b.MovieTitle</div>
+                                        <div style="font-size: 11.5px; color: #8c8c9e;">@b.CinemaName</div>
+                                    </td>
+                                    <td>
+                                        <div>@b.ShowtimeDateText</div>
+                                        <div style="font-size: 11.5px; color: #dfb76c;">@b.ShowtimeTimeText</div>
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: 700; color: #fbbf24;">@b.SeatNumbers</span>
+                                        <div style="font-size: 11px; color: #8c8c9e;">(@b.SeatCount ที่นั่ง)</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 700; color: #4ade80;">฿@b.TotalAmount.ToString("N0")</div>
+                                    </td>
+                                    <td>
+                                        <span style="font-size: 12.5px;">@b.PaymentMethod</span>
+                                    </td>
+                                    <td>
+                                        @if (b.Status == "Cancelled")
+                                        {
+                                            <span class="status-cancelled-pill"><i class="fas fa-times-circle me-1"></i>ยกเลิกแล้ว</span>
+                                        }
+                                        else if (b.Status == "รอดำเนินการคืนเงิน")
+                                        {
+                                            <span style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center;">
+                                                <i class="fas fa-clock me-1"></i> รอดำเนินการคืนเงิน
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-confirmed-pill"><i class="fas fa-check-circle me-1"></i>ชำระเงินแล้ว</span>
+                                        }
+                                    </td>
+                                    <td style="text-align: right;">
+                                        @if (b.Status != "Cancelled" && b.Status != "รอดำเนินการคืนเงิน" && b.CanCancel)
+                                        {
+                                            <form asp-controller="Account" asp-action="CancelBooking" method="post" onsubmit="return confirm('ยืนยันส่งคำขอยกเลิกตั๋วชมภาพยนตร์เรื่อง @b.MovieTitle?\n\nเงื่อนไข: เนื่องจากยกเลิกก่อนเวลาหนังเริ่มเกิน 5 ชั่วโมง ระบบจะส่งคำขอไปยังฝ่ายบัญชีเพื่อตรวจสอบและคืนเงิน');" style="display: inline;">
+                                                <input type="hidden" name="bookingId" value="@b.BookingId" />
+                                                <button type="submit" class="btn-cancel-small" title="กดยกเลิกตั๋วภาพยนตร์ (ก่อนฉาย 5 ชม.)">
+                                                    <i class="fas fa-ban me-1"></i> กดยกเลิกตั๋ว
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (b.Status == "รอดำเนินการคืนเงิน")
+                                        {
+                                            <span style="font-size: 11.5px; color: #fbbf24;"><i class="fas fa-hourglass-half me-1"></i>รอฝ่ายบัญชีอนุมัติ</span>
+                                        }
+                                        else if (b.Status == "Cancelled")
+                                        {
+                                            <span style="font-size: 11.5px; color: #8c8c9e;">คืนเงินแล้ว</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size: 11px; color: #f87171;" title="@b.CancelDisallowReason">
+                                                <i class="fas fa-lock me-1"></i>เกินกำหนด 5 ชม.
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
         </div>
     </div>
 
     <!-- TAB 3: Watched Movies History -->
     <div id="tab-watched" class="tab-content-panel @(Model.ActiveTab == "watched" ? "active" : "")">
-        <div class="watched-grid">
-            @foreach (var w in Model.WatchedHistory)
-            {
-                <div class="watched-card">
-                    <div class="watched-title">@w.MovieTitle</div>
-                    <div class="watched-details">
-                        <span><i class="fas fa-calendar-check text-warning me-1"></i> วันที่เข้าชม: @w.WatchedDateText</span>
-                        <span><i class="fas fa-video text-warning me-1"></i> @w.CinemaHall</span>
-                        <span><i class="fas fa-couch text-warning me-1"></i> ที่นั่ง: @w.Seats</span>
-                        <span><i class="fas fa-star text-warning me-1"></i> คะแนนความพึงพอใจ: @w.Rating / 10</span>
+        @if (Model.WatchedHistory == null || !Model.WatchedHistory.Any())
+        {
+            <div class="history-card" style="text-align: center; padding: 50px 20px; color: #8c8c9e;">
+                <i class="fas fa-film" style="font-size: 38px; color: #dfb76c; margin-bottom: 14px; display: block;"></i>
+                <h5 style="color: #ffffff; font-weight: 700;">ยังไม่มีประวัติภาพยนตร์ที่รับชมแล้ว</h5>
+                <p style="font-size: 13px; margin: 0 auto; max-width: 480px;">
+                    เมื่อท่านเข้าชมภาพยนตร์จนสิ้นสุดรอบฉาย ระบบจะบันทึกประวัติการรับชมและแสดงสรุปที่นี่โดยอัตโนมัติ
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="watched-grid">
+                @foreach (var w in Model.WatchedHistory)
+                {
+                    <div class="watched-card">
+                        <div class="watched-title">@w.MovieTitle</div>
+                        <div class="watched-details">
+                            <span><i class="fas fa-calendar-check text-warning me-1"></i> วันที่เข้าชม: @w.WatchedDateText</span>
+                            <span><i class="fas fa-video text-warning me-1"></i> @w.CinemaHall</span>
+                            <span><i class="fas fa-couch text-warning me-1"></i> ที่นั่ง: @w.Seats</span>
+                            <span><i class="fas fa-star text-warning me-1"></i> คะแนนความพึงพอใจ: @w.Rating / 10</span>
+                        </div>
+                        <div class="watched-review-box">
+                            <i class="fas fa-quote-left me-1"></i> @w.ReviewComment
+                        </div>
                     </div>
-                    <div class="watched-review-box">
-                        <i class="fas fa-quote-left me-1"></i> @w.ReviewComment
-                    </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        }
     </div>
 </div>
 

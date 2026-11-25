@@ -56,7 +56,9 @@ public class UserBookingHistoryItemDto
     public string PaymentMethod { get; set; } = "พร้อมเพย์ (PromptPay)";
     public string Status { get; set; } = "Confirmed";
     public DateTime BookedAt { get; set; }
+    public DateTime? ShowtimeStartTime { get; set; }
     public bool CanCancel { get; set; }
+    public string CancelDisallowReason { get; set; } = "";
 }
 
 public class WatchedMovieItemDto
@@ -89,5 +91,7 @@ public class UserTicketDto
     public string Status { get; set; } = "Confirmed";
     public string BarcodeCode { get; set; } = "";
     public bool CanCancel { get; set; } = true;
+    public string CancelDisallowReason { get; set; } = "";
     public DateTime BookedAt { get; set; }
+    public DateTime? ShowtimeStartTime { get; set; }
 }

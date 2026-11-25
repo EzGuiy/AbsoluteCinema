@@ -283,9 +283,18 @@
                             <div style="font-size: 13px; color: #8c8c9e;">ใบเสร็จ: @ticket.TaxInvoiceNo | วันที่ทำรายการ: @ticket.BookedAt.ToString("dd/MM/yyyy HH:mm")</div>
                         </div>
                         <div style="text-align: right;">
-                            <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 600;">
-                                <i class="fas fa-check-circle me-1"></i> ตั๋วพร้อมใช้งาน
-                            </span>
+                            @if (ticket.Status == "รอดำเนินการคืนเงิน")
+                            {
+                                <span style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 600;">
+                                    <i class="fas fa-clock me-1"></i> รอดำเนินการคืนเงิน
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 4px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 600;">
+                                    <i class="fas fa-check-circle me-1"></i> ตั๋วพร้อมใช้งาน
+                                </span>
+                            }
                         </div>
                     </div>
 
@@ -321,21 +330,90 @@
                 <div class="ticket-right-stub">
                     <div class="stub-ref">@ticket.ReferenceCode</div>
 
-                    <div class="stub-barcode-box">
-                        <div class="mock-barcode">||| | |||| | ||| ||||</div>
+                    <div class="stub-barcode-box" style="width: 100%; padding: 4px 8px;">
+                        <svg viewBox="0 0 280 46" width="100%" height="40" preserveAspectRatio="none" style="display:block;">
+                            <rect x="0" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="5" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="9" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="15" y="0" width="1" height="46" fill="#ffffff" />
+                            <rect x="18" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="23" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="30" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="34" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="40" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="44" y="0" width="6" height="46" fill="#ffffff" />
+                            <rect x="52" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="56" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="61" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="68" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="72" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="78" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="83" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="87" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="94" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="98" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="104" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="108" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="115" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="120" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="124" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="130" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="135" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="142" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="146" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="152" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="157" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="161" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="168" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="172" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="178" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="182" y="0" width="6" height="46" fill="#ffffff" />
+                            <rect x="190" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="194" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="200" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="204" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="211" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="216" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="220" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="227" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="231" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="237" y="0" width="3" height="46" fill="#ffffff" />
+                            <rect x="242" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="249" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="253" y="0" width="4" height="46" fill="#ffffff" />
+                            <rect x="259" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="263" y="0" width="5" height="46" fill="#ffffff" />
+                            <rect x="270" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="274" y="0" width="2" height="46" fill="#ffffff" />
+                            <rect x="278" y="0" width="2" height="46" fill="#ffffff" />
+                        </svg>
+                        <div style="font-family: monospace; font-size: 11px; color: #dfb76c; letter-spacing: 1.5px; font-weight: 700; margin-top: 4px;">@ticket.ReferenceCode</div>
                         <span class="stub-scan-note">สแกนบาร์โค้ดนี้เพื่อเข้าโรงภาพยนตร์</span>
                     </div>
 
-                    @if (ticket.CanCancel)
+                    @if (ticket.Status == "รอดำเนินการคืนเงิน")
+                    {
+                        <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fbbf24; border-radius: 8px; padding: 8px 10px; font-size: 11.5px; text-align: center; width: 100%;">
+                            <i class="fas fa-hourglass-half me-1"></i> รอดำเนินการคืนเงิน<br/>
+                            <span style="font-size: 10px; color: #d1d5db;">(รอฝ่ายบัญชีอนุมัติและส่งอีเมล)</span>
+                        </div>
+                    }
+                    else if (ticket.CanCancel)
                     {
                         <form asp-controller="Account" asp-action="CancelBooking" method="post" 
-                              onsubmit="return confirm('ยืนยันการยกเลิกตั๋วชมภาพยนตร์เรื่อง @ticket.MovieTitle?\n\nเงื่อนไข: เมื่อกดยกเลิก ที่นั่งจะถูกปล่อยคืนสู่ระบบ และคืนเงินจำนวน ฿@ticket.TotalAmount.ToString("N0") ทันที');" 
+                              onsubmit="return confirm('ยืนยันส่งคำขอยกเลิกตั๋วภาพยนตร์เรื่อง @ticket.MovieTitle?\n\nเงื่อนไข: เนื่องจากยกเลิกก่อนเวลาหนังเริ่มเกิน 5 ชั่วโมง ระบบจะส่งคำขอไปยังฝ่ายบัญชีเพื่อตรวจสอบและคืนเงิน\n\nเมื่อฝ่ายบัญชีอนุมัติแล้ว คุณจะได้รับอีเมลพร้อมปุ่มกดยืนยัน');" 
                               style="width: 100%;">
                             <input type="hidden" name="bookingId" value="@ticket.BookingId" />
                             <button type="submit" class="btn-cancel-ticket">
-                                <i class="fas fa-ban me-1"></i> กดยกเลิกตั๋วหนัง
+                                <i class="fas fa-ban me-1"></i> กดยกเลิกตั๋ว (คืนเงิน)
                             </button>
                         </form>
+                    }
+                    else
+                    {
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 8px; padding: 7px 10px; font-size: 11px; text-align: center; width: 100%;">
+                            <i class="fas fa-lock me-1"></i> @(ticket.CancelDisallowReason ?? "ไม่สามารถยกเลิกได้ (เกินกำหนด 5 ชม.)")
+                        </div>
                     }
                 </div>
             </div>

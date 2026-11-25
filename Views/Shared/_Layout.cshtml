@@ -353,43 +353,9 @@
                         รอบพิเศษ
                     </a>
                 </li>
-                <li>
-                    <a asp-controller="Staff" asp-action="Index"
-                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Staff" ? "active" : "")">
-                        <i class="fas fa-clipboard-check" style="color:#0ea5e9;"></i> พนักงาน
-                    </a>
-                </li>
-                <li>
-                    <a asp-controller="Manager" asp-action="Index"
-                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Manager" ? "active" : "")">
-                        <i class="fas fa-briefcase" style="color:#f59e0b;"></i> ผู้จัดการ
-                    </a>
-                </li>
-                <li>
-                    <a asp-controller="Operations" asp-action="Index"
-                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Operations" ? "active" : "")">
-                        <i class="fas fa-wrench" style="color:#10b981;"></i> เทคนิค
-                    </a>
-                </li>
-                <li>
-                    <a asp-controller="Accountant" asp-action="Dashboard"
-                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Accountant" ? "active" : "")">
-                        <i class="fas fa-calculator" style="color:#e50914;"></i> บัญชี
-                    </a>
-                </li>
-                <li>
-                    <a asp-controller="Seed" asp-action="Index"
-                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Seed" ? "active" : "")">
-                        <i class="fas fa-database"></i> จัดการข้อมูล
-                    </a>
-                </li>
             </ul>
 
             <div style="display:flex; align-items:center; gap:12px;">
-                <!-- Theme Toggle Button -->
-                <button type="button" class="theme-nav-btn" onclick="toggleNavTheme()" title="เปลี่ยนโหมดสว่าง-มืด" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:50%; width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; color:var(--gold); cursor:pointer;">
-                    <i class="fas fa-adjust"></i>
-                </button>
 
                 @if (Context.Session.GetString("UserLoggedIn") == "true")
                 {
@@ -401,7 +367,7 @@
                         <i class="fas fa-ticket-alt"></i> ตั๋วของฉัน
                     </a>
                     <a asp-controller="Account" asp-action="Logout"
-                       style="padding:6px 12px; background:rgba(229,9,20,0.15); border:1px solid rgba(229,9,20,0.3); color:#ff6b77; border-radius:6px; font-size:12.5px; text-decoration:none; font-family:'Prompt',sans-serif; transition:all 0.3s;">
+                       style="padding:6px 12px; background:rgba(229,9,20,0.15); border:1px solid rgba(229,9,20,0.3); color:#ff6b77; border-radius:5px; font-size:12.5px; text-decoration:none; font-family:'Prompt',sans-serif; transition:all 0.3s;">
                         ออกจากระบบ
                     </a>
                 }

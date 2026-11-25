@@ -23,6 +23,12 @@
       "CinemaName": "VIP Hall 4",
       "Status": "Ready",
       "TotalSeats": 80
+    },
+    {
+      "CinemaId": 5,
+      "CinemaName": "Super VIP Hall 1",
+      "Status": "Ready",
+      "TotalSeats": 200
     }
   ],
   "Movies": [
@@ -31,26 +37,28 @@
       "Title": "ซุส",
       "DurationMins": 135,
       "Status": "Showing",
-      "Genre": "แอ็คชั่น / ตลก",
-      "Description": "พบกับมหากาพย์ภาพยนตร์แอ็คชั่นฟอร์มยักษ์แห่งปี การต่อสู้เพื่อกอบกู้เอกราชครั้งสุดท้ายที่จะตัดสินชะตากรรมของคนทั้งชาติ ชมระบบเสียง Dolby Atmos ดีที่สุดวันนี้",
+      "Genre": "องค์ลง / ตลก",
+      "Description": "หนังเรื่องนี้เหมาะสำหรับขั้นเทพเท่านั้นที่ดูได้",
       "PriceMin": 240,
       "PriceMax": 380,
       "Rating": 9.5,
-      "AgeRating": "ความรุนแรงระดับ 18+",
+      "PosterUrl": "/images/zeus.jpg",
+      "AgeRating": "ความรุนแรงระดับ 2000+",
       "SpecialTag": "IMAX SPECIAL",
       "IsHero": true,
-      "ReleaseDate": "2026-10-15"
+      "ReleaseDate": "2500-10-15"
     },
     {
       "MovieId": 2,
       "Title": "โหน่งเท่ง",
       "DurationMins": 110,
       "Status": "Showing",
-      "Genre": "ตลกฮาหน้า",
-      "Description": "เรื่องราวความฮาสุดป่วนที่จะทำให้คุณหัวเราะจนกรามค้าง การรวมตัวของสุดยอดดาวตลก",
+      "Genre": "ตลกหกสิบฉาก",
+      "Description": "ไหนน้าหม่ำ",
       "PriceMin": 200,
       "PriceMax": 320,
       "Rating": 10.0,
+      "PosterUrl": "/images/tengmam.jpg",
       "IsPopular": true,
       "ReleaseDate": "2026-10-20"
     },
@@ -69,13 +77,15 @@
     },
     {
       "MovieId": 4,
-      "Title": "สายลับ ดิบ ตาย",
+      "Title": "สายลับ จับ หนัง",
       "DurationMins": 125,
       "Status": "Showing",
-      "Genre": "ระทึกขวัญ / ดราม่า",
-      "Description": "ภารกิจสายลับสุดระห่ำ ความลับระดับชาติที่ไม่อาจเปิดเผย และการหักหลังที่ไม่มีใครคาดคิด",
+      "Genre": "ไอเจมกัน",
+      "Description": "ไม่มีใครในโลกดีเท่าแซก สไนเดอร์ส่วนไอเจมส์ กันอย่ามาเลย",
+      "PosterUrl": "/images/bokbok.jpg",
       "PriceMin": 240,
       "PriceMax": 360,
+      "AgeRating":"เฉพาะคน BMI เกินเท่านั้น",
       "Rating": 10.0,
       "IsPopular": true,
       "ReleaseDate": "2026-11-01"

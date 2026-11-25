@@ -91,7 +91,7 @@
   },
   {
     "Id": 501,
-    "ChannelId": "admin",
+    "ChannelId": "admin_2",
     "SenderName": "\u0E27\u0E35\u0E23\u0E30\u0E0A\u0E31\u0E22 (\u0E41\u0E04\u0E0A\u0E40\u0E0A\u0E35\u0E22\u0E23\u0E4C\u0E2B\u0E25\u0E31\u0E01)",
     "TimeText": "14:15",
     "MessageText": "\u0E1C\u0E39\u0E49\u0E08\u0E31\u0E14\u0E01\u0E32\u0E23\u0E04\u0E23\u0E31\u0E1A \u0E17\u0E32\u0E07\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E41\u0E08\u0E49\u0E07\u0E27\u0E48\u0E32\u0E23\u0E2D\u0E1A Dune 14:30 \u0E21\u0E35\u0E1B\u0E31\u0E0D\u0E2B\u0E32\u0E08\u0E2D\u0E07\u0E15\u0E31\u0E4B\u0E27\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u0E23\u0E30\u0E1A\u0E1A\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E47\u0E21\u0E41\u0E15\u0E48\u0E2D\u0E31\u0E15\u0E23\u0E32\u0E08\u0E23\u0E34\u0E07\u0E1E\u0E36\u0E48\u0E07 50% \u0E04\u0E23\u0E31\u0E1A",
@@ -100,7 +100,7 @@
   },
   {
     "Id": 502,
-    "ChannelId": "admin",
+    "ChannelId": "admin_3",
     "SenderName": "\u0E0A\u0E25\u0E17\u0E34\u0E28 (\u0E1D\u0E48\u0E32\u0E22\u0E0A\u0E48\u0E32\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07)",
     "TimeText": "14:17",
     "MessageText": "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15\u0E40\u0E0B\u0E34\u0E23\u0E4C\u0E1F\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E23\u0E30\u0E1A\u0E1A\u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E17\u0E35\u0E48\u0E19\u0E31\u0E48\u0E07\u0E02\u0E2D\u0E07\u0E42\u0E23\u0E07 1 \u0E04\u0E23\u0E31\u0E1A \u0E02\u0E2D\u0E40\u0E27\u0E25\u0E32\u0E41\u0E01\u0E49\u0E44\u0E02\u0E23\u0E32\u0E27\u0E46 3 \u0E19\u0E32\u0E17\u0E35\u0E04\u0E23\u0E31\u0E1A",
@@ -109,7 +109,7 @@
   },
   {
     "Id": 503,
-    "ChannelId": "admin",
+    "ChannelId": "admin_1",
     "SenderName": "\u0E13\u0E31\u0E10\u0E0A\u0E32 (\u0E1C\u0E39\u0E49\u0E08\u0E31\u0E14\u0E01\u0E32\u0E23 - \u0E15\u0E31\u0E27\u0E04\u0E38\u0E13)",
     "TimeText": "14:18",
     "MessageText": "\u0E23\u0E31\u0E1A\u0E17\u0E23\u0E32\u0E1A\u0E04\u0E48\u0E30 \u0E0A\u0E25\u0E17\u0E34\u0E28\u0E23\u0E1A\u0E01\u0E27\u0E19\u0E41\u0E08\u0E49\u0E07\u0E2D\u0E31\u0E1B\u0E40\u0E14\u0E15\u0E17\u0E32\u0E07\u0E41\u0E0A\u0E15\u0E17\u0E31\u0E19\u0E17\u0E35\u0E17\u0E35\u0E48\u0E23\u0E30\u0E1A\u0E1A\u0E01\u0E25\u0E31\u0E1A\u0E21\u0E32\u0E1B\u0E01\u0E15\u0E34\u0E15\u0E31\u0E27\u0E19\u0E30\u0E04\u0E30 \u0E40\u0E14\u0E35\u0E4B\u0E22\u0E27\u0E27\u0E35\u0E23\u0E30\u0E0A\u0E31\u0E22\u0E40\u0E15\u0E23\u0E35\u0E22\u0E21\u0E1B\u0E23\u0E30\u0E01\u0E32\u0E28\u0E43\u0E2B\u0E49\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E17\u0E23\u0E32\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E40\u0E04\u0E32\u0E19\u0E4C\u0E40\u0E15\u0E2D\u0E23\u0E4C\u0E14\u0E49\u0E27\u0E22\u0E04\u0E48\u0E30",
@@ -142,5 +142,77 @@
     "MessageText": "hhtt",
     "IsMine": true,
     "CreatedAt": "2026-11-19T17:15:20.898459+07:00"
+  },
+  {
+    "Id": 702,
+    "ChannelId": "accounting",
+    "SenderName": "\u0E13\u0E31\u0E10\u0E0A\u0E32 (\u0E1C\u0E39\u0E49\u0E08\u0E31\u0E14\u0E01\u0E32\u0E23 - \u0E15\u0E31\u0E27\u0E04\u0E38\u0E13)",
+    "TimeText": "12:33",
+    "MessageText": "\u0E2D\u0E32\u0E42\u0E25",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T12:33:13.8463881+07:00"
+  },
+  {
+    "Id": 4,
+    "ChannelId": "technician",
+    "SenderName": "\u0E1E\u0E19\u0E31\u0E01\u0E07\u0E32\u0E19\u0E1A\u0E23\u0E34\u0E01\u0E32\u0E23 (\u0E15\u0E31\u0E27\u0E04\u0E38\u0E13)",
+    "TimeText": "13:03",
+    "MessageText": "jj",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T13:03:27.4180322+07:00"
+  },
+  {
+    "Id": 5,
+    "ChannelId": "accounting",
+    "SenderName": "\u0E1E\u0E19\u0E31\u0E01\u0E07\u0E32\u0E19\u0E1A\u0E23\u0E34\u0E01\u0E32\u0E23 (\u0E15\u0E31\u0E27\u0E04\u0E38\u0E13)",
+    "TimeText": "13:26",
+    "MessageText": "\u0E01\u0E14\u0E40\u0E01",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T13:26:07.2857353+07:00"
+  },
+  {
+    "Id": 6,
+    "ChannelId": "admin_3",
+    "SenderName": "\u0E2D\u0E19\u0E38\u0E0A\u0E32 \u0E17\u0E19\u0E17\u0E32\u0E19 (\u0E0A\u0E48\u0E32\u0E07\u0E40\u0E17\u0E04\u0E19\u0E34\u0E04)",
+    "TimeText": "14:47",
+    "MessageText": "hello",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T14:47:26.452593+07:00"
+  },
+  {
+    "Id": 7,
+    "ChannelId": "admin_28",
+    "SenderName": "\u0E13\u0E34\u0E0A\u0E32 \u0E1E\u0E07\u0E29\u0E4C\u0E28\u0E34\u0E23\u0E34 (\u0E1D\u0E48\u0E32\u0E22\u0E1A\u0E31\u0E0D\u0E0A\u0E35)",
+    "TimeText": "15:58",
+    "MessageText": "hi",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T15:58:09.3980116+07:00"
+  },
+  {
+    "Id": 8,
+    "ChannelId": "admin_26",
+    "SenderName": "\u0E1E\u0E19\u0E31\u0E01\u0E07\u0E32\u0E19\u0E1A\u0E23\u0E34\u0E01\u0E32\u0E23\u0E2A\u0E32\u0E02\u0E32",
+    "TimeText": "15:58",
+    "MessageText": "gg",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T15:58:38.1273087+07:00"
+  },
+  {
+    "Id": 9,
+    "ChannelId": "group",
+    "SenderName": "GUIY \u0E01\u0E01\u0E01",
+    "TimeText": "23:13",
+    "MessageText": "\u0E14\u0E40\u0E2B\u0E40",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T23:13:43.753426+07:00"
+  },
+  {
+    "Id": 10,
+    "ChannelId": "group",
+    "SenderName": "GUIY \u0E01\u0E01\u0E01",
+    "TimeText": "23:15",
+    "MessageText": "\u0E01\u0E2B\u0E14\u0E01\u0E2B\u0E14\u0E2B\u0E40\u0E14",
+    "IsMine": true,
+    "CreatedAt": "2026-11-24T23:15:58.3994557+07:00"
   }
 ]

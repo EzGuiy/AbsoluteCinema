@@ -8,7 +8,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AbsoluteCinemaContext>(options => 
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+        ServerVersion.Parse("8.0.43-mysql")
     )
 );
 // Add session support for login
@@ -42,5 +42,10 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AbsoluteCinemaContext>();
+    Kawin_67091861_002.Helpers.DbInitializer.Initialize(db, app.Environment.ContentRootPath);
+}
 
 app.Run();

@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Kawin_67091861_002.Models;
 using Kawin_67091861_002.ViewModels;
+using Kawin_67091861_002.Helpers;
+using static Kawin_67091861_002.Helpers.ChatHelper;
 
 namespace Kawin_67091861_002.Controllers;
 
@@ -385,21 +387,36 @@ public class OperationsController : Controller
     }
 
     // =========================================================================
-    // 7. แชตทีมเทคนิค (Cross-Role Organization Chat - Image 4)
+    // 7. ระบบแชต (แชทกลุ่มรวมทุกแผนก)
     // =========================================================================
-    public IActionResult TechChat(string channel = "tech-ops")
+    public IActionResult TechChat(string channel = "group")
     {
-        string activeRoom = string.IsNullOrWhiteSpace(channel) ? "tech-ops" : channel.ToLowerInvariant();
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Technician");
+        string activeRoom = "group";
 
-        // เมื่อกดเข้ามาในห้องนี้ ให้มาร์กว่าห้องนี้อ่านแล้ว -> ตัวเลข badge ของห้องนี้จะหายไป
-        HttpContext.Session.SetString($"TechChat_Seen_{activeRoom}", "true");
-
+        HttpContext.Session.SetString("TechChat_Seen_group", "true");
         RefreshBadgeCounts();
 
-        var allMessages = GetChatMessagesFromFile();
-        var roomMessages = allMessages
-            .Where(m => m.ChannelId.Equals(activeRoom, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(m => m.CreatedAt)
+        string myName = HttpContext.Session.GetString("UserName") ?? "ช่างเทคนิค";
+
+        var rooms = new List<TechChatRoomDto>
+        {
+            new()
+            {
+                Id = "group",
+                Name = "แชทกลุ่มรวม (All Staff)",
+                LastMessageTime = "",
+                LastMessageText = "สื่อสารระหว่างพนักงานทุกแผนกในสาขา",
+                UnreadCount = 0,
+                IsActive = true,
+                OnlineStatusText = "ผู้จัดการ, พนักงานบริการ, ช่างเทคนิค, บัญชี, แอดมิน"
+            }
+        };
+
+        var activeRoomDto = rooms.First();
+
+        string role = HttpContext.Session.GetString("UserRole") ?? "Technician";
+        var roomMessages = ChatHelper.GetMessagesForChannel(_db, _env, activeRoom, role, myName, myUserId)
             .Select(m => new TechChatMessageDto
             {
                 Id = m.Id,
@@ -412,18 +429,13 @@ public class OperationsController : Controller
             })
             .ToList();
 
-        // สร้างรายการห้องแชทพร้อมสถานะ Unread Badge ของแต่ละห้อง
-        var rooms = GetTechChatRooms(activeRoom, allMessages);
-
-        var activeRoomDto = rooms.FirstOrDefault(r => r.Id == activeRoom) ?? rooms.First();
-
         var vm = new TechChatPageViewModel
         {
             ActiveRoomId = activeRoom,
             ActiveRoom = activeRoomDto,
             Rooms = rooms,
             Messages = roomMessages,
-            TotalUnreadCount = (int)(ViewBag.UnreadChatCount ?? 0)
+            TotalUnreadCount = 0
         };
 
         return View(vm);
@@ -434,48 +446,38 @@ public class OperationsController : Controller
     {
         if (!string.IsNullOrWhiteSpace(messageText))
         {
-            string ch = string.IsNullOrWhiteSpace(channelId) ? "tech-ops" : channelId.ToLowerInvariant();
-            var allMessages = GetChatMessagesFromFile();
+            string sender = HttpContext.Session.GetString("UserName") ?? "ช่างเทคนิค";
+            string role = HttpContext.Session.GetString("UserRole") ?? "Technician";
+            ChatHelper.SendMessage(_db, _env, "group", messageText, sender, role, HttpContext);
 
-            int nextId = allMessages.Any() ? allMessages.Max(m => m.Id) + 1 : 101;
-
-            var newMsg = new ChatMessageStoreDto
-            {
-                Id = nextId,
-                ChannelId = ch,
-                SenderName = "อนุชา ทนทาน (คุณ)",
-                TimeText = DateTime.Now.ToString("HH:mm"),
-                MessageText = messageText.Trim(),
-                IsMine = true,
-                CreatedAt = DateTime.Now
-            };
-
-            allMessages.Add(newMsg);
-            SaveChatMessagesToFile(allMessages);
-
-            // บันทึกเข้า MySQL Chats table ด้วยถ้าต่อ DB
-            try
-            {
-                if (_db.Database.CanConnect())
-                {
-                    _db.Chats.Add(new Chat
-                    {
-                        SenderId = 2, // ช่างเทคนิค
-                        ReceiverId = ch == "manager" ? 1 : 2,
-                        Message = messageText.Trim(),
-                        SentAt = DateTime.Now
-                    });
-                    _db.SaveChanges();
-                }
-            }
-            catch { }
-
-            // เมื่อเราส่งเอง ในห้องนี้ถือว่าอ่านแล้ว
-            HttpContext.Session.SetString($"TechChat_Seen_{ch}", "true");
-            return RedirectToAction("TechChat", new { channel = ch });
+            HttpContext.Session.SetString("TechChat_Seen_group", "true");
+            return RedirectToAction("TechChat", new { channel = "group" });
         }
-
         return RedirectToAction("TechChat");
+    }
+
+    [HttpGet]
+    public IActionResult GetMessagesApi(string channel = "group")
+    {
+        int myUserId = ChatHelper.GetCurrentUserId(HttpContext, "Technician");
+        string role = HttpContext.Session.GetString("UserRole") ?? "Technician";
+        string myName = HttpContext.Session.GetString("UserName") ?? "ช่างเทคนิค";
+        var messages = ChatHelper.GetMessagesForChannel(_db, _env, "group", role, myName, myUserId);
+        return Json(new { success = true, channel = "group", messages = messages });
+    }
+
+    [HttpPost]
+    public IActionResult SendMessageApi([FromForm] string channelId, [FromForm] string messageText)
+    {
+        if (string.IsNullOrWhiteSpace(messageText))
+            return Json(new { success = false, message = "ข้อความว่างเปล่า" });
+
+        string sender = HttpContext.Session.GetString("UserName") ?? "ช่างเทคนิค";
+        string role = HttpContext.Session.GetString("UserRole") ?? "Technician";
+        var newMsg = ChatHelper.SendMessage(_db, _env, "group", messageText, sender, role, HttpContext);
+
+        HttpContext.Session.SetString("TechChat_Seen_group", "true");
+        return Json(new { success = true, newMsg = newMsg });
     }
 
     // =========================================================================
@@ -654,15 +656,8 @@ public class OperationsController : Controller
     private int GetTotalUnreadTechChatCount()
     {
         int count = 0;
-        // ห้อง tech-oncall เริ่มต้นมี 2 ข้อความที่ยังไม่ได้อ่าน
-        if (HttpContext.Session.GetString("TechChat_Seen_tech-oncall") != "true") count += 2;
-
-        // ห้อง manager เริ่มต้นมี 1 ข้อความที่ยังไม่ได้อ่าน
-        if (HttpContext.Session.GetString("TechChat_Seen_manager") != "true") count += 1;
-
-        // ห้อง facility ถ้ามี
-        if (HttpContext.Session.GetString("TechChat_Seen_facility") != "true" && false) count += 1;
-
+        if (HttpContext.Session.GetString("TechChat_Seen_group") != "true") count += 2;
+        if (HttpContext.Session.GetString("TechChat_Seen_admin") != "true") count += 1;
         return count;
     }
 

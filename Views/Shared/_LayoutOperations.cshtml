@@ -287,7 +287,7 @@
 
             int unreadChat = ViewBag.UnreadChatCount != null 
                 ? (int)ViewBag.UnreadChatCount 
-                : (Context.Session.GetString("TechChat_Seen_tech-oncall") == "true" && Context.Session.GetString("TechChat_Seen_manager") == "true" ? 0 : 3);
+                : (Context.Session.GetString("TechChat_Seen_group") == "true" && Context.Session.GetString("TechChat_Seen_admin") == "true" ? 0 : 3);
         }
         <ul class="nav-list">
             <li>

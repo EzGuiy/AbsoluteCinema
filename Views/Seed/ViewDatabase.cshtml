@@ -357,6 +357,43 @@
         }
     </div>
 
+    <!-- Chats (ข้อความแชทในระบบของทุกทีมที่บันทึกเข้า Database) -->
+    <div class="data-table-wrap">
+        <h2>💬 Chats (ข้อความแชทของทุกทีมใน Database) <span class="count">(@(Model.Chats?.Count ?? 0) ข้อความ)</span></h2>
+        @if (Model.Chats != null && Model.Chats.Count > 0)
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Chat ID</th>
+                        <th>ผู้ส่ง (Sender)</th>
+                        <th>บทบาท (Sender Role)</th>
+                        <th>ปลายทาง/กลุ่ม (Target Role/Channel)</th>
+                        <th>ข้อความ (Message)</th>
+                        <th>เวลาที่ส่ง (SentAt)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.Chats)
+                    {
+                        <tr>
+                            <td><strong>#@c.ChatId</strong></td>
+                            <td style="color: #38bdf8; font-weight: 600;">@c.Sender</td>
+                            <td><span style="background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 6px; font-size: 11px;">@c.SenderRole</span></td>
+                            <td style="color: #f59e0b; font-weight: 500;">@c.TargetRole</td>
+                            <td style="max-width: 400px; white-space: normal; line-height: 1.4;" title="@c.Message">@c.Message</td>
+                            <td style="color: #94a3b8; font-size: 12px;">@c.Date</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-msg">ยังไม่มีประวัติการส่งข้อความแชทในระบบ</div>
+        }
+    </div>
+
     <div style="text-align: center; margin: 30px 0;">
         <a asp-controller="Seed" asp-action="ExportJson"
            style="color: #f5c518; text-decoration: none; font-size: 14px; margin-right: 20px;">

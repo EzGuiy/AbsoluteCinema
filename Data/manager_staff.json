@@ -5,8 +5,8 @@
     "RoleTitle": "\u0E1E\u0E19\u0E31\u0E01\u0E07\u0E32\u0E19\u0E02\u0E32\u0E22\u0E15\u0E31\u0E4B\u0E27",
     "ShiftText": "\u0E40\u0E27\u0E23\u0E40\u0E0A\u0E49\u0E32 (08:00 - 16:00)",
     "AccessLevel": "\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19",
-    "Status": "\u0E25\u0E32\u0E01\u0E34\u0E08 (On Leave)",
-    "StatusColor": "amber"
+    "Status": "\u0E1B\u0E0F\u0E34\u0E1A\u0E31\u0E15\u0E34\u0E07\u0E32\u0E19 (On-duty)",
+    "StatusColor": "green"
   },
   {
     "Id": 2,
@@ -41,8 +41,8 @@
     "RoleTitle": "\u0E1E\u0E19\u0E31\u0E01\u0E07\u0E32\u0E19\u0E08\u0E33\u0E2B\u0E19\u0E48\u0E32\u0E22\u0E02\u0E19\u0E21",
     "ShiftText": "\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E08\u0E31\u0E14\u0E40\u0E27\u0E23",
     "AccessLevel": "\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19",
-    "Status": "\u0E25\u0E32\u0E01\u0E34\u0E08",
-    "StatusColor": "red"
+    "Status": "\u0E25\u0E32\u0E01\u0E34\u0E08 (On Leave)",
+    "StatusColor": "amber"
   },
   {
     "Id": 6,

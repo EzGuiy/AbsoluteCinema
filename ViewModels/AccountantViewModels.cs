@@ -214,9 +214,15 @@ public class RefundItemDto
 {
     public string RequestId { get; set; } = ""; // REF-4001
     public string CustomerName { get; set; } = "";
+    public string CustomerEmail { get; set; } = "";
+    public string CustomerPhone { get; set; } = "";
     public string MovieTitle { get; set; } = "";
+    public string CinemaName { get; set; } = "";
+    public string SeatNumbers { get; set; } = "";
     public decimal Amount { get; set; }
     public string Status { get; set; } = "รอดำเนินการ"; // อนุมัติแล้ว, รอดำเนินการ, ปฏิเสธ
+    public bool IsConfirmedByCustomer { get; set; }
+    public string? ConfirmedAtText { get; set; }
 
     // Detailed Review Info
     public string BookingCode { get; set; } = ""; // BK-89115
