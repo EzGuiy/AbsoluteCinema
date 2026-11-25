@@ -421,7 +421,7 @@
                 <div class="movie-genre-text">@movie.Genre</div>
                 <div class="movie-card-footer">
                     <span>@movie.ReleaseDateText</span>
-                    <span class="rating-pill-tag">@movie.AgeRating</span>
+                    <span class="rating-pill-tag">⭐ @movie.Rating.ToString("0.0")</span>
                 </div>
             </a>
         }
@@ -432,7 +432,7 @@
     {
         var sel = Model.SelectedMovie;
         <div class="movie-detail-panel">
-            <div class="detail-panel-title">ข้อมูลภาพยนตร์ที่เลือก</div>
+            <div class="detail-panel-title">ข้อมูลภาพยนตร์จากฐานข้อมูล (DB)</div>
 
             <div class="detail-preview-box">
                 <i class="bi bi-film"></i>
@@ -441,23 +441,28 @@
 
             <div class="detail-field-group">
                 <div class="detail-field">
-                    <div class="detail-label">ชื่อเรื่องภาษาไทย</div>
-                    <div class="detail-val-strong">@sel.ThaiTitle</div>
+                    <div class="detail-label">ชื่อภาพยนตร์ (Title)</div>
+                    <div class="detail-val-strong">@sel.Title</div>
                 </div>
 
                 <div class="detail-field">
-                    <div class="detail-label">ผู้กำกับ / นักแสดง</div>
-                    <div class="detail-val-subtle">@sel.DirectorAndCast</div>
+                    <div class="detail-label">หมวดหมู่ / ความยาว</div>
+                    <div class="detail-val-subtle">@sel.Genre • @sel.DurationMins นาที</div>
                 </div>
 
                 <div class="detail-field">
-                    <div class="detail-label">โรงภาพยนตร์ที่กำลังจัดฉาย</div>
-                    <div class="detail-val-subtle" style="color: #fbbf24;">@sel.ShowingHalls</div>
+                    <div class="detail-label">ราคาบัตรชมภาพยนตร์</div>
+                    <div class="detail-val-subtle" style="color: #fbbf24; font-weight: 600;">฿@sel.PriceMin.ToString("N0") - ฿@sel.PriceMax.ToString("N0")</div>
                 </div>
 
                 <div class="detail-field">
-                    <div class="detail-label">สถิติวันนี้</div>
-                    <div class="detail-val-subtle" style="color: #4ade80; font-weight: 600;">@sel.TicketSalesAvg</div>
+                    <div class="detail-label">เรตติ้ง / วันที่เข้าฉาย</div>
+                    <div class="detail-val-subtle" style="color: #4ade80; font-weight: 600;">⭐ @sel.Rating.ToString("0.0") / 10 • @sel.ReleaseDateText</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">รายละเอียด / เรื่องย่อ</div>
+                    <div class="detail-val-subtle" style="font-size: 11.5px; line-height: 1.5;">@(!string.IsNullOrEmpty(sel.Description) ? sel.Description : "-")</div>
                 </div>
             </div>
 
@@ -481,19 +486,15 @@
         <div class="modal-content" style="background: #18181f; border: 1px solid #2a2a38; border-radius: 12px; color: #fff;">
             <div class="modal-header" style="border-bottom: 1px solid #2a2a38; padding: 18px 24px;">
                 <h5 class="modal-title" style="font-weight: 700; font-size: 16px;">
-                    <i class="bi bi-film me-2" style="color: #f59e0b;"></i>เพิ่มภาพยนตร์ใหม่เข้าสู่ระบบ
+                    <i class="bi bi-film me-2" style="color: #f59e0b;"></i>เพิ่มภาพยนตร์ใหม่ลงฐานข้อมูล
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form asp-controller="Manager" asp-action="AddManagerMovie" method="post">
+            <form asp-controller="Manager" asp-action="AddMovie" method="post">
                 <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
                     <div>
-                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ชื่อภาพยนตร์ (ภาษาอังกฤษ)</label>
-                        <input type="text" name="Title" class="form-control" placeholder="เช่น Gladiator II" required style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
-                    </div>
-                    <div>
-                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ชื่อเรื่องภาษาไทย</label>
-                        <input type="text" name="ThaiTitle" class="form-control" placeholder="เช่น แกลดิเอเตอร์ 2" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ชื่อภาพยนตร์ <span class="text-danger">*</span></label>
+                        <input type="text" name="Title" class="form-control" placeholder="เช่น Dune: Part Two" required style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
                     </div>
                     <div class="row g-3">
                         <div class="col-6">
@@ -515,10 +516,22 @@
                             <input type="number" name="PriceMax" value="350" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
                         </div>
                     </div>
+                    <div>
+                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">สถานะภาพยนตร์</label>
+                        <select name="Status" class="form-select" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;">
+                            <option value="Showing">กำลังฉาย (Showing)</option>
+                            <option value="ComingSoon">โปรแกรมหน้า (Coming Soon)</option>
+                            <option value="Ended">ปิดรอบแล้ว (Ended)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">รายละเอียด / เรื่องย่อ</label>
+                        <textarea name="Description" rows="3" class="form-control" placeholder="เรื่องย่อภาพยนตร์..." style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;"></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer" style="border-top: 1px solid #2a2a38; padding: 16px 24px;">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 13px;">ยกเลิก</button>
-                    <button type="submit" class="btn-gold">บันทึกภาพยนตร์</button>
+                    <button type="submit" class="btn-gold">บันทึกลง Database</button>
                 </div>
             </form>
         </div>
@@ -526,33 +539,64 @@
 </div>
 
 <!-- Modal แก้ไขข้อมูล -->
-<div class="modal fade" id="editMovieModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: #18181f; border: 1px solid #2a2a38; border-radius: 12px; color: #fff;">
-            <div class="modal-header" style="border-bottom: 1px solid #2a2a38; padding: 18px 24px;">
-                <h5 class="modal-title" style="font-weight: 700; font-size: 16px;">
-                    <i class="bi bi-pencil-square me-2" style="color: #f59e0b;"></i>แก้ไขข้อมูล: @Model.SelectedMovie?.Title
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form asp-controller="Manager" asp-action="SetMovieStatus" method="post">
-                <input type="hidden" name="id" value="@Model.SelectedMovie?.MovieId" />
-                <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
-                    <div>
-                        <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">สถานะการจัดฉาย</label>
-                        <select name="status" class="form-select" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;">
-                            <option value="กำลังฉาย" selected>กำลังฉาย (Now Showing)</option>
-                            <option value="พร้อมฉาย">พร้อมฉาย (Ready)</option>
-                            <option value="โปรแกรมหน้า">โปรแกรมหน้า (Coming Soon)</option>
-                            <option value="ปิดรอบแล้ว">ปิดรอบแล้ว (Ended)</option>
-                        </select>
+@if (Model.SelectedMovie != null)
+{
+    var mSel = Model.SelectedMovie;
+    <div class="modal fade" id="editMovieModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: #18181f; border: 1px solid #2a2a38; border-radius: 12px; color: #fff;">
+                <div class="modal-header" style="border-bottom: 1px solid #2a2a38; padding: 18px 24px;">
+                    <h5 class="modal-title" style="font-weight: 700; font-size: 16px;">
+                        <i class="bi bi-pencil-square me-2" style="color: #f59e0b;"></i>แก้ไขข้อมูล: @mSel.Title
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="Manager" asp-action="EditMovie" method="post">
+                    <input type="hidden" name="MovieId" value="@mSel.MovieId" />
+                    <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+                        <div>
+                            <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ชื่อภาพยนตร์ <span class="text-danger">*</span></label>
+                            <input type="text" name="Title" value="@mSel.Title" class="form-control" required style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">หมวดหมู่</label>
+                                <input type="text" name="Genre" value="@mSel.Genre" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                            </div>
+                            <div class="col-6">
+                                <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ความยาว (นาที)</label>
+                                <input type="number" name="DurationMins" value="@mSel.DurationMins" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ราคาเริ่มต้น (฿)</label>
+                                <input type="number" name="PriceMin" value="@mSel.PriceMin" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                            </div>
+                            <div class="col-6">
+                                <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">ราคาสูงสุด (฿)</label>
+                                <input type="number" name="PriceMax" value="@mSel.PriceMax" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;" />
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">สถานะภาพยนตร์</label>
+                            <select name="Status" class="form-select" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;">
+                                <option value="Showing" selected="@(mSel.StatusBadge == "กำลังฉาย")">กำลังฉาย (Showing)</option>
+                                <option value="ComingSoon" selected="@(mSel.StatusBadge == "โปรแกรมหน้า" || mSel.StatusBadge == "พร้อมฉาย")">โปรแกรมหน้า (Coming Soon)</option>
+                                <option value="Ended" selected="@(mSel.StatusBadge == "ปิดรอบแล้ว")">ปิดรอบแล้ว (Ended)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12.5px; color: #9292a0; margin-bottom: 6px;">รายละเอียด / เรื่องย่อ</label>
+                            <textarea name="Description" rows="3" class="form-control" style="background: #111116; border: 1px solid #282836; color: #fff; border-radius: 8px;">@mSel.Description</textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer" style="border-top: 1px solid #2a2a38; padding: 16px 24px;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 13px;">ปิด</button>
-                    <button type="submit" class="btn-gold">บันทึกการแก้ไข</button>
-                </div>
-            </form>
+                    <div class="modal-footer" style="border-top: 1px solid #2a2a38; padding: 16px 24px;">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 13px;">ยกเลิก</button>
+                        <button type="submit" class="btn-gold">บันทึกการแก้ไขลง DB</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+}

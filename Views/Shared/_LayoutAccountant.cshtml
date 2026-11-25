@@ -427,6 +427,28 @@
                 </a>
             </li>
 
+            @if (Context.Session.GetString("UserRole") == "Admin")
+            {
+                <li class="nav-item" style="border-top: 1px dashed var(--border-subtle); margin-top: 8px; padding-top: 8px;">
+                    <a asp-controller="Manager" asp-action="Showtimes" class="nav-link-item">
+                        <i class="bi bi-film nav-icon text-warning"></i>
+                        <div class="nav-texts">
+                            <span class="nav-title-th">จัดการรอบฉาย & หนัง</span>
+                            <span class="nav-sub-en">MANAGER CONSOLE</span>
+                        </div>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="Account" asp-action="UserList" class="nav-link-item">
+                        <i class="bi bi-people nav-icon text-danger"></i>
+                        <div class="nav-texts">
+                            <span class="nav-title-th">จัดการผู้ใช้</span>
+                            <span class="nav-sub-en">ADMIN USERS</span>
+                        </div>
+                    </a>
+                </li>
+            }
+
             <!-- Back to Home & Logout -->
             <li class="nav-item" style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle);">
                 <a asp-controller="Home" asp-action="Index" class="nav-link-item">
@@ -463,6 +485,13 @@
     <!-- Main Content Area -->
     <div class="main-wrapper">
         <main class="content-body">
+            @if (ViewBag.DbError != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="background:#280d0d; border-color:#e50914; color:#ff6b7d;">
+                    <i class="bi bi-database-x me-2"></i> <strong>ข้อผิดพลาดฐานข้อมูล:</strong> @ViewBag.DbError
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            }
             @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="background:#0d2818; border-color:#12b76a; color:#34d399;">

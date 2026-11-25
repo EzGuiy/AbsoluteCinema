@@ -167,8 +167,8 @@ public class AccountController : Controller
             "Staff" => RedirectToAction("Index", "Staff"),
             "Manager" => RedirectToAction("Index", "Manager"),
             "Technician" => RedirectToAction("Index", "Operations"),
-            "Accountant" => RedirectToAction("Index", "Accountant"),
-            "Admin" => RedirectToAction("UserList", "Account"),
+            "Accountant" => RedirectToAction("Dashboard", "Accountant"),
+            "Admin" => RedirectToAction("Showtimes", "Manager"),
             _ => RedirectToAction("Index", "Home")
         };
     }

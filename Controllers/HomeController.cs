@@ -42,8 +42,11 @@ public class HomeController : Controller
                     var movieList = dbMovies.Select(m =>
                     {
                         var todayShowtimes = m.Showtimes
+                            .Where(s => s.StartTime.Date == DateTime.Today)
                             .OrderBy(s => s.StartTime)
                             .Select(s => s.StartTime.ToString("HH:mm"))
+                            .Distinct()
+                            .Take(6)
                             .ToList();
 
                         if (!todayShowtimes.Any())

@@ -232,5 +232,23 @@
     "MessageText": "\u0E44\u0E33\u0E40\u0E14\u0E44\u0E40",
     "IsMine": true,
     "CreatedAt": "2026-11-25T09:57:13.5391212+07:00"
+  },
+  {
+    "Id": 13,
+    "ChannelId": "group",
+    "SenderName": "\u0E2D\u0E19\u0E38\u0E0A\u0E32 \u0E17\u0E19\u0E17\u0E32\u0E19 (\u0E0A\u0E48\u0E32\u0E07\u0E40\u0E17\u0E04\u0E19\u0E34\u0E04)",
+    "TimeText": "11:22 \u0E19.",
+    "MessageText": "djnvdk",
+    "IsMine": true,
+    "CreatedAt": "2026-11-25T11:22:58.3446107+07:00"
+  },
+  {
+    "Id": 14,
+    "ChannelId": "group",
+    "SenderName": "\u0E1C\u0E39\u0E49\u0E14\u0E39\u0E41\u0E25\u0E23\u0E30\u0E1A\u0E1A\u0E2A\u0E32\u0E02\u0E32 (Admin)",
+    "TimeText": "11:55 \u0E19.",
+    "MessageText": "\u0E2B\u0E14\u0E01\u0E2B",
+    "IsMine": true,
+    "CreatedAt": "2026-11-25T11:55:57.6327818+07:00"
   }
 ]

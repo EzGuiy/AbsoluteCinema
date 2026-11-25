@@ -396,25 +396,33 @@
                     <div>
                         <label class="form-label-dark">เลือกโรงภาพยนตร์</label>
                         <select name="HallNumber" id="modalHallSelect" class="form-select form-control-dark">
-                            <option value="1">โรง 1 (IMAX Laser)</option>
-                            <option value="2">โรง 2 (4DX Extreme)</option>
-                            <option value="3">โรง 3 (Standard Digital)</option>
-                            <option value="4">โรง 4 (Standard Digital)</option>
-                            <option value="5">โรง 5 (Standard Digital)</option>
-                            <option value="6">โรง 6 (Standard Digital)</option>
-                            <option value="7">โรง 7 (Standard Digital)</option>
-                            <option value="8">โรง 8 (Standard Digital)</option>
+                            @if (ViewBag.Cinemas != null)
+                            {
+                                foreach (var c in (IEnumerable<Kawin_67091861_002.Models.Cinema>)ViewBag.Cinemas)
+                                {
+                                    <option value="@c.CinemaId">@c.CinemaName (ความจุ @c.TotalSeats ที่นั่ง)</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="1">โรง 1 (IMAX Laser)</option>
+                            }
                         </select>
                     </div>
                     <div>
                         <label class="form-label-dark">ภาพยนตร์ที่จัดฉาย</label>
                         <select name="MovieTitle" class="form-select form-control-dark">
-                            <option value="Dune: Part Two">Dune: Part Two</option>
-                            <option value="Inside Out 2">Inside Out 2</option>
-                            <option value="หลานม่า">หลานม่า</option>
-                            <option value="A Quiet Place: Day One">A Quiet Place: Day One</option>
-                            <option value="Furiosa">Furiosa</option>
-                            <option value="Bad Boys: Ride or Die">Bad Boys: Ride or Die</option>
+                            @if (ViewBag.Movies != null)
+                            {
+                                foreach (var m in (IEnumerable<Kawin_67091861_002.Models.Movie>)ViewBag.Movies)
+                                {
+                                    <option value="@m.Title">@m.Title (@(m.DurationMins) นาที - @m.Genre)</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="">ไม่มีรายการภาพยนตร์</option>
+                            }
                         </select>
                     </div>
                     <div class="row g-3">

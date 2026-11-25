@@ -357,18 +357,66 @@
 
             <div style="display:flex; align-items:center; gap:12px;">
 
+                @{
+                    var _navRole = Context.Session.GetString("UserRole") ?? "";
+                }
                 @if (Context.Session.GetString("UserLoggedIn") == "true")
                 {
                     <a asp-controller="Account" asp-action="Profile" style="color: #e0e0e0; font-size: 13.5px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 500;">
                         <i class="fas fa-user-circle" style="color:var(--gold); font-size: 16px;"></i>
                         <span>@Context.Session.GetString("UserName")</span>
                     </a>
-                    <a asp-controller="Account" asp-action="Tickets" style="padding:6px 12px; background:rgba(223,183,108,0.12); border:1px solid rgba(223,183,108,0.3); color:var(--gold); border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
-                        <i class="fas fa-ticket-alt"></i> ตั๋วของฉัน
-                    </a>
+                    if (_navRole == "Staff")
+                    {
+                        <a asp-controller="Staff" asp-action="Index" style="padding:6px 12px; background:rgba(14,165,233,0.15); border:1px solid rgba(14,165,233,0.4); color:#38bdf8; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-th-large"></i> หน้าที่ทำงาน
+                        </a>
+                    }
+                    else if (_navRole == "Manager")
+                    {
+                        <a asp-controller="Manager" asp-action="Index" style="padding:6px 12px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); color:#fbbf24; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-th-large"></i> หน้าที่ทำงาน
+                        </a>
+                    }
+                    else if (_navRole == "Accountant")
+                    {
+                        <a asp-controller="Accountant" asp-action="Dashboard" style="padding:6px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#34d399; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-th-large"></i> หน้าที่ทำงาน
+                        </a>
+                    }
+                    else if (_navRole == "Technician")
+                    {
+                        <a asp-controller="Operations" asp-action="Index" style="padding:6px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#34d399; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-th-large"></i> หน้าที่ทำงาน
+                        </a>
+                    }
+                    else if (_navRole == "Admin")
+                    {
+                        <a asp-controller="Manager" asp-action="Index" style="padding:6px 12px; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.45); color:#fbbf24; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-th-large"></i> แดชบอร์ด
+                        </a>
+                        <a asp-controller="Manager" asp-action="Showtimes" style="padding:6px 12px; background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.45); color:#fbbf24; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-film"></i> จัดการรอบฉาย & หนัง
+                        </a>
+                        <a asp-controller="Accountant" asp-action="Dashboard" style="padding:6px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#34d399; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-calculator"></i> ระบบบัญชี
+                        </a>
+                        <a asp-controller="Account" asp-action="UserList" style="padding:6px 12px; background:rgba(229,9,20,0.15); border:1px solid rgba(229,9,20,0.4); color:#ff6b77; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-users-cog"></i> จัดการผู้ใช้
+                        </a>
+                        <a asp-controller="Seed" asp-action="Index" style="padding:6px 12px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.4); color:#a5b4fc; border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-database"></i> ฐานข้อมูล
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Tickets" style="padding:6px 12px; background:rgba(223,183,108,0.12); border:1px solid rgba(223,183,108,0.3); color:var(--gold); border-radius:6px; font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;">
+                            <i class="fas fa-ticket-alt"></i> ตั๋วของฉัน
+                        </a>
+                    }
                     <a asp-controller="Account" asp-action="Logout"
                        style="padding:6px 12px; background:rgba(229,9,20,0.15); border:1px solid rgba(229,9,20,0.3); color:#ff6b77; border-radius:5px; font-size:12.5px; text-decoration:none; font-family:'Prompt',sans-serif; transition:all 0.3s;">
-                        ออกจากระบบ
+                         ออกจากระบบ
                     </a>
                 }
                 else

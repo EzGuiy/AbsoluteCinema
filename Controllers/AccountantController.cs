@@ -43,24 +43,44 @@ public class AccountantController : Controller
     }
 
     // =========================================================================
+    // Index → redirect ไปยัง Dashboard (เพื่อให้ /Accountant หรือ /Accountant/Index ใช้งานได้)
+    // =========================================================================
+    public IActionResult Index() => RedirectToAction("Dashboard");
+
+    // =========================================================================
     // 1. ภาพรวมประจำวัน (Daily Overview)
     // =========================================================================
     public IActionResult Dashboard()
     {
         var vm = new DailyOverviewViewModel();
+        var today = DateTime.Today;
 
-        // 1. ดึงข้อมูลตั๋วที่จองจริง 100% จาก Database
+        try
+        {
+            if (!_db.Database.CanConnect())
+            {
+                ViewBag.DbError = "ไม่สามารถเชื่อมต่อฐานข้อมูล MySQL ได้ กรุณาตรวจสอบสถานะการทำงานของ MySQL";
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewBag.DbError = "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล: " + ex.Message;
+        }
+
+        // 1. ดึงข้อมูลตั๋วที่จองจริง 100% จาก Database (กรองเฉพาะของวันนี้)
         var realBookings = GetRealBookings();
+        var todayBookings = realBookings.Where(b => b.Status != "Cancelled" && b.BookedAt.Date == today).ToList();
 
-        decimal realTicketRevenue = realBookings.Where(b => b.Status != "Cancelled").Sum(b => b.Amount);
-        int realBookingCount = realBookings.Count(b => b.Status != "Cancelled");
-        int realCustomerCount = realBookings.Where(b => b.Status != "Cancelled").Sum(b => b.SeatCount);
+        decimal realTicketRevenue = todayBookings.Sum(b => b.Amount);
+        int realBookingCount = todayBookings.Count;
+        int realCustomerCount = todayBookings.Sum(b => b.SeatCount);
 
-        // รวมยอด Concessions & Merchandise จากบันทึกบัญชีจริงใน Database
+        // รวมยอด Concessions & Merchandise จากบันทึกบัญชีจริงใน Database ของวันนี้
         var transactions = GetAccountingTransactions();
-        decimal concessionRevenue = transactions.Where(t => t.Type == "Income" && t.Category == "Concessions").Sum(t => t.Amount);
-        decimal merchRevenue = transactions.Where(t => t.Type == "Income" && t.Category == "Merchandise").Sum(t => t.Amount);
-        decimal otherIncome = transactions.Where(t => t.Type == "Income" && t.Category != "Concessions" && t.Category != "Merchandise").Sum(t => t.Amount);
+        var todayTransactions = transactions.Where(t => t.TransactionDate.Date == today).ToList();
+        decimal concessionRevenue = todayTransactions.Where(t => t.Type == "Income" && t.Category == "Concessions").Sum(t => t.Amount);
+        decimal merchRevenue = todayTransactions.Where(t => t.Type == "Income" && t.Category == "Merchandise").Sum(t => t.Amount);
+        decimal otherIncome = todayTransactions.Where(t => t.Type == "Income" && t.Category != "Concessions" && t.Category != "Merchandise").Sum(t => t.Amount);
 
         decimal baseTicketRev = realTicketRevenue;
         decimal totalRevenue = baseTicketRev + concessionRevenue + merchRevenue + otherIncome;
@@ -375,9 +395,16 @@ public class AccountantController : Controller
         }
         else
         {
-            // ค่าตั้งต้นให้เลือกคำขอที่รอดำเนินการ (REF-4002) ตามในภาพ
+            // ค่าตั้งต้นให้เลือกคำขอที่รอดำเนินการ หรืออันล่าสุด
             vm.SelectedRequest = transactions.FirstOrDefault(t => t.Status == "รอดำเนินการ") ?? transactions.FirstOrDefault();
         }
+
+        if (vm.SelectedRequest != null)
+        {
+            vm.SelectedRequest.SentEmailInfo = EmailHelper.GetLatestEmailForRequest(_env.ContentRootPath, vm.SelectedRequest.RequestId);
+        }
+
+        vm.SmtpSettings = EmailHelper.GetSmtpConfig(_env.ContentRootPath, _config);
 
         return View(vm);
     }
@@ -427,7 +454,6 @@ public class AccountantController : Controller
                     string customerEmail = item.CustomerEmail;
                     if (string.IsNullOrEmpty(customerEmail))
                     {
-                        // ลองค้นหาจาก bookings.json
                         try
                         {
                             var bPath = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
@@ -454,11 +480,11 @@ public class AccountantController : Controller
 
                     if (string.IsNullOrEmpty(customerEmail))
                     {
-                        customerEmail = "member@absolutecinema.com";
+                        customerEmail = "kawin.guyguy@gmail.com";
                     }
 
                     string baseUrl = $"{Request.Scheme}://{Request.Host}";
-                    bool emailSent = EmailHelper.SendRefundApprovalEmail(
+                    var (emailSent, statusMessage, emailId) = EmailHelper.SendRefundApprovalEmail(
                         _env.ContentRootPath,
                         _config,
                         customerEmail,
@@ -473,7 +499,14 @@ public class AccountantController : Controller
                         baseUrl
                     );
 
-                    TempData["Success"] = $"อนุมัติการคืนเงิน {id} สำเร็จ! ยอดเงินจำนวน ฿{item.Amount:N2} ได้ถูกดำเนินการคืนแล้ว และระบบได้ส่งอีเมลแจ้งผลพร้อมปุ่มยืนยันไปยัง '{customerEmail}' เรียบร้อยแล้ว";
+                    if (emailSent)
+                    {
+                        TempData["Success"] = $"อนุมัติการคืนเงิน {id} สำเร็จ! ยอดเงินจำนวน ฿{item.Amount:N2} ได้ถูกดำเนินการคืนแล้ว และระบบได้ส่งอีเมลจริงไปยัง '{customerEmail}' เรียบร้อยแล้ว (Ref: {emailId})";
+                    }
+                    else
+                    {
+                        TempData["Success"] = $"อนุมัติการคืนเงิน {id} สำเร็จ ยอดเงิน ฿{item.Amount:N2} ดำเนินการคืนเรียบร้อยแล้ว (สถานะอีเมล: {statusMessage})";
+                    }
                 }
                 else
                 {
@@ -487,6 +520,108 @@ public class AccountantController : Controller
         }
 
         return RedirectToAction("Refunds", new { id });
+    }
+
+    [HttpPost]
+    public IActionResult ResendRefundEmail(string id)
+    {
+        if (!string.IsNullOrEmpty(id))
+        {
+            var refunds = GetRefundsFromFile();
+            var item = refunds.FirstOrDefault(r => r.RequestId == id);
+            if (item != null)
+            {
+                string customerEmail = !string.IsNullOrEmpty(item.CustomerEmail) ? item.CustomerEmail : "kawin.guyguy@gmail.com";
+                string baseUrl = $"{Request.Scheme}://{Request.Host}";
+                var (emailSent, statusMessage, emailId) = EmailHelper.SendRefundApprovalEmail(
+                    _env.ContentRootPath,
+                    _config,
+                    customerEmail,
+                    item.CustomerName,
+                    item.BookingCode,
+                    item.MovieTitle,
+                    item.CinemaName,
+                    item.ShowtimeText,
+                    item.SeatNumbers,
+                    item.Amount,
+                    item.RequestId,
+                    baseUrl
+                );
+
+                if (emailSent)
+                {
+                    TempData["Success"] = $"ส่งอีเมลแจ้งผลการคืนเงินจริงไปยัง '{customerEmail}' สำเร็จเรียบร้อยแล้ว! (Ref: {emailId})";
+                }
+                else
+                {
+                    TempData["Error"] = $"ส่งอีเมลไม่สำเร็จ: {statusMessage}";
+                }
+            }
+        }
+        return RedirectToAction("Refunds", new { id });
+    }
+
+    [HttpPost]
+    public IActionResult SaveSmtpConfig([FromForm] SmtpConfig dto, string? redirectId = null)
+    {
+        if (dto != null)
+        {
+            EmailHelper.SaveSmtpConfig(_env.ContentRootPath, dto);
+            TempData["Success"] = "บันทึกการตั้งค่า SMTP เรียบร้อยแล้ว สามารถกดทดสอบส่งอีเมลได้ทันที";
+        }
+        return RedirectToAction("Refunds", new { id = redirectId });
+    }
+
+    [HttpPost]
+    public IActionResult TestSmtp([FromForm] string testEmail, string? redirectId = null)
+    {
+        if (string.IsNullOrWhiteSpace(testEmail))
+        {
+            TempData["Error"] = "กรุณาระบุอีเมลสำหรับทดสอบ";
+            return RedirectToAction("Refunds", new { id = redirectId });
+        }
+
+        bool ok = EmailHelper.SendTestEmail(_env.ContentRootPath, _config, testEmail.Trim(), out string msg);
+        if (ok)
+        {
+            TempData["Success"] = $"✅ ทดสอบส่งอีเมลสำเร็จ! ได้ส่งอีเมลทดสอบไปยัง '{testEmail}' เรียบร้อยแล้ว กรุณาตรวจสอบกล่องจดหมายของคุณ";
+        }
+        else
+        {
+            TempData["Error"] = $"❌ ทดสอบส่งอีเมลล้มเหลว: {msg}";
+        }
+
+        return RedirectToAction("Refunds", new { id = redirectId });
+    }
+
+    public IActionResult PreviewRefundEmail(string id)
+    {
+        var record = EmailHelper.GetLatestEmailForRequest(_env.ContentRootPath, id);
+        if (record != null && !string.IsNullOrEmpty(record.HtmlBody))
+        {
+            return Content(record.HtmlBody, "text/html", System.Text.Encoding.UTF8);
+        }
+
+        var refunds = GetRefundsFromFile();
+        var item = refunds.FirstOrDefault(r => r.RequestId == id);
+        if (item != null)
+        {
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+            string html = EmailHelper.GenerateRefundEmailHtml(
+                baseUrl,
+                item.RequestId,
+                item.BookingCode,
+                item.CustomerName,
+                item.MovieTitle,
+                item.CinemaName,
+                item.ShowtimeText,
+                item.SeatNumbers,
+                item.Amount
+            );
+            return Content(html, "text/html", System.Text.Encoding.UTF8);
+        }
+
+        return Content("<h3>ไม่พบข้อมูลอีเมล</h3>", "text/html", System.Text.Encoding.UTF8);
     }
 
     [HttpPost]
@@ -586,13 +721,11 @@ public class AccountantController : Controller
     {
         var list = new List<RealBookingItem>();
 
-        bool dbLoaded = false;
-        // จาก MySQL
+        // ดึงข้อมูลจริงจาก Database
         try
         {
             if (_db.Database.CanConnect())
             {
-                dbLoaded = true;
                 var dbBookings = _db.Bookings
                     .Include(b => b.User)
                     .Include(b => b.Showtime).ThenInclude(s => s.Movie)
@@ -601,7 +734,10 @@ public class AccountantController : Controller
 
                 foreach (var b in dbBookings)
                 {
-                    var p = b.Payments.FirstOrDefault();
+                    var validPayments = b.Payments.Where(p => p.IsRefunded != true).ToList();
+                    decimal bookingAmount = validPayments.Any() ? validPayments.Sum(p => p.Amount) : (b.TotalAmount ?? 0m);
+                    var p = validPayments.FirstOrDefault() ?? b.Payments.FirstOrDefault();
+
                     list.Add(new RealBookingItem
                     {
                         BookingId = b.BookingId,
@@ -609,51 +745,21 @@ public class AccountantController : Controller
                         MovieTitle = b.Showtime?.Movie?.Title ?? "ภาพยนตร์",
                         Seats = b.SeatNumbers ?? "1 ที่นั่ง",
                         SeatCount = b.SeatCount > 0 ? b.SeatCount : 1,
-                        Amount = b.TotalAmount ?? 0,
+                        Amount = bookingAmount,
                         Status = b.Status,
                         BookedAt = b.BookedAt ?? DateTime.Now,
                         TaxInvoiceNo = p?.TaxInvoiceNo ?? ""
                     });
                 }
             }
-        }
-        catch { }
-
-        // จาก Data/bookings.json เฉพาะกรณี DB ไม่ได้เชื่อมต่อ
-        if (!dbLoaded)
-        {
-            try
+            else
             {
-                var path = Path.Combine(_env.ContentRootPath, "Data", "bookings.json");
-                if (System.IO.File.Exists(path))
-                {
-                    var json = System.IO.File.ReadAllText(path);
-                    using var doc = JsonDocument.Parse(json);
-                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var item in doc.RootElement.EnumerateArray())
-                        {
-                            int id = item.TryGetProperty("BookingId", out var bid) ? bid.GetInt32() : 0;
-                            if (!list.Any(l => l.BookingId == id))
-                            {
-                                list.Add(new RealBookingItem
-                                {
-                                    BookingId = id,
-                                    CustomerName = item.TryGetProperty("CustomerName", out var cn) ? (cn.GetString() ?? "ลูกค้า") : "ลูกค้า",
-                                    MovieTitle = item.TryGetProperty("MovieTitle", out var mt) ? (mt.GetString() ?? "ภาพยนตร์") : "ภาพยนตร์",
-                                    Seats = item.TryGetProperty("SeatNumbers", out var sn) ? (sn.GetString() ?? "-") : "-",
-                                    SeatCount = item.TryGetProperty("SeatCount", out var sc) ? sc.GetInt32() : 1,
-                                    Amount = item.TryGetProperty("TotalAmount", out var ta) ? ta.GetDecimal() : 0,
-                                    Status = item.TryGetProperty("Status", out var st) ? (st.GetString() ?? "Confirmed") : "Confirmed",
-                                    BookedAt = DateTime.TryParse(item.TryGetProperty("BookedAt", out var ba) ? ba.GetString() : null, out var bdt) ? bdt : DateTime.Now,
-                                    TaxInvoiceNo = item.TryGetProperty("TaxInvoiceNo", out var iv) ? (iv.GetString() ?? "") : ""
-                                });
-                            }
-                        }
-                    }
-                }
+                ViewBag.DbError = "ไม่สามารถเชื่อมต่อฐานข้อมูล MySQL ได้";
             }
-            catch { }
+        }
+        catch (Exception ex)
+        {
+            ViewBag.DbError = "ข้อผิดพลาดฐานข้อมูล: " + ex.Message;
         }
 
         return list;

@@ -139,47 +139,36 @@
             </div>
 
             <div class="movie-status-cards-row">
-                <!-- Movie Card 1: A Quiet Place -->
-                <div class="movie-status-item">
-                    <div class="m-card-top">
-                        <span class="m-badge-outline">• โปรแกรมหน้า</span>
-                    </div>
-                    <div class="m-poster-ph"></div>
-                    <div class="m-card-body">
-                        <div class="m-card-title">A Quiet Place: Day One</div>
-                        <div class="m-card-sub">กำหนดฉาย 27 มิ.ย.</div>
-                        <form method="post" asp-action="SetMovieReady" class="mt-2">
-                            <input type="hidden" name="title" value="A Quiet Place" />
-                            <button type="submit" class="btn-set-ready">
-                                เปลี่ยนเป็น "พร้อมฉาย"
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Movie Card 2: Inside Out 2 -->
-                <div class="movie-status-item">
-                    <div class="m-card-top">
-                        <span class="m-badge-yellow">• พร้อมฉาย</span>
-                    </div>
-                    <div class="m-poster-ph white-cover"></div>
-                    <div class="m-card-body">
-                        <div class="m-card-title">Inside Out 2</div>
-                        <div class="m-card-sub">เริ่มฉายวันนี้</div>
-                    </div>
-                </div>
-
-                <!-- Movie Card 3: Bad Boys -->
-                <div class="movie-status-item">
-                    <div class="m-card-top">
-                        <span class="m-badge-green">• กำลังฉาย</span>
-                    </div>
-                    <div class="m-poster-ph"></div>
-                    <div class="m-card-body">
-                        <div class="m-card-title">Bad Boys: Ride or Die</div>
-                        <div class="m-card-sub">เหลือ 18 รอบ</div>
-                    </div>
-                </div>
+                @if (Model.MovieStatuses != null && Model.MovieStatuses.Any())
+                {
+                    @foreach (var m in Model.MovieStatuses)
+                    {
+                        var badgeClass = m.BadgeColor == "green" ? "m-badge-green" : (m.BadgeColor == "yellow" ? "m-badge-yellow" : "m-badge-outline");
+                        <div class="movie-status-item">
+                            <div class="m-card-top">
+                                <span class="@badgeClass">• @m.Status</span>
+                            </div>
+                            <div class="m-poster-ph"></div>
+                            <div class="m-card-body">
+                                <div class="m-card-title">@m.Title</div>
+                                <div class="m-card-sub">@m.Subtitle</div>
+                                @if (m.CanSetReady)
+                                {
+                                    <form method="post" asp-action="SetMovieReady" class="mt-2">
+                                        <input type="hidden" name="title" value="@m.Title" />
+                                        <button type="submit" class="btn-set-ready">
+                                            เปลี่ยนเป็น "พร้อมฉาย"
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div style="color: #8c8c9e; font-size: 13px; padding: 12px;">ไม่มีข้อมูลภาพยนตร์ในระบบ</div>
+                }
             </div>
         </div>
     </div>

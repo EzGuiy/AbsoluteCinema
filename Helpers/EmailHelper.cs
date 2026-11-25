@@ -1,9 +1,24 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Mail;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace Kawin_67091861_002.Helpers
 {
+    public class SmtpConfig
+    {
+        public string Server { get; set; } = "smtp.gmail.com";
+        public int Port { get; set; } = 587;
+        public string SenderEmail { get; set; } = "";
+        public string SenderName { get; set; } = "Absolute Cinema Customer Service";
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+        public bool EnableSsl { get; set; } = true;
+    }
+
     public class SentEmailRecord
     {
         public string EmailId { get; set; } = "";
@@ -22,28 +37,93 @@ namespace Kawin_67091861_002.Helpers
     {
         private static readonly object _lock = new();
 
-        public static bool SendRefundApprovalEmail(
-            string contentRootPath,
-            IConfiguration? config,
-            string toEmail,
-            string customerName,
+        /// <summary>
+        /// ดึงการตั้งค่า SMTP จาก Data/smtp_settings.json หรือ appsettings.json
+        /// </summary>
+        public static SmtpConfig GetSmtpConfig(string contentRootPath, IConfiguration? config)
+        {
+            try
+            {
+                var filePath = Path.Combine(contentRootPath, "Data", "smtp_settings.json");
+                if (File.Exists(filePath))
+                {
+                    var json = File.ReadAllText(filePath);
+                    var settings = JsonSerializer.Deserialize<SmtpConfig>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (settings != null) return settings;
+                }
+            }
+            catch { }
+
+            // อ่านจาก appsettings.json
+            var cfg = new SmtpConfig
+            {
+                Server = config?["SmtpSettings:Server"] ?? "smtp.gmail.com",
+                Port = int.TryParse(config?["SmtpSettings:Port"], out int p) && p > 0 ? p : 587,
+                SenderEmail = config?["SmtpSettings:SenderEmail"] ?? "",
+                SenderName = config?["SmtpSettings:SenderName"] ?? "Absolute Cinema Customer Service",
+                Username = config?["SmtpSettings:Username"] ?? "",
+                Password = config?["SmtpSettings:Password"] ?? "",
+                EnableSsl = !bool.TryParse(config?["SmtpSettings:EnableSsl"], out bool ssl) || ssl
+            };
+
+            return cfg;
+        }
+
+        /// <summary>
+        /// บันทึกการตั้งค่า SMTP ลง Data/smtp_settings.json
+        /// </summary>
+        public static void SaveSmtpConfig(string contentRootPath, SmtpConfig settings)
+        {
+            lock (_lock)
+            {
+                try
+                {
+                    var dataDir = Path.Combine(contentRootPath, "Data");
+                    if (!Directory.Exists(dataDir)) Directory.CreateDirectory(dataDir);
+                    var filePath = Path.Combine(dataDir, "smtp_settings.json");
+                    var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(filePath, json);
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>
+        /// ดึงประวัติอีเมลที่ส่งล่าสุดของ RequestId นั้นๆ
+        /// </summary>
+        public static SentEmailRecord? GetLatestEmailForRequest(string contentRootPath, string requestId)
+        {
+            if (string.IsNullOrWhiteSpace(requestId)) return null;
+            try
+            {
+                var filePath = Path.Combine(contentRootPath, "Data", "sent_emails.json");
+                if (File.Exists(filePath))
+                {
+                    var json = File.ReadAllText(filePath);
+                    var list = JsonSerializer.Deserialize<List<SentEmailRecord>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return list?.Find(e => string.Equals(e.RequestId, requestId, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>
+        /// สร้าง HTML Email เทมเพลตมาตรฐาน
+        /// </summary>
+        public static string GenerateRefundEmailHtml(
+            string baseUrl,
+            string requestId,
             string bookingCode,
+            string customerName,
             string movieTitle,
             string cinemaName,
             string showtimeText,
             string seatNumbers,
-            decimal refundAmount,
-            string requestId,
-            string baseUrl = "http://localhost:5000")
+            decimal refundAmount)
         {
-            if (string.IsNullOrWhiteSpace(toEmail)) return false;
-
             string confirmUrl = $"{baseUrl.TrimEnd('/')}/Account/ConfirmRefund?requestId={requestId}";
-            string emailId = $"EML-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}";
-            string subject = $"[ABSOLUTE CINEMA] อนุมัติการคืนเงินสำหรับรหัสจอง {bookingCode} เรียบร้อยแล้ว";
-
-            string bodyHtml = $@"
-<!DOCTYPE html>
+            return $@"<!DOCTYPE html>
 <html>
 <head>
     <meta charset='utf-8' />
@@ -123,35 +203,96 @@ namespace Kawin_67091861_002.Helpers
     </div>
 </body>
 </html>";
+        }
 
-            bool smtpOk = false;
-            string statusMsg = "Saved to outbox";
+        /// <summary>
+        /// ทดสอบส่งอีเมลผ่าน SMTP
+        /// </summary>
+        public static bool SendTestEmail(string contentRootPath, IConfiguration? config, string toEmail, out string statusMessage)
+        {
+            var smtp = GetSmtpConfig(contentRootPath, config);
+            if (string.IsNullOrWhiteSpace(smtp.Username) || string.IsNullOrWhiteSpace(smtp.Password))
+            {
+                statusMessage = "ยังไม่ได้ระบุ Username หรือ Password (รหัสผ่านแอป Gmail 16 หลัก) ในการตั้งค่า SMTP";
+                return false;
+            }
 
-            // ลองส่งผ่าน SMTP ถ้ามีการตั้งค่า
             try
             {
-                var smtpHost = config?["SmtpSettings:Server"] ?? "smtp.gmail.com";
-                var smtpPortStr = config?["SmtpSettings:Port"] ?? "587";
-                int.TryParse(smtpPortStr, out int smtpPort);
-                if (smtpPort <= 0) smtpPort = 587;
-
-                var senderEmail = config?["SmtpSettings:SenderEmail"] ?? "no-reply@absolutecinema.com";
-                var senderName = config?["SmtpSettings:SenderName"] ?? "Absolute Cinema Customer Service";
-                var username = config?["SmtpSettings:Username"];
-                var password = config?["SmtpSettings:Password"];
-
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                string fromEmail = !string.IsNullOrWhiteSpace(smtp.SenderEmail) ? smtp.SenderEmail : smtp.Username;
+                using var client = new SmtpClient(smtp.Server, smtp.Port)
                 {
-                    using var client = new SmtpClient(smtpHost, smtpPort)
+                    Credentials = new NetworkCredential(smtp.Username, smtp.Password),
+                    EnableSsl = smtp.EnableSsl,
+                    Timeout = 15000
+                };
+
+                using var mail = new MailMessage
+                {
+                    From = new MailAddress(fromEmail, smtp.SenderName),
+                    Subject = "[ABSOLUTE CINEMA] ทดสอบการเชื่อมต่อระบบส่งอีเมลจริง",
+                    Body = $"<div style='font-family:sans-serif; padding:20px;'><h2 style='color:#dfb76c;'>Absolute Cinema Email Test</h2><p>ยินดีด้วย! ระบบเชื่อมต่อ SMTP ส่งอีเมลสำเร็จแล้วในเวลา {DateTime.Now:dd/MM/yyyy HH:mm:ss น.}</p></div>",
+                    IsBodyHtml = true
+                };
+                mail.To.Add(new MailAddress(toEmail));
+
+                client.Send(mail);
+                statusMessage = "ส่งอีเมลทดสอบสำเร็จแล้ว";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                statusMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// ส่งอีเมลอนุมัติการคืนเงินหาลูกค้าจริง พร้อมบันทึกประวัติ
+        /// </summary>
+        public static (bool success, string statusMessage, string emailId) SendRefundApprovalEmail(
+            string contentRootPath,
+            IConfiguration? config,
+            string toEmail,
+            string customerName,
+            string bookingCode,
+            string movieTitle,
+            string cinemaName,
+            string showtimeText,
+            string seatNumbers,
+            decimal refundAmount,
+            string requestId,
+            string baseUrl = "http://localhost:5000")
+        {
+            if (string.IsNullOrWhiteSpace(toEmail))
+            {
+                return (false, "ไม่มีที่อยู่อีเมลผู้รับ", "");
+            }
+
+            string confirmUrl = $"{baseUrl.TrimEnd('/')}/Account/ConfirmRefund?requestId={requestId}";
+            string emailId = $"EML-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}";
+            string subject = $"[ABSOLUTE CINEMA] อนุมัติการคืนเงินสำหรับรหัสจอง {bookingCode} เรียบร้อยแล้ว";
+            string bodyHtml = GenerateRefundEmailHtml(baseUrl, requestId, bookingCode, customerName, movieTitle, cinemaName, showtimeText, seatNumbers, refundAmount);
+
+            bool smtpOk = false;
+            string statusMsg = "";
+
+            var smtp = GetSmtpConfig(contentRootPath, config);
+            if (!string.IsNullOrWhiteSpace(smtp.Username) && !string.IsNullOrWhiteSpace(smtp.Password))
+            {
+                try
+                {
+                    string fromEmail = !string.IsNullOrWhiteSpace(smtp.SenderEmail) ? smtp.SenderEmail : smtp.Username;
+                    using var client = new SmtpClient(smtp.Server, smtp.Port)
                     {
-                        Credentials = new NetworkCredential(username, password),
-                        EnableSsl = true,
-                        Timeout = 10000
+                        Credentials = new NetworkCredential(smtp.Username, smtp.Password),
+                        EnableSsl = smtp.EnableSsl,
+                        Timeout = 15000
                     };
 
                     using var mail = new MailMessage
                     {
-                        From = new MailAddress(senderEmail, senderName),
+                        From = new MailAddress(fromEmail, smtp.SenderName),
                         Subject = subject,
                         Body = bodyHtml,
                         IsBodyHtml = true
@@ -160,19 +301,19 @@ namespace Kawin_67091861_002.Helpers
 
                     client.Send(mail);
                     smtpOk = true;
-                    statusMsg = "Sent via SMTP successfully";
+                    statusMsg = $"ส่งอีเมลจริงผ่าน SMTP สำเร็จแล้ว (ไปยัง {toEmail})";
                 }
-                else
+                catch (Exception ex)
                 {
-                    statusMsg = "SMTP credentials not provided; logged to Data/sent_emails.json";
+                    statusMsg = "SMTP Error: " + (ex.InnerException?.Message ?? ex.Message);
                 }
             }
-            catch (Exception ex)
+            else
             {
-                statusMsg = "SMTP Error: " + ex.Message;
+                statusMsg = "ยังไม่ได้ระบุ SMTP Username/Password (Google App Password 16 หลัก) ในระบบ";
             }
 
-            // บันทึกลง Data/sent_emails.json เสมอ
+            // บันทึกลง Data/sent_emails.json เสมอ เพื่อให้ตรวจสอบ/เปิดดูตัวอย่างได้ตลอดเวลา
             lock (_lock)
             {
                 try
@@ -187,6 +328,9 @@ namespace Kawin_67091861_002.Helpers
                         var json = File.ReadAllText(filePath);
                         list = JsonSerializer.Deserialize<List<SentEmailRecord>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
                     }
+
+                    // เอาอันเก่าของ requestId นี้ออกเพื่ออัปเดตสถานะล่าสุด
+                    list.RemoveAll(x => string.Equals(x.RequestId, requestId, StringComparison.OrdinalIgnoreCase));
 
                     list.Insert(0, new SentEmailRecord
                     {
@@ -207,7 +351,7 @@ namespace Kawin_67091861_002.Helpers
                 catch { }
             }
 
-            return true;
+            return (smtpOk, statusMsg, emailId);
         }
     }
 }

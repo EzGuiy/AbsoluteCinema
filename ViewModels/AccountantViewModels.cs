@@ -208,6 +208,7 @@ public class RefundRequestsViewModel
 
     public List<RefundItemDto> RefundTransactions { get; set; } = new();
     public RefundItemDto? SelectedRequest { get; set; }
+    public Kawin_67091861_002.Helpers.SmtpConfig SmtpSettings { get; set; } = new();
 }
 
 public class RefundItemDto
@@ -230,6 +231,7 @@ public class RefundItemDto
     public string CancellationTimeText { get; set; } = ""; // 24/02/2026 เวลา 14:00 น. (ก่อนฉาย 7 ชั่วโมง)
     public string RefundAmountText { get; set; } = ""; // 160.00 (คืนเต็มจำนวน)
     public bool CanApproveOrReject => Status == "รอดำเนินการ";
+    public Kawin_67091861_002.Helpers.SentEmailRecord? SentEmailInfo { get; set; }
 }
 
 // ==========================================

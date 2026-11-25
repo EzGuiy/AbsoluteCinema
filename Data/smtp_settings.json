@@ -1,0 +1,9 @@
+{
+  "Server": "smtp.gmail.com",
+  "Port": 587,
+  "SenderEmail": "kawin.guyguy@gmail.com",
+  "SenderName": "Absolute Cinema Customer Service",
+  "Username": "GUIY \u0E01\u0E01\u0E01",
+  "Password": "Nopeforyou1",
+  "EnableSsl": true
+}

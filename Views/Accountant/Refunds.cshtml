@@ -10,9 +10,15 @@
         <div class="header-pre-title">REFUND REQUESTS</div>
         <h1 class="header-main-title">คืนเงิน</h1>
     </div>
-    <div class="system-live-badge">
-        <span class="live-dot"></span>
-        <span>SYSTEM LIVE</span>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn btn-outline-warning btn-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#smtpConfigModal" style="border-radius:8px; font-weight:600; font-size:12.5px; padding:6px 14px;">
+            <i class="bi bi-gear-fill"></i>
+            <span>ตั้งค่าอีเมลส่งจริง (SMTP)</span>
+        </button>
+        <div class="system-live-badge">
+            <span class="live-dot"></span>
+            <span>SYSTEM LIVE</span>
+        </div>
     </div>
 </div>
 
@@ -219,6 +225,64 @@
                             @selected.Status
                         </strong>
                     </div>
+
+                    @if (selected.Status == "อนุมัติแล้ว")
+                    {
+                        <!-- Email Dispatch Card -->
+                        <div style="background:#12121a; border:1px solid #282838; border-radius:10px; padding:16px; margin-top:20px; width:100%; text-align:left;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                                <span style="font-size:12px; font-weight:700; color:#dfb76c; text-transform:uppercase; letter-spacing:0.8px;">
+                                    <i class="bi bi-envelope-fill me-1"></i> สถานะการส่งอีเมลแจ้งลูกค้า
+                                </span>
+                                @if (selected.SentEmailInfo != null && selected.SentEmailInfo.SmtpSentSuccessfully)
+                                {
+                                    <span class="badge bg-success" style="font-size:11px; padding:4px 8px;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> ส่งจริงสำเร็จ
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark" style="font-size:11px; padding:4px 8px;">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> ยังไม่ส่งจริง / บันทึกลง Outbox
+                                    </span>
+                                }
+                            </div>
+
+                            <div style="font-size:12.5px; color:#a0a0b2; margin-bottom:6px;">
+                                <strong>อีเมลผู้รับ:</strong> <span class="text-white font-monospace">@(!string.IsNullOrEmpty(selected.CustomerEmail) ? selected.CustomerEmail : "kawin.guyguy@gmail.com")</span>
+                            </div>
+
+                            @if (selected.SentEmailInfo != null)
+                            {
+                                <div style="font-size:11.5px; color:#8c8c9e; margin-bottom:12px; line-height:1.4;">
+                                    <strong>สถานะระบบ:</strong> @selected.SentEmailInfo.StatusMessage
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="font-size:11.5px; color:#8c8c9e; margin-bottom:12px; line-height:1.4;">
+                                    <strong>สถานะระบบ:</strong> ยังไม่มีประวัติการส่งออก (กดปุ่มส่งอีเมลจริงด้านล่าง)
+                                </div>
+                            }
+
+                            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                                <form method="post" asp-action="ResendRefundEmail" class="d-inline">
+                                    <input type="hidden" name="id" value="@selected.RequestId" />
+                                    <button type="submit" class="btn btn-sm btn-primary" style="font-size:12px; border-radius:6px; font-weight:600; padding:6px 12px;">
+                                        <i class="bi bi-send-fill me-1"></i> ส่งอีเมลจริงอีกครั้ง
+                                    </button>
+                                </form>
+
+                                <a href="@Url.Action("PreviewRefundEmail", new { id = selected.RequestId })" target="_blank" class="btn btn-sm btn-outline-light" style="font-size:12px; border-radius:6px; padding:6px 12px;">
+                                    <i class="bi bi-eye-fill me-1"></i> ดูตัวอย่างอีเมล (Preview)
+                                </a>
+
+                                <a href="/Account/ConfirmRefund?requestId=@selected.RequestId" target="_blank" class="btn btn-sm btn-outline-warning" style="font-size:12px; border-radius:6px; padding:6px 12px;">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> เปิดหน้ายืนยันแทนลูกค้า
+                                </a>
+                            </div>
+                        </div>
+                    }
                 }
             </div>
         }
@@ -559,3 +623,80 @@
         }
     }
 </style>
+
+<!-- Modal ตั้งค่าระบบส่งอีเมลจริง (SMTP Settings) -->
+<div class="modal fade" id="smtpConfigModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background:#13131a; border:1px solid #2f2f42; color:#fff; border-radius:12px;">
+            <div class="modal-header" style="border-bottom:1px solid #252536; padding:18px 24px;">
+                <h5 class="modal-title" style="font-weight:700; font-size:16px; color:#dfb76c;">
+                    <i class="bi bi-gear-fill me-2"></i> ตั้งค่าการเชื่อมต่อเพื่อส่งอีเมลจริง (SMTP Settings)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="post" asp-action="SaveSmtpConfig">
+                <input type="hidden" name="redirectId" value="@(selected?.RequestId ?? "")" />
+                <div class="modal-body" style="padding:22px 24px; font-size:13.5px;">
+                    <!-- Instruction alert box -->
+                    <div class="alert alert-info" style="background:#0c1929; border:1px solid #1d4ed8; color:#93c5fd; font-size:13px; line-height:1.6; border-radius:8px;">
+                        <strong class="d-block mb-1" style="color:#60a5fa;"><i class="bi bi-info-circle-fill me-1"></i> วิธีใช้งานส่งอีเมลจริงผ่าน Gmail:</strong>
+                        1. ล็อกอินเข้าบัญชี Google ของท่าน แล้วไปที่ <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#fde047; font-weight:600; text-decoration:underline;">Google App Passwords (คลิกเพื่อเปิด)</a><br />
+                        2. ตรวจสอบว่าเปิด <strong>2-Step Verification</strong> แล้ว<br />
+                        3. สร้าง <strong>App Password (รหัสผ่านสำหรับแอป)</strong> ตั้งชื่อ เช่น <em>Cinema</em> แล้วกดสร้าง<br />
+                        4. นำรหัสผ่าน <strong>16 ตัวอักษร</strong> ที่ได้ มาวางในช่อง <strong>Password (รหัสผ่านแอป)</strong> ด้านล่าง
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label text-muted small">SMTP Server</label>
+                            <input type="text" name="Server" class="form-control" value="@Model.SmtpSettings.Server" style="background:#1c1c27; border:1px solid #2f2f42; color:#fff;" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted small">Port</label>
+                            <input type="number" name="Port" class="form-control" value="@Model.SmtpSettings.Port" style="background:#1c1c27; border:1px solid #2f2f42; color:#fff;" required />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">ชื่อผู้ส่ง (Sender Name)</label>
+                            <input type="text" name="SenderName" class="form-control" value="@Model.SmtpSettings.SenderName" style="background:#1c1c27; border:1px solid #2f2f42; color:#fff;" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">อีเมลผู้ส่ง (Sender Email)</label>
+                            <input type="email" name="SenderEmail" class="form-control" value="@(!string.IsNullOrEmpty(Model.SmtpSettings.SenderEmail) ? Model.SmtpSettings.SenderEmail : Model.SmtpSettings.Username)" placeholder="เช่น yourname@gmail.com" style="background:#1c1c27; border:1px solid #2f2f42; color:#fff;" required />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Username (บัญชี Gmail)</label>
+                            <input type="text" name="Username" class="form-control" value="@Model.SmtpSettings.Username" placeholder="เช่น yourname@gmail.com" style="background:#1c1c27; border:1px solid #2f2f42; color:#fff;" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Password (รหัสผ่านแอป 16 หลัก จาก Google)</label>
+                            <input type="password" name="Password" class="form-control" value="@Model.SmtpSettings.Password" placeholder="เช่น abcd efgh ijkl mnop" style="background:#1c1c27; border:1px solid #2f2f42; color:#fff;" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #252536; padding:16px 24px;">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" style="border-radius:6px;">ปิด</button>
+                    <button type="submit" class="btn btn-warning btn-sm" style="font-weight:600; border-radius:6px; color:#000;">
+                        <i class="bi bi-save-fill me-1"></i> บันทึกการตั้งค่า
+                    </button>
+                </div>
+            </form>
+
+            <!-- Test Connection Section -->
+            <div style="padding:18px 24px; background:#101016; border-top:1px dashed #282838; border-radius:0 0 12px 12px;">
+                <form method="post" asp-action="TestSmtp" class="d-flex align-items-center gap-2 flex-wrap">
+                    <input type="hidden" name="redirectId" value="@(selected?.RequestId ?? "")" />
+                    <span style="font-size:13px; font-weight:600; color:#e0e0ec; min-width:140px;">
+                        <i class="bi bi-envelope-check me-1 text-info"></i> ทดสอบส่งอีเมล:
+                    </span>
+                    <input type="email" name="testEmail" value="@(!string.IsNullOrEmpty(selected?.CustomerEmail) ? selected.CustomerEmail : "kawin.guyguy@gmail.com")" class="form-control form-control-sm" style="max-width:280px; background:#1c1c27; border:1px solid #2f2f42; color:#fff;" placeholder="อีเมลสำหรับทดสอบ" required />
+                    <button type="submit" class="btn btn-info btn-sm" style="font-weight:600; border-radius:6px;">
+                        <i class="bi bi-send-check-fill me-1"></i> ทดสอบส่งเดี๋ยวนี้
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

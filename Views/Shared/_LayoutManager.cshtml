@@ -314,6 +314,34 @@
                 </a>
             </li>
 
+            @if (Context.Session.GetString("UserRole") == "Admin")
+            {
+                <li style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(0,0,0,0.15);">
+                    <a asp-controller="Account" asp-action="UserList" class="mgr-nav-link">
+                        <div class="mgr-nav-left">
+                            <i class="bi bi-people-fill text-dark"></i>
+                            <span>จัดการผู้ใช้ (Admin)</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Accountant" asp-action="Dashboard" class="mgr-nav-link">
+                        <div class="mgr-nav-left">
+                            <i class="bi bi-calculator-fill text-dark"></i>
+                            <span>ระบบบัญชี (Accountant)</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Seed" asp-action="Index" class="mgr-nav-link">
+                        <div class="mgr-nav-left">
+                            <i class="bi bi-database-fill text-dark"></i>
+                            <span>จัดการ Database</span>
+                        </div>
+                    </a>
+                </li>
+            }
+
             <!-- Back to Home & Logout -->
             <li style="margin-top:auto; padding-top:10px; border-top:1px solid rgba(0,0,0,0.08);">
                 <a asp-controller="Home" asp-action="Index" class="mgr-nav-link">
@@ -348,7 +376,7 @@
                 </div>
                 <div class="mgr-profile-text">
                     <div class="mgr-name">@Context.Session.GetString("UserName")</div>
-                    <div class="mgr-role">ผู้จัดการสาขา</div>
+                    <div class="mgr-role">@(Context.Session.GetString("UserRole") == "Admin" ? "ผู้ดูแลระบบ (Admin)" : "ผู้จัดการสาขา")</div>
                 </div>
             </div>
             <i class="bi bi-three-dots text-dark fs-5" style="cursor:pointer;"></i>
@@ -358,6 +386,20 @@
     <!-- Main Content Area -->
     <div class="main-wrapper">
         <main class="content-body">
+            @if (ViewBag.DbError != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="background: #2a0b0b; border-color: #ef4444; color: #fca5a5;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>ข้อผิดพลาดฐานข้อมูล:</strong> @ViewBag.DbError
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="background: #2a0b0b; border-color: #ef4444; color: #fca5a5;">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["Error"]
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            }
             @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="background:#0a291e; border-color:#10b981; color:#34d399;">

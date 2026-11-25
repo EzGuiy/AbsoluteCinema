@@ -103,16 +103,16 @@ public class CreateShowtimeDto
 public class ManagerMovieCardDto
 {
     public int MovieId { get; set; }
-    public string Title { get; set; } = ""; // Dune: Part Two
-    public string ThaiTitle { get; set; } = ""; // ดูน ภาคสอง
-    public string Genre { get; set; } = ""; // Sci-Fi • 166 นาที
-    public string ReleaseDateText { get; set; } = ""; // เริ่มฉาย 29 ก.พ. 2569
-    public string AgeRating { get; set; } = "PG-13";
-    public string StatusBadge { get; set; } = "กำลังฉาย"; // กำลังฉาย, พร้อมฉาย, โปรแกรมหน้า, ปิดรอบแล้ว
+    public string Title { get; set; } = "";
+    public string Genre { get; set; } = "";
+    public int DurationMins { get; set; } = 120;
+    public decimal PriceMin { get; set; }
+    public decimal PriceMax { get; set; }
+    public double Rating { get; set; }
+    public string ReleaseDateText { get; set; } = "";
+    public string StatusBadge { get; set; } = "กำลังฉาย";
     public string StatusColor { get; set; } = "green";
-    public string DirectorAndCast { get; set; } = "Denis Villeneuve • Timothée Chalamet";
-    public string ShowingHalls { get; set; } = "โรง 1 (IMAX Laser), โรง 5 (Digital)";
-    public string TicketSalesAvg { get; set; } = "ยอดจำหน่ายตั๋วเฉลี่ย 88.5% ของทุกรอบ";
+    public string Description { get; set; } = "";
     public string PosterUrl { get; set; } = "";
 }
 
@@ -222,9 +222,23 @@ public class ManagerStaffViewModel
 public class CreateStaffMemberDto
 {
     public string Name { get; set; } = "";
-    public string RoleTitle { get; set; } = "พนักงานบริการทั่วไป";
+    public string Username { get; set; } = "";
+    public string RoleTitle { get; set; } = "Staff";
     public string ShiftText { get; set; } = "เวรเช้า (08:00 - 16:00)";
     public string AccessLevel { get; set; } = "ระดับเริ่มต้น";
+}
+
+public class EditMovieDto
+{
+    public int MovieId { get; set; }
+    public string Title { get; set; } = "";
+    public string Genre { get; set; } = "";
+    public int DurationMins { get; set; } = 120;
+    public decimal PriceMin { get; set; } = 200;
+    public decimal PriceMax { get; set; } = 350;
+    public string Status { get; set; } = "Showing";
+    public string Description { get; set; } = "";
+    public string? PosterUrl { get; set; }
 }
 
 // ==========================================
